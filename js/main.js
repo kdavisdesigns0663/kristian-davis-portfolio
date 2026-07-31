@@ -118,6 +118,44 @@ if (stage && dropWrap && flash) {
 // tap-to-expand list instead of positioned around the ripple stage.
 const accordion = document.getElementById('workAccordion');
 if (accordion) {
+  // Scaled-down version of the desktop drop-fall + ring sequence, played at the
+  // header/panel seam each time an item opens. Same reflow-before-transition
+  // fix as the desktop rings (see playSequence above) — required for the
+  // width/height transition to actually animate instead of snapping instantly.
+  function playMiniRipple(rippleEl) {
+    const dropWrap = rippleEl.querySelector('.mini-drop-wrap');
+    const flash = rippleEl.querySelector('.mini-flash');
+    rippleEl.querySelectorAll('.mini-ring').forEach(r => r.remove());
+    dropWrap.classList.remove('impact');
+    dropWrap.style.opacity = '0';
+    dropWrap.offsetHeight;
+    dropWrap.classList.add('falling');
+
+    setTimeout(() => {
+      dropWrap.classList.remove('falling');
+      dropWrap.classList.add('impact');
+      flash.classList.add('flash');
+
+      let delay = 0;
+      [1, 2].forEach(() => {
+        const ring = document.createElement('div');
+        ring.className = 'mini-ring';
+        rippleEl.appendChild(ring);
+        setTimeout(() => {
+          ring.style.transition = 'width .9s ease-out, height .9s ease-out, opacity .9s ease-out';
+          ring.style.opacity = '0.5';
+          ring.offsetHeight;
+          ring.style.width = ring.style.height = '170px';
+          ring.style.opacity = '0';
+        }, delay);
+        setTimeout(() => ring.remove(), 1300);
+        delay += 180;
+      });
+
+      setTimeout(() => { flash.classList.remove('flash'); }, 400);
+    }, 450);
+  }
+
   projects.forEach(p => {
     const item = document.createElement('div');
     item.className = 'work-item';
@@ -127,6 +165,10 @@ if (accordion) {
     header.type = 'button';
     header.setAttribute('aria-expanded', 'false');
     header.innerHTML = `<span><span class="name">${p.name}</span><span class="hook">${p.hook}</span></span><span class="chevron">v</span>`;
+
+    const ripple = document.createElement('div');
+    ripple.className = 'work-item-ripple';
+    ripple.innerHTML = `<div class="mini-drop-wrap"><div class="mini-drop-shape"></div></div><div class="mini-flash"></div>`;
 
     const panel = document.createElement('div');
     panel.className = 'work-item-panel';
@@ -144,10 +186,12 @@ if (accordion) {
       if (!isOpen) {
         item.classList.add('open');
         header.setAttribute('aria-expanded', 'true');
+        playMiniRipple(ripple);
       }
     });
 
     item.appendChild(header);
+    item.appendChild(ripple);
     item.appendChild(panel);
     accordion.appendChild(item);
   });
