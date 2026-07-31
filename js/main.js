@@ -113,6 +113,46 @@ if (stage && dropWrap && flash) {
   if (workSection) rippleObserver.observe(workSection);
 }
 
+// --- Work section: mobile accordion fallback (below ~700px, see style.css) ---
+// Same `projects` array as the desktop raindrop layout, just rendered as a
+// tap-to-expand list instead of positioned around the ripple stage.
+const accordion = document.getElementById('workAccordion');
+if (accordion) {
+  projects.forEach(p => {
+    const item = document.createElement('div');
+    item.className = 'work-item';
+
+    const header = document.createElement('button');
+    header.className = 'work-item-header';
+    header.type = 'button';
+    header.setAttribute('aria-expanded', 'false');
+    header.innerHTML = `<span><span class="name">${p.name}</span><span class="hook">${p.hook}</span></span><span class="chevron">v</span>`;
+
+    const panel = document.createElement('div');
+    panel.className = 'work-item-panel';
+    panel.innerHTML = `
+      <div class="preview ${p.key} work-item-preview"><div class="bar"></div><div class="body"><span style="width:70%"></span><span style="width:45%"></span></div></div>
+      <a class="work-item-btn mono" href="${p.href}">view project</a>
+    `;
+
+    header.addEventListener('click', () => {
+      const isOpen = item.classList.contains('open');
+      accordion.querySelectorAll('.work-item.open').forEach(other => {
+        other.classList.remove('open');
+        other.querySelector('.work-item-header').setAttribute('aria-expanded', 'false');
+      });
+      if (!isOpen) {
+        item.classList.add('open');
+        header.setAttribute('aria-expanded', 'true');
+      }
+    });
+
+    item.appendChild(header);
+    item.appendChild(panel);
+    accordion.appendChild(item);
+  });
+}
+
 // Smooth scroll for in-page nav links
 document.querySelectorAll('a[href^="#"]').forEach(function(link){
   link.addEventListener('click', function(e){
