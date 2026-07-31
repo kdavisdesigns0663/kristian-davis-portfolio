@@ -278,38 +278,12 @@ Reference file for the static radial layout and ripple center concept:
 `reference/web-ripple-center.html` (may need to be re-added if missing —
 see the sync warning pattern noted elsewhere in this doc).
 
-### BUILT (2026-07-31) — radial work index, real headshot
-- **Work index** is now built as the radial "web" from
-  `reference/web-ripple-center.html`: 5 nodes on a perfect circle (72°
-  apart), violet spoke lines fading outward, 3 concentric ripple rings at
-  center. Hover or keyboard focus brings a node/title forward in violet and
-  fades siblings to 35% opacity, mirroring the accessibility parity rule
-  from the earlier row-based design. Each node links to its case study
-  page. Below 700px width the radial layout collapses to a simple stacked
-  list (ripple/spokes hidden, nodes render as a plain vertical list) since
-  the radial geometry doesn't have a tested mobile treatment.
-  **Not built:** the load-in ripple/travel animation described above — that
-  section is explicitly "spec only," and the current build is the static
-  settled state only. Also not built: the ghost words proposed above for
-  the Work/About/Contact sections — those are flagged "NOT locked, need
-  real development," so none were added.
-- **Headshot** — `img/kristian.jpeg` has since been added to the repo (this
-  note previously said the photo was still pending). Treated it as the
-  real final image rather than building a placeholder, since a real file
-  now exists at that path and `img-treatment-preview.html` references it
-  by name. Built into the About section grid (`.about .photo`) using the
-  exact duotone/asymmetric-crop treatment from `img-treatment-preview.html`
-  (grayscale + contrast + brightness filter, violet-to-black diagonal
-  gradient overlay via multiply blend, right-edge fade into the page
-  background instead of a hard box edge). If this was in fact still meant
-  as a placeholder, flag it and it can be swapped.
-- **Old work-index CSS removed** — the row/bloom-based index and the
-  12-column scattered-grid concept are both fully superseded now (not just
-  documented as superseded). Their CSS (`.index`, `.row`, `.bloom`, and
-  the per-project `.screen` color rules) has been deleted rather than left
-  dead in the stylesheet.
-
 ### Still needed, not yet designed
+- **Headshot placeholder** in the About section — actual photo still
+  pending from the owner. Build a clearly-marked, correctly duotone-treated
+  placeholder slot (see earlier `img-treatment-preview.html` reference for
+  the treatment style) so the layout is complete even without the final
+  image.
 - **Nav bar hover states** — currently generic/default, explicitly flagged
   as "lackluster." Needs real design attention matching the rest of the
   site's specificity (scale, color, asymmetry), not a generic underline or
@@ -320,7 +294,92 @@ see the sync warning pattern noted elsewhere in this doc).
   words/section labels still need the same level of review the hero went
   through.
 
+## MAJOR UPDATE 4 — index.html, style.css, and main.js actually rewritten (not just reference files)
+
+Previous updates in this doc mostly described changes and pointed to
+`reference/` mockup files, expecting Claude Code to apply them to the live
+site. That repeatedly broke down — the live `index.html` fell out of sync
+with the locked hero and work-section designs multiple times, causing
+regressions the owner had to catch by screenshotting the rendered page. This
+update actually rewrites the real site files directly, not just the
+reference mockups. Treat this as the current source of truth for the
+homepage; older instructions above describing the hero or work section as
+"not yet built" are superseded.
+
+### Ghost word status
+Currently "OBSESSED" in the live file, explicitly as a **placeholder the
+owner is fine leaving for now** — not a final decision, don't treat it as
+locked, but also don't "fix" it unprompted. "NOSY" was tried and rejected
+(too juvenile). "HUNCH" was proposed as a stronger alternative but not yet
+chosen over "OBSESSED." Revisit only if asked.
+
+### Work section — completely replaced, static web/grid concepts are DEAD
+The work section is no longer a list, a scattered grid, or a static radial
+spoke-web. It is now a **scroll-triggered ripple reveal**:
+- A single violet drop sits at the center of a 600×600 stage on page load,
+  inert.
+- The moment the `#work` section is scrolled into view (via
+  `scroll-snap-type: y mandatory` on `html`, `scroll-snap-align: start` and
+  `scroll-snap-stop: always` on each top-level section — every section is
+  forced to a hard, full-viewport stop, no gesture-based partial scroll
+  between sections), three rings animate outward from the drop like ripples
+  in water.
+- The 4 project names fade in, positioned at equal angle (90° apart — 4
+  projects now, not 5) and equal radius from center, timed to settle in as
+  the ripple passes their radius.
+- The ripple **plays once only** (`rippleHasPlayed` flag in main.js) —
+  scrolling away and back does not replay it. This was a deliberate choice;
+  revisit only if the owner asks for it to replay every time.
+- **Hover or keyboard-focus on any project name** triggers a preview to
+  bloom from the exact CENTER of the stage (not from the project's own
+  position) — a colored screen preview scales up from small to large,
+  tinted to that project's own accent color, while sibling project names
+  dim to 25% opacity. This is currently a colored placeholder block (bar +
+  a couple of lines), NOT a real cropped screenshot — swapping in real
+  images is a separate, not-yet-scoped task.
+- Projects currently live in a plain JS array at the top of the ripple logic
+  in `js/main.js` — adding a project is adding one object to that array,
+  nothing else needs to change. **Freya Sews has been removed from this
+  array** (owner's explicit request — down to 4 active projects: Nitefind,
+  SmiteForge, Zentra, Amun). This does not mean the Freya Sews case study
+  page should be deleted, just that it's not currently linked from the
+  homepage.
+
+Reference/test files for this behavior: `reference/scroll-snap-ripple.html`
+is the most complete tested version (scroll-snap + reliable trigger).
+`reference/work-ripple-reveal.html` is an earlier version with the hover
+preview logic before scroll-snap was added. The LIVE `js/main.js` combines
+both — treat the live file as authoritative over either reference file if
+they ever disagree.
+
+### Scroll-snap now applies to the WHOLE page, not just the work section
+`html { scroll-snap-type: y mandatory; }` plus `.snap-section` (applied to
+hero, work, about, contact) with `scroll-snap-align: start` and
+`scroll-snap-stop: always`. This means every top-level section is exactly
+`100vh` and scrolling hard-stops on each one rather than allowing a
+half-scrolled state between sections. This was an explicit request ("force
+you down to the next section, not a huge scrolling gesture") and is also
+what fixes the ripple's reliability, since the trigger watches for the
+section being (almost) fully in view, which scroll-snap guarantees happens
+cleanly.
+
+### About and Contact sections
+Restructured to sit inside full-viewport snap-sections (vertically centered
+via flexbox) rather than plain stacked blocks. Copy content unchanged from
+the last copy pass. NOTE: the owner has flagged the About section itself as
+still needing a real redesign once photo direction is confirmed (see
+"Still needed" section above) — the current version is a minimal adaptation
+to fit the new scroll-snap structure, not a finished redesign.
+
+### Cleanup note, not urgent
+`.index`, `.row`, `.bloom` and related CSS classes in style.css are now
+dead code (leftover from the old stacked-list work section). Safe to remove
+whenever convenient — not currently causing any bugs since nothing
+references them anymore, just unused weight in the stylesheet.
+
 ## Case studies — five projects, in priority build order
+
+
 
 
 1. **Nitefind** — nightlife discovery app, 10 weeks, sole designer. Furthest along;
