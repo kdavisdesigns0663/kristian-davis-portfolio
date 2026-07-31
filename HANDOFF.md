@@ -377,10 +377,137 @@ dead code (leftover from the old stacked-list work section). Safe to remove
 whenever convenient — not currently causing any bugs since nothing
 references them anymore, just unused weight in the stylesheet.
 
+## MAJOR UPDATE 5 — root cause of the missing ripple found and fixed, real photo implemented
+
+### The ripple bug — actual root cause, not a mystery
+Across several rounds, the owner kept reporting the ripple animation wasn't
+appearing. The real cause: a previous update (MAJOR UPDATE 4) rewrote
+`index.html` and `style.css` to the fixed/tested version, but **`js/main.js`
+was never actually updated to match** — it was still running old,
+pre-fix JavaScript (wrong element IDs after the markup changed to a
+drop-wrap/drop-shape structure, cardinal angles instead of the X-layout,
+and the ring animation without the reflow fix described below). This is
+now fixed — `js/main.js` matches `reference/raindrop-v4.html` exactly.
+**Lesson for future sessions: when CSS/HTML and JS are part of the same
+feature, verify all three files were actually updated together, not just
+the ones that were top of mind.**
+
+### Two real technical bugs, now fixed (not just described — actually fixed in the live files)
+1. **Ring animation not appearing**: CSS transitions do not reliably animate
+   from an implicit/unset "auto" size to an explicit one. The `.ring`
+   element now has explicit `width:0; height:0;` in its base CSS, and the
+   JS forces a reflow (`ring.offsetHeight`) after setting the transition
+   property but before changing to the target size — this is required for
+   the browser to actually animate the change rather than snapping
+   instantly or not rendering the transition at all.
+2. **Drop shape skewing/"weirdly shaped"**: applying a vertical
+   squash/stretch scale to the SAME element that's rotated 45° stretches
+   along the rotated diagonal axis, not true vertical, causing visible
+   skew. Fixed by splitting into two nested elements: `.drop-wrap` handles
+   position/fall/squash-stretch in true screen-space, `.drop-shape` (a
+   child of the wrapper) handles ONLY the rotation. Never recombine these
+   into one element.
+
+### Full animation sequence, as currently implemented and tested
+1. Section scrolls into view (via IntersectionObserver on `#work`,
+   threshold 0.9, relying on scroll-snap to guarantee a clean full-viewport
+   entry).
+2. A small violet teardrop (`border-radius: 50% 50% 50% 0` rotated 90°
+   clockwise — NOT 45°, the owner specifically asked for the extra
+   rotation) falls from above the stage to center over 1.2s, with a slight
+   vertical stretch while falling (cartoony, not physically realistic —
+   this was explicitly OK'd as "doesn't have to be super dynamic, can
+   almost be cartoony").
+3. On impact: a quick white flash, the drop disappears (squash + fade),
+   and simultaneously three violet rings ripple outward from center AND
+   the four project names launch outward from the exact center point,
+   synced to the first ring's timing (only a 50ms stagger between names,
+   not spread across a long independent timeline) so it reads as one
+   connected event, not two separate animations.
+4. Projects are arranged in an **X layout** (angles -45°/45°/135°/225°),
+   NOT a cross/plus shape (which was the first, rejected attempt at
+   -90/0/90/180). Same equal-angle, equal-radius rule underneath, just
+   rotated 45° from cardinal.
+5. All four names are center-anchored with `text-align: center` uniformly
+   — an earlier version tried asymmetric left/right text anchoring based on
+   angle, which was rejected as "messy." Uniform centering is simpler and
+   reads as more intentional for this specific 4-point symmetric layout.
+6. **The sequence resets when the section scrolls OUT of view** (the
+   IntersectionObserver's else-branch calls `resetSequence()`, clearing all
+   rings, hiding the drop, and snapping project nodes back to
+   invisible/center) — scrolling back in replays the full sequence from
+   scratch. This was an explicit request; do not remove this reset behavior.
+7. Hovering OR keyboard-focusing any settled project name blooms a colored
+   preview screen from the center point (still a placeholder colored block,
+   not a real screenshot), while sibling names dim to 25% opacity.
+
+### About section — real photo now implemented
+The owner provided an actual headshot (saved as `img/kristian-about.jpg`).
+Quarter-turn pose with arms crossed, natural skin texture (no
+over-smoothing issue this time — this photo does NOT need the "disguise
+via heavy treatment" workaround discussed for an earlier, rejected photo).
+Implemented with the duotone/asymmetric treatment tested earlier in
+`reference/img-treatment-preview.html`: grayscale + contrast filter, a
+violet-to-black gradient multiplied over it, positioned in a fixed-size
+frame (340×420px desktop) to the left of the About text, with the right
+edge of the photo fading into the page background rather than a hard
+rectangular cut-off. Stacks above the text on mobile instead of
+side-by-side. This is real, implemented code now — not a placeholder or a
+"still pending" item.
+
+### Still pending, unchanged from before
+- Real cropped screenshots for the hover-preview screens (currently colored
+  placeholder blocks).
+- Mobile version of the work section — owner wants a dropdown/expandable
+  list per project (tap reveals preview + a "view project" button, with
+  "a similar raindrop effect" on interaction) instead of the desktop X
+  layout, which does not translate to narrow viewports. Concept discussed,
+  NOT yet designed or built — needs its own dedicated pass.
+- Ghost word still "OBSESSED" as an explicit placeholder — not finalized.
+- Per-section ghost words (work/about/contact) — not yet built.
+- Nav bar hover states — still flagged as generic/lackluster, not yet
+  redesigned.
+
+## MAJOR UPDATE 6 — rotation math corrected, ripple spacing fixed, liquid text formation added
+
+### Drop rotation — verified mathematically, not guessed
+With `border-radius: 50% 50% 50% 0`, the sharp corner sits at bottom-left
+pre-rotation. Two earlier guesses (90°, then a previous 45°) were both
+wrong. Working through the actual CSS rotation matrix confirms **135°** is
+correct for the sharp point to land straight up. If this shape or
+border-radius values ever change, redo this math rather than guessing —
+guessing has produced the wrong answer twice in this project already.
+
+### Ripple rings — spacing was the bug, not the concept
+Multiple rings were being created correctly, but with only 180ms between
+each and a shared 1.8s duration, their leading edges stayed close together
+in size at any given moment and visually blended into one thick/blurry
+band rather than reading as distinct ripples. Fixed by widening the stagger
+to **420ms between each of 4 rings** (reduced from 5 — "a few" per the
+owner's own words, not many) and shortening duration slightly to 1.5s so
+each ring clears more visual space before the next one starts. Each ring
+also has a randomized, slightly irregular border-radius (not a perfect
+circle) and gains blur while losing border-width as it expands, so it
+dissipates like real water rather than staying a crisp static line.
+
+### Text formation — now liquid, not just a slide-and-fade
+Project names now start at `filter: blur(8px)` and sharpen to `blur(0)` as
+they settle into place (transition timing: opacity 0.9s, transform 1.3s,
+filter 1.1s — filter resolves faster than the position settle, so text
+looks focused slightly before it's fully arrived, which reads as more
+natural). The position transition also now uses a bouncy easing curve
+(`cubic-bezier(.34,1.56,.64,1)`) instead of a flat deceleration — a slight
+overshoot-and-settle, closer to how a droplet actually behaves than a UI
+element easing into place.
+
+
+
+
+
+
+
+
 ## Case studies — five projects, in priority build order
-
-
-
 
 1. **Nitefind** — nightlife discovery app, 10 weeks, sole designer. Furthest along;
    see `case-studies/nitefind.html` for real content already drafted (mood board

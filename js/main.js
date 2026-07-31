@@ -1,29 +1,24 @@
-// --- Work section: ripple reveal, scroll-triggered, center-anchored hover preview ---
-// 4 projects currently. To add another, just add one object here — nothing else
-// needs to change, position/animation are computed from this list.
+// --- Work section: raindrop fall + ripple reveal, scroll-triggered, center-anchored hover preview ---
+// 4 projects currently, arranged in an X (angles 45deg apart from cardinal).
+// To add another, just add one object here — position/animation are computed from this list.
 const projects = [
-  { key:'nitefind', name:'Nitefind', hook:'too many options, not enough certainty', href:'case-studies/nitefind.html', angle:-90, radius:220 },
-  { key:'smiteforge', name:'SmiteForge', hook:'one brand, two very different platforms', href:'case-studies/smiteforge.html', angle:0, radius:220 },
-  { key:'zentra', name:'Zentra', hook:'saving money without losing motivation', href:'case-studies/zentra.html', angle:90, radius:220 },
-  { key:'amun', name:'Amun', hook:'still being built', href:'case-studies/amun.html', angle:180, radius:220 },
+  { key:'nitefind', name:'Nitefind', hook:'too many options, not enough certainty', href:'case-studies/nitefind.html', angle:-45, radius:220 },
+  { key:'smiteforge', name:'SmiteForge', hook:'one brand, two very different platforms', href:'case-studies/smiteforge.html', angle:45, radius:220 },
+  { key:'zentra', name:'Zentra', hook:'saving money without losing motivation', href:'case-studies/zentra.html', angle:135, radius:220 },
+  { key:'amun', name:'Amun', hook:'still being built', href:'case-studies/amun.html', angle:225, radius:220 },
 ];
 
 const stage = document.getElementById('rippleStage');
-if (stage) {
-  const cx = 300, cy = 300;
-  function place(el, angle, radius) {
-    const rad = angle * Math.PI / 180;
-    el.style.left = (cx + radius * Math.cos(rad)) + 'px';
-    el.style.top = (cy + radius * Math.sin(rad)) + 'px';
-    el.style.transform = (angle > -45 && angle < 135) ? 'translate(0,-50%)' : 'translate(-100%,-50%)';
-  }
+const dropWrap = document.getElementById('dropWrap');
+const flash = document.getElementById('flash');
 
+if (stage && dropWrap && flash) {
   projects.forEach(p => {
     const el = document.createElement('a');
     el.className = 'node';
     el.href = p.href;
+    el.tabIndex = 0;
     el.innerHTML = `<div>${p.name}</div><div class="hook">${p.hook}</div>`;
-    place(el, p.angle, p.radius);
     stage.appendChild(el);
     p.el = el;
 
@@ -35,44 +30,85 @@ if (stage) {
     stage.appendChild(preview);
     p.preview = preview;
 
-    el.addEventListener('mouseenter', () => { stage.classList.add('hovering'); preview.classList.add('active'); });
-    el.addEventListener('mouseleave', () => { stage.classList.remove('hovering'); preview.classList.remove('active'); });
-    el.addEventListener('focus', () => { stage.classList.add('hovering'); preview.classList.add('active'); });
-    el.addEventListener('blur', () => { stage.classList.remove('hovering'); preview.classList.remove('active'); });
+    const on = () => { stage.classList.add('hovering'); preview.classList.add('active'); };
+    const off = () => { stage.classList.remove('hovering'); preview.classList.remove('active'); };
+    el.addEventListener('mouseenter', on);
+    el.addEventListener('mouseleave', off);
+    el.addEventListener('focus', on);
+    el.addEventListener('blur', off);
   });
 
-  let rippleHasPlayed = false;
-  function playRipple() {
-    if (rippleHasPlayed) return;
-    rippleHasPlayed = true;
-    let delay = 200;
-    [1, 2, 3].forEach(() => {
-      const ring = document.createElement('div');
-      ring.className = 'ring';
-      stage.insertBefore(ring, stage.firstChild);
-      setTimeout(() => {
-        ring.style.transition = 'width 1.3s ease-out, height 1.3s ease-out, opacity 1.3s ease-out';
-        ring.style.opacity = '0.5';
-        requestAnimationFrame(() => {
-          ring.style.width = ring.style.height = '440px';
-          ring.style.opacity = '0';
-        });
-      }, delay);
-      delay += 220;
-    });
-    projects.forEach((p, i) => {
-      setTimeout(() => {
-        p.el.style.transition = 'opacity 0.6s ease';
-        p.el.style.opacity = '1';
-      }, 450 + i * 170);
+  function targetTransform(angle, radius) {
+    const rad = angle * Math.PI / 180;
+    const x = radius * Math.cos(rad);
+    const y = radius * Math.sin(rad);
+    return `translate(${x}px, ${y}px)`;
+  }
+
+  let played = false;
+  let timers = [];
+  function clearTimers() { timers.forEach(t => clearTimeout(t)); timers = []; }
+
+  function resetSequence() {
+    played = false;
+    clearTimers();
+    dropWrap.classList.remove('falling', 'impact');
+    dropWrap.style.opacity = '0';
+    flash.classList.remove('flash');
+    stage.querySelectorAll('.ring').forEach(r => r.remove());
+    projects.forEach(p => {
+      p.el.classList.remove('placed');
+      p.el.style.transform = 'translate(-50%,-50%) scale(0.3)';
     });
   }
 
-  // Watch the SECTION (guaranteed full-viewport via scroll-snap), not just the
-  // inner stage — this is what makes the trigger reliable. See HANDOFF.md.
+  function playSequence() {
+    if (played) return;
+    played = true;
+
+    timers.push(setTimeout(() => { dropWrap.classList.add('falling'); }, 30));
+
+    timers.push(setTimeout(() => {
+      dropWrap.classList.add('impact');
+      flash.classList.add('flash');
+
+      let delay = 0;
+      [1, 2, 3, 4].forEach(() => {
+        const ring = document.createElement('div');
+        ring.className = 'ring';
+        const r1 = 48 + Math.random() * 6, r2 = 48 + Math.random() * 6,
+              r3 = 48 + Math.random() * 6, r4 = 48 + Math.random() * 6;
+        ring.style.borderRadius = `${r1}% ${r2}% ${r3}% ${r4}%`;
+        stage.insertBefore(ring, stage.firstChild);
+        timers.push(setTimeout(() => {
+          ring.style.transition = 'width 1.5s ease-out, height 1.5s ease-out, opacity 1.5s ease-out, filter 1.5s ease-out, border-width 1.5s ease-out';
+          ring.style.opacity = '0.55';
+          ring.offsetHeight;
+          ring.style.width = ring.style.height = (400 + Math.random() * 60) + 'px';
+          ring.style.opacity = '0';
+          ring.style.filter = 'blur(5px)';
+          ring.style.borderWidth = '0.5px';
+        }, delay));
+        delay += 420;
+      });
+
+      projects.forEach((p, i) => {
+        timers.push(setTimeout(() => {
+          p.el.style.transform = `translate(-50%,-50%) ${targetTransform(p.angle, p.radius)} scale(1)`;
+          p.el.classList.add('placed');
+        }, i * 50));
+      });
+    }, 1220));
+  }
+
+  // Watch the SECTION (guaranteed full-viewport via scroll-snap) so the trigger
+  // is reliable, and reset on exit so scrolling back replays the sequence.
   const workSection = document.getElementById('work');
   const rippleObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => { if (entry.isIntersecting) playRipple(); });
+    entries.forEach(entry => {
+      if (entry.isIntersecting) playSequence();
+      else resetSequence();
+    });
   }, { threshold: 0.9 });
   if (workSection) rippleObserver.observe(workSection);
 }

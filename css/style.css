@@ -78,16 +78,32 @@ a{ color:inherit; text-decoration:none; }
 .philosophy .step h3{ font-family:'Space Grotesk',sans-serif; font-weight:500; font-size:18px; margin-bottom:8px; }
 .philosophy .step p{ font-size:14px; color:var(--text-dim); }
 
-/* Work section — ripple reveal. See reference/scroll-snap-ripple.html for the tested animation logic driving js/main.js */
+/* Work section — ripple reveal, locked. See reference/raindrop-v4.html for the tested source of this animation. */
 .work-section{ display:flex; align-items:center; justify-content:center; }
 .ripple-stage{ position:relative; width:600px; height:600px; max-width:90vw; max-height:90vw; }
-.ripple-stage .drop{ position:absolute; top:50%; left:50%; width:6px; height:6px; border-radius:50%; background:var(--accent); transform:translate(-50%,-50%); box-shadow:0 0 20px 4px rgba(var(--accent-rgb),0.6); z-index:3; }
-.ripple-stage .ring{ position:absolute; top:50%; left:50%; border:1px solid var(--accent); border-radius:50%; transform:translate(-50%,-50%); opacity:0; }
-.ripple-stage .node{ position:absolute; opacity:0; color:var(--text); font-family:'Space Grotesk',sans-serif; font-size:20px; font-weight:700; white-space:nowrap; cursor:pointer; z-index:2; transition:opacity .3s ease, color .3s ease; }
+
+/* Wrapper handles vertical fall + squash/stretch in true screen-space. Shape handles rotation only.
+   These are deliberately separate elements -- combining stretch and rotation on one element
+   causes the stretch to skew diagonally instead of falling straight down. */
+.ripple-stage .drop-wrap{ position:absolute; left:50%; top:-50px; transform:translateX(-50%) scaleY(1); z-index:5; opacity:0; }
+.ripple-stage .drop-wrap.falling{ opacity:1; transition:top 1.2s cubic-bezier(.45,0,.4,1), transform 1.2s cubic-bezier(.45,0,.4,1); top:50%; transform:translateX(-50%) scaleY(1.4); }
+.ripple-stage .drop-wrap.impact{ transition:transform 0.16s ease-out, opacity 0.22s ease-out 0.05s; transform:translateX(-50%) scaleY(0.4); opacity:0; }
+.ripple-stage .drop-shape{ width:12px; height:12px; background:var(--accent); box-shadow:0 0 14px 3px rgba(var(--accent-rgb),0.55); border-radius:50% 50% 50% 0; transform:rotate(135deg); }
+
+.ripple-stage .impact-flash{ position:absolute; top:50%; left:50%; width:6px; height:6px; border-radius:50%; background:#fff; transform:translate(-50%,-50%) scale(1); opacity:0; z-index:4; }
+.ripple-stage .impact-flash.flash{ transition:transform 0.4s ease-out, opacity 0.4s ease-out; transform:translate(-50%,-50%) scale(6); opacity:0; }
+
+/* Ring MUST start at explicit 0 width/height -- transitioning from implicit "auto" does not
+   reliably animate in browsers. This was the root cause of the ripple not appearing at all. */
+.ripple-stage .ring{ position:absolute; top:50%; left:50%; width:0; height:0; border:3px solid var(--accent); border-radius:50%; transform:translate(-50%,-50%); opacity:0; filter:blur(0px); }
+
+.ripple-stage .node{ position:absolute; top:50%; left:50%; opacity:0; color:var(--text); font-family:'Space Grotesk',sans-serif; font-size:20px; font-weight:700; white-space:nowrap; text-align:center; cursor:pointer; z-index:2; transform:translate(-50%,-50%) scale(0.3); filter:blur(8px); transition:opacity 0.9s ease, transform 1.3s cubic-bezier(.34,1.56,.64,1), filter 1.1s ease-out; }
 .ripple-stage .node .hook{ font-family:'Inter',sans-serif; font-size:11px; color:var(--text-mute); font-weight:400; margin-top:4px; }
-.ripple-stage .node:hover{ color:var(--accent); }
+.ripple-stage .node:hover, .ripple-stage .node:focus{ color:var(--accent); }
+.ripple-stage .node.placed{ opacity:1; filter:blur(0px); }
 .ripple-stage.hovering .node:not(:hover){ opacity:0.25 !important; }
-.ripple-stage .preview{ position:absolute; top:50%; left:50%; width:80px; height:52px; transform:translate(-50%,-50%) scale(0.3); opacity:0; border-radius:12px; overflow:hidden; z-index:4; pointer-events:none; transition:opacity .4s ease, transform .5s cubic-bezier(.2,.8,.2,1); }
+
+.ripple-stage .preview{ position:absolute; top:50%; left:50%; width:80px; height:52px; transform:translate(-50%,-50%) scale(0.3); opacity:0; border-radius:12px; overflow:hidden; z-index:6; pointer-events:none; transition:opacity .4s ease, transform .5s cubic-bezier(.2,.8,.2,1); }
 .ripple-stage .preview.active{ opacity:1; transform:translate(-50%,-50%) scale(1); width:320px; height:200px; }
 .ripple-stage .preview::before{ content:""; position:absolute; inset:-40px; filter:blur(40px); opacity:0.5; border-radius:50%; }
 .ripple-stage .preview .bar{ height:12%; }
@@ -97,6 +113,16 @@ a{ color:inherit; text-decoration:none; }
 .preview.smiteforge::before{ background:radial-gradient(circle,#e0b84a,transparent 65%); } .preview.smiteforge .body{ background:#0d0a03; } .preview.smiteforge .bar{ background:#2b2205; } .preview.smiteforge .body span{ background:#e0b84a; }
 .preview.zentra::before{ background:radial-gradient(circle,#4a8fd6,transparent 65%); } .preview.zentra .body{ background:#0d1a26; } .preview.zentra .bar{ background:#173049; } .preview.zentra .body span{ background:#4a8fd6; }
 .preview.amun::before{ background:radial-gradient(circle,#8f8f8f,transparent 65%); } .preview.amun .body{ background:#0a0a0a; } .preview.amun .bar{ background:#222; } .preview.amun .body span{ background:#8f8f8f; }
+
+/* About photo — duotone treatment, asymmetric crop, matches reference/img-treatment-preview.html */
+.about-layout{ display:flex; gap:64px; align-items:center; }
+@media (max-width:900px){ .about-layout{ flex-direction:column; } }
+.about-photo-frame{ position:relative; width:340px; height:420px; flex-shrink:0; overflow:hidden; }
+@media (max-width:900px){ .about-photo-frame{ width:100%; max-width:340px; } }
+.about-photo{ width:100%; height:100%; object-fit:cover; object-position:60% 20%; filter:grayscale(1) contrast(1.15) brightness(0.95); display:block; }
+.about-photo-frame::after{ content:""; position:absolute; inset:0; background:linear-gradient(160deg, rgba(var(--accent-rgb),0.35), rgba(5,5,5,0.55) 70%); mix-blend-mode:multiply; }
+.about-photo-frame::before{ content:""; position:absolute; right:0; top:0; bottom:0; width:60px; background:linear-gradient(90deg, transparent, var(--bg)); z-index:2; }
+.about-text{ flex:1; }
 
 /* About / Contact now sit inside full-viewport snap sections, centered */
 .about, .contact{ display:flex; align-items:center; min-height:100vh; }
