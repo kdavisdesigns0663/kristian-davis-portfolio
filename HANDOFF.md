@@ -278,12 +278,38 @@ Reference file for the static radial layout and ripple center concept:
 `reference/web-ripple-center.html` (may need to be re-added if missing —
 see the sync warning pattern noted elsewhere in this doc).
 
+### BUILT (2026-07-31) — radial work index, real headshot
+- **Work index** is now built as the radial "web" from
+  `reference/web-ripple-center.html`: 5 nodes on a perfect circle (72°
+  apart), violet spoke lines fading outward, 3 concentric ripple rings at
+  center. Hover or keyboard focus brings a node/title forward in violet and
+  fades siblings to 35% opacity, mirroring the accessibility parity rule
+  from the earlier row-based design. Each node links to its case study
+  page. Below 700px width the radial layout collapses to a simple stacked
+  list (ripple/spokes hidden, nodes render as a plain vertical list) since
+  the radial geometry doesn't have a tested mobile treatment.
+  **Not built:** the load-in ripple/travel animation described above — that
+  section is explicitly "spec only," and the current build is the static
+  settled state only. Also not built: the ghost words proposed above for
+  the Work/About/Contact sections — those are flagged "NOT locked, need
+  real development," so none were added.
+- **Headshot** — `img/kristian.jpeg` has since been added to the repo (this
+  note previously said the photo was still pending). Treated it as the
+  real final image rather than building a placeholder, since a real file
+  now exists at that path and `img-treatment-preview.html` references it
+  by name. Built into the About section grid (`.about .photo`) using the
+  exact duotone/asymmetric-crop treatment from `img-treatment-preview.html`
+  (grayscale + contrast + brightness filter, violet-to-black diagonal
+  gradient overlay via multiply blend, right-edge fade into the page
+  background instead of a hard box edge). If this was in fact still meant
+  as a placeholder, flag it and it can be swapped.
+- **Old work-index CSS removed** — the row/bloom-based index and the
+  12-column scattered-grid concept are both fully superseded now (not just
+  documented as superseded). Their CSS (`.index`, `.row`, `.bloom`, and
+  the per-project `.screen` color rules) has been deleted rather than left
+  dead in the stylesheet.
+
 ### Still needed, not yet designed
-- **Headshot placeholder** in the About section — actual photo still
-  pending from the owner. Build a clearly-marked, correctly duotone-treated
-  placeholder slot (see earlier `img-treatment-preview.html` reference for
-  the treatment style) so the layout is complete even without the final
-  image.
 - **Nav bar hover states** — currently generic/default, explicitly flagged
   as "lackluster." Needs real design attention matching the rest of the
   site's specificity (scale, color, asymmetry), not a generic underline or
