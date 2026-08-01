@@ -139,17 +139,18 @@ a{ color:inherit; text-decoration:none; }
 
 /* Small drop-lands-and-ripples accent at the header/panel seam, played on open.
    Same drop-wrap/shape + reflow-fixed ring mechanics as the desktop raindrop
-   (see reference/raindrop-v4.html), just scaled down to a single row instead
-   of a 600px stage. Purely decorative, so it sits outside the panel's own
-   overflow:hidden and never affects layout height. */
+   (see .ripple-stage rules above, and playRaindrop() in main.js which drives
+   both), just scaled down to a single row instead of a 600px stage. Purely
+   decorative, so it sits outside the panel's own overflow:hidden and never
+   affects layout height. */
 .work-item-ripple{ position:relative; height:0; overflow:visible; pointer-events:none; }
-.work-item-ripple .mini-drop-wrap{ position:absolute; left:50%; top:-22px; transform:translateX(-50%) scaleY(1); opacity:0; z-index:5; }
-.work-item-ripple .mini-drop-wrap.falling{ opacity:1; transition:top .45s cubic-bezier(.45,0,.4,1), transform .45s cubic-bezier(.45,0,.4,1); top:0; transform:translateX(-50%) scaleY(1.3); }
-.work-item-ripple .mini-drop-wrap.impact{ transition:transform .14s ease-out, opacity .2s ease-out .04s; transform:translateX(-50%) scaleY(0.4); opacity:0; }
-.work-item-ripple .mini-drop-shape{ width:7px; height:7px; background:var(--accent); box-shadow:0 0 8px 2px rgba(var(--accent-rgb),0.55); border-radius:50% 50% 50% 0; transform:rotate(135deg); }
-.work-item-ripple .mini-flash{ position:absolute; left:50%; top:0; width:4px; height:4px; border-radius:50%; background:#fff; transform:translate(-50%,-50%) scale(1); opacity:0; z-index:4; }
-.work-item-ripple .mini-flash.flash{ transition:transform .35s ease-out, opacity .35s ease-out; transform:translate(-50%,-50%) scale(9); opacity:0; }
-.work-item-ripple .mini-ring{ position:absolute; left:50%; top:0; width:0; height:0; border:2px solid var(--accent); border-radius:50%; transform:translate(-50%,-50%); opacity:0; }
+.work-item-ripple .drop-wrap{ position:absolute; left:50%; top:-22px; transform:translateX(-50%) scaleY(1); opacity:0; z-index:5; }
+.work-item-ripple .drop-wrap.falling{ opacity:1; transition:top .45s cubic-bezier(.45,0,.4,1), transform .45s cubic-bezier(.45,0,.4,1); top:0; transform:translateX(-50%) scaleY(1.3); }
+.work-item-ripple .drop-wrap.impact{ transition:transform .14s ease-out, opacity .2s ease-out .04s; transform:translateX(-50%) scaleY(0.4); opacity:0; }
+.work-item-ripple .drop-shape{ width:7px; height:7px; background:var(--accent); box-shadow:0 0 8px 2px rgba(var(--accent-rgb),0.55); border-radius:50% 50% 50% 0; transform:rotate(135deg); }
+.work-item-ripple .impact-flash{ position:absolute; left:50%; top:0; width:4px; height:4px; border-radius:50%; background:#fff; transform:translate(-50%,-50%) scale(1); opacity:0; z-index:4; }
+.work-item-ripple .impact-flash.flash{ transition:transform .35s ease-out, opacity .35s ease-out; transform:translate(-50%,-50%) scale(9); opacity:0; }
+.work-item-ripple .ring{ position:absolute; left:50%; top:0; width:0; height:0; border:2px solid var(--accent); border-radius:50%; transform:translate(-50%,-50%); opacity:0; }
 
 .work-item-panel{ max-height:0; overflow:hidden; transition:max-height .4s ease; }
 .work-item.open .work-item-panel{ max-height:340px; }

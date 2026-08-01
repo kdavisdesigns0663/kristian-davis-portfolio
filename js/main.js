@@ -8,11 +8,62 @@ const projects = [
   { key:'amun', name:'Amun', hook:'still being built', href:'case-studies/amun.html', angle:225, radius:220 },
 ];
 
-const stage = document.getElementById('rippleStage');
-const dropWrap = document.getElementById('dropWrap');
-const flash = document.getElementById('flash');
+// Shared drop-fall + ripple mechanic, used by both the desktop stage and the
+// mobile accordion (just at different scale/timing). `container` must have a
+// .drop-wrap > .drop-shape, an .impact-flash, and is where .ring elements get
+// inserted. Correctness notes carried over from getting this working:
+// - falling must be REMOVED before impact is added — leaving both classes on
+//   at once means two same-specificity rules fight over `transition`/`opacity`,
+//   which is what silently broke the drop on desktop.
+// - rings must start at explicit width/height:0 (in CSS) and get a forced
+//   reflow (ring.offsetHeight) between setting the transition and setting the
+//   target size, or the browser won't animate the change at all.
+function playRaindrop(opts) {
+  const { container, holdBeforeImpact, ringCount, ringStagger, ringDuration, ringMaxSize, onImpact, registerTimer } = opts;
+  const reg = registerTimer || function(id){ return id; };
 
-if (stage && dropWrap && flash) {
+  const dropWrap = container.querySelector('.drop-wrap');
+  const flash = container.querySelector('.impact-flash');
+  container.querySelectorAll('.ring').forEach(r => r.remove());
+  dropWrap.classList.remove('impact');
+  dropWrap.style.opacity = '0';
+  dropWrap.offsetHeight;
+  dropWrap.classList.add('falling');
+
+  reg(setTimeout(() => {
+    dropWrap.classList.remove('falling');
+    dropWrap.classList.add('impact');
+    flash.classList.add('flash');
+
+    let delay = 0;
+    for (let i = 0; i < ringCount; i++) {
+      const ring = document.createElement('div');
+      ring.className = 'ring';
+      const jitter = () => 48 + Math.random() * 6;
+      ring.style.borderRadius = `${jitter()}% ${jitter()}% ${jitter()}% ${jitter()}%`;
+      container.insertBefore(ring, container.firstChild);
+      reg(setTimeout(() => {
+        ring.style.transition = `width ${ringDuration}s ease-out, height ${ringDuration}s ease-out, opacity ${ringDuration}s ease-out, filter ${ringDuration}s ease-out, border-width ${ringDuration}s ease-out`;
+        ring.style.opacity = '0.55';
+        ring.offsetHeight;
+        const size = ringMaxSize + Math.random() * ringMaxSize * 0.15;
+        ring.style.width = ring.style.height = size + 'px';
+        ring.style.opacity = '0';
+        ring.style.filter = 'blur(5px)';
+        ring.style.borderWidth = '0.5px';
+      }, delay));
+      reg(setTimeout(() => ring.remove(), delay + ringDuration * 1000 + 100));
+      delay += ringStagger;
+    }
+
+    reg(setTimeout(() => { flash.classList.remove('flash'); }, 400));
+    if (onImpact) onImpact();
+  }, holdBeforeImpact));
+}
+
+const stage = document.getElementById('rippleStage');
+
+if (stage) {
   projects.forEach(p => {
     const el = document.createElement('a');
     el.className = 'node';
@@ -52,6 +103,8 @@ if (stage && dropWrap && flash) {
   function resetSequence() {
     played = false;
     clearTimers();
+    const dropWrap = stage.querySelector('.drop-wrap');
+    const flash = stage.querySelector('.impact-flash');
     dropWrap.classList.remove('falling', 'impact');
     dropWrap.style.opacity = '0';
     flash.classList.remove('flash');
@@ -65,40 +118,23 @@ if (stage && dropWrap && flash) {
   function playSequence() {
     if (played) return;
     played = true;
-
-    timers.push(setTimeout(() => { dropWrap.classList.add('falling'); }, 30));
-
-    timers.push(setTimeout(() => {
-      dropWrap.classList.add('impact');
-      flash.classList.add('flash');
-
-      let delay = 0;
-      [1, 2, 3, 4].forEach(() => {
-        const ring = document.createElement('div');
-        ring.className = 'ring';
-        const r1 = 48 + Math.random() * 6, r2 = 48 + Math.random() * 6,
-              r3 = 48 + Math.random() * 6, r4 = 48 + Math.random() * 6;
-        ring.style.borderRadius = `${r1}% ${r2}% ${r3}% ${r4}%`;
-        stage.insertBefore(ring, stage.firstChild);
-        timers.push(setTimeout(() => {
-          ring.style.transition = 'width 1.5s ease-out, height 1.5s ease-out, opacity 1.5s ease-out, filter 1.5s ease-out, border-width 1.5s ease-out';
-          ring.style.opacity = '0.55';
-          ring.offsetHeight;
-          ring.style.width = ring.style.height = (400 + Math.random() * 60) + 'px';
-          ring.style.opacity = '0';
-          ring.style.filter = 'blur(5px)';
-          ring.style.borderWidth = '0.5px';
-        }, delay));
-        delay += 420;
-      });
-
-      projects.forEach((p, i) => {
-        timers.push(setTimeout(() => {
-          p.el.style.transform = `translate(-50%,-50%) ${targetTransform(p.angle, p.radius)} scale(1)`;
-          p.el.classList.add('placed');
-        }, i * 50));
-      });
-    }, 1220));
+    playRaindrop({
+      container: stage,
+      holdBeforeImpact: 1220,
+      ringCount: 4,
+      ringStagger: 420,
+      ringDuration: 1.5,
+      ringMaxSize: 400,
+      registerTimer: (id) => timers.push(id),
+      onImpact: () => {
+        projects.forEach((p, i) => {
+          timers.push(setTimeout(() => {
+            p.el.style.transform = `translate(-50%,-50%) ${targetTransform(p.angle, p.radius)} scale(1)`;
+            p.el.classList.add('placed');
+          }, i * 50));
+        });
+      },
+    });
   }
 
   // Watch the SECTION (guaranteed full-viewport via scroll-snap) so the trigger
@@ -115,45 +151,19 @@ if (stage && dropWrap && flash) {
 
 // --- Work section: mobile accordion fallback (below ~700px, see style.css) ---
 // Same `projects` array as the desktop raindrop layout, just rendered as a
-// tap-to-expand list instead of positioned around the ripple stage.
+// tap-to-expand list instead of positioned around the ripple stage. Reuses
+// playRaindrop above at a smaller scale for the open animation.
 const accordion = document.getElementById('workAccordion');
 if (accordion) {
-  // Scaled-down version of the desktop drop-fall + ring sequence, played at the
-  // header/panel seam each time an item opens. Same reflow-before-transition
-  // fix as the desktop rings (see playSequence above) — required for the
-  // width/height transition to actually animate instead of snapping instantly.
   function playMiniRipple(rippleEl) {
-    const dropWrap = rippleEl.querySelector('.mini-drop-wrap');
-    const flash = rippleEl.querySelector('.mini-flash');
-    rippleEl.querySelectorAll('.mini-ring').forEach(r => r.remove());
-    dropWrap.classList.remove('impact');
-    dropWrap.style.opacity = '0';
-    dropWrap.offsetHeight;
-    dropWrap.classList.add('falling');
-
-    setTimeout(() => {
-      dropWrap.classList.remove('falling');
-      dropWrap.classList.add('impact');
-      flash.classList.add('flash');
-
-      let delay = 0;
-      [1, 2].forEach(() => {
-        const ring = document.createElement('div');
-        ring.className = 'mini-ring';
-        rippleEl.appendChild(ring);
-        setTimeout(() => {
-          ring.style.transition = 'width .9s ease-out, height .9s ease-out, opacity .9s ease-out';
-          ring.style.opacity = '0.5';
-          ring.offsetHeight;
-          ring.style.width = ring.style.height = '170px';
-          ring.style.opacity = '0';
-        }, delay);
-        setTimeout(() => ring.remove(), 1300);
-        delay += 180;
-      });
-
-      setTimeout(() => { flash.classList.remove('flash'); }, 400);
-    }, 450);
+    playRaindrop({
+      container: rippleEl,
+      holdBeforeImpact: 450,
+      ringCount: 2,
+      ringStagger: 180,
+      ringDuration: 0.9,
+      ringMaxSize: 170,
+    });
   }
 
   projects.forEach(p => {
@@ -168,7 +178,7 @@ if (accordion) {
 
     const ripple = document.createElement('div');
     ripple.className = 'work-item-ripple';
-    ripple.innerHTML = `<div class="mini-drop-wrap"><div class="mini-drop-shape"></div></div><div class="mini-flash"></div>`;
+    ripple.innerHTML = `<div class="drop-wrap"><div class="drop-shape"></div></div><div class="impact-flash"></div>`;
 
     const panel = document.createElement('div');
     panel.className = 'work-item-panel';
