@@ -158,14 +158,19 @@ if (stage) {
 // playRaindrop above at a smaller scale for the open animation.
 const accordion = document.getElementById('workAccordion');
 if (accordion) {
-  function playMiniRipple(rippleEl) {
+  // Drop falls from the header seam into the preview box, landing at its
+  // center ~300ms in — the panel's own expand runs 500ms, so it keeps
+  // growing for a couple hundred ms after the drop lands. Ripple plays from
+  // that landing point, and the bloom (CSS transition-delay .28s, just
+  // before impact at 300ms) scales up from the same center.
+  function playMiniRipple(stageEl) {
     playRaindrop({
-      container: rippleEl,
-      holdBeforeImpact: 450,
+      container: stageEl,
+      holdBeforeImpact: 300,
       ringCount: 2,
-      ringStagger: 180,
-      ringDuration: 0.9,
-      ringMaxSize: 170,
+      ringStagger: 160,
+      ringDuration: 0.8,
+      ringMaxSize: 150,
     });
   }
 
@@ -179,16 +184,17 @@ if (accordion) {
     header.setAttribute('aria-expanded', 'false');
     header.innerHTML = `<span><span class="name">${p.name}</span><span class="hook">${p.hook}</span></span><span class="chevron">v</span>`;
 
-    const ripple = document.createElement('div');
-    ripple.className = 'work-item-ripple';
-    ripple.innerHTML = `<div class="drop-wrap"><div class="drop-shape"></div></div><div class="impact-flash"></div>`;
-
     const panel = document.createElement('div');
     panel.className = 'work-item-panel';
     panel.innerHTML = `
-      <div class="preview ${p.key} work-item-preview"><div class="bar"></div><div class="body"><span style="width:70%"></span><span style="width:45%"></span></div></div>
+      <div class="work-item-preview-stage">
+        <div class="drop-wrap"><div class="drop-shape"></div></div>
+        <div class="impact-flash"></div>
+        <div class="preview ${p.key} work-item-preview-bloom"><div class="bar"></div><div class="body"><span style="width:70%"></span><span style="width:45%"></span></div></div>
+      </div>
       <a class="work-item-btn mono" href="${p.href}">view project</a>
     `;
+    const stage = panel.querySelector('.work-item-preview-stage');
 
     header.addEventListener('click', () => {
       const isOpen = item.classList.contains('open');
@@ -199,12 +205,11 @@ if (accordion) {
       if (!isOpen) {
         item.classList.add('open');
         header.setAttribute('aria-expanded', 'true');
-        playMiniRipple(ripple);
+        playMiniRipple(stage);
       }
     });
 
     item.appendChild(header);
-    item.appendChild(ripple);
     item.appendChild(panel);
     accordion.appendChild(item);
   });
