@@ -25,8 +25,11 @@ function playRaindrop(opts) {
   const dropWrap = container.querySelector('.drop-wrap');
   const flash = container.querySelector('.impact-flash');
   container.querySelectorAll('.ring').forEach(r => r.remove());
-  dropWrap.classList.remove('impact');
-  dropWrap.style.opacity = '0';
+  dropWrap.classList.remove('impact', 'falling');
+  // Clear any inline opacity left over from a previous run rather than setting
+  // one — an inline value has higher specificity than .falling's CSS opacity:1
+  // and would silently block it from ever becoming visible.
+  dropWrap.style.opacity = '';
   dropWrap.offsetHeight;
   dropWrap.classList.add('falling');
 
