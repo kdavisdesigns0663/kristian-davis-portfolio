@@ -138,7 +138,7 @@ if (stage) {
     played = true;
     playRaindrop({
       container: stage,
-      holdBeforeImpact: 1800,
+      holdBeforeImpact: 2200,
       ringCount: 4,
       ringStagger: 580,
       ringDuration: 2.3,
@@ -175,15 +175,16 @@ if (stage) {
 // playRaindrop above at a smaller scale for the open animation.
 const accordion = document.getElementById('workAccordion');
 if (accordion) {
-  // Drop falls from the header seam into the preview box, landing at its
-  // center ~300ms in — the panel's own expand runs 500ms, so it keeps
-  // growing for a couple hundred ms after the drop lands. Ripple plays from
-  // that landing point, and the bloom (CSS transition-delay .28s, just
-  // before impact at 300ms) scales up from the same center.
-  function playMiniRipple(stageEl) {
+  // Drop falls from off the top of the viewport, landing at the preview
+  // stage's center exactly as the panel's own .75s expand finishes (see the
+  // matching holdBeforeImpact below). Lives in .work-item-ripple, a sibling
+  // of .work-item-panel rather than nested inside it, since the panel's
+  // overflow:hidden would otherwise clip the drop while it's still above
+  // the (mostly closed) panel.
+  function playMiniRipple(rippleEl) {
     playRaindrop({
-      container: stageEl,
-      holdBeforeImpact: 480,
+      container: rippleEl,
+      holdBeforeImpact: 750,
       ringCount: 2,
       ringStagger: 220,
       ringDuration: 1.2,
@@ -201,17 +202,18 @@ if (accordion) {
     header.setAttribute('aria-expanded', 'false');
     header.innerHTML = `<span><span class="name">${p.name}</span><span class="hook">${p.hook}</span></span><span class="chevron">v</span>`;
 
+    const ripple = document.createElement('div');
+    ripple.className = 'work-item-ripple';
+    ripple.innerHTML = `<div class="drop-wrap"><div class="drop-shape"></div></div><div class="impact-flash"></div>`;
+
     const panel = document.createElement('div');
     panel.className = 'work-item-panel';
     panel.innerHTML = `
       <div class="work-item-preview-stage">
-        <div class="drop-wrap"><div class="drop-shape"></div></div>
-        <div class="impact-flash"></div>
         <div class="preview ${p.key} work-item-preview-bloom"><div class="bar"></div><div class="body"><span style="width:70%"></span><span style="width:45%"></span></div></div>
       </div>
       <a class="work-item-btn mono" href="${p.href}">view project</a>
     `;
-    const stage = panel.querySelector('.work-item-preview-stage');
 
     header.addEventListener('click', () => {
       const isOpen = item.classList.contains('open');
@@ -222,11 +224,12 @@ if (accordion) {
       if (!isOpen) {
         item.classList.add('open');
         header.setAttribute('aria-expanded', 'true');
-        playMiniRipple(stage);
+        playMiniRipple(ripple);
       }
     });
 
     item.appendChild(header);
+    item.appendChild(ripple);
     item.appendChild(panel);
     accordion.appendChild(item);
   });
