@@ -19,11 +19,12 @@ const projects = [
 //   reflow (ring.offsetHeight) between setting the transition and setting the
 //   target size, or the browser won't animate the change at all.
 function playRaindrop(opts) {
-  const { container, holdBeforeImpact, ringCount, ringStagger, ringDuration, ringMaxSize, onImpact, registerTimer } = opts;
+  const { container, holdBeforeImpact, ringCount, ringStagger, ringDuration, ringMaxSize, glowDuration, glowMaxSize, onImpact, registerTimer } = opts;
   const reg = registerTimer || function(id){ return id; };
 
   const dropWrap = container.querySelector('.drop-wrap');
   const flash = container.querySelector('.impact-flash');
+  const glow = container.querySelector('.impact-glow');
   container.querySelectorAll('.ring').forEach(r => r.remove());
   dropWrap.classList.remove('impact', 'falling');
   // Clear any inline opacity left over from a previous run rather than setting
@@ -37,6 +38,20 @@ function playRaindrop(opts) {
     dropWrap.classList.remove('falling');
     dropWrap.classList.add('impact');
     flash.classList.add('flash');
+
+    // Soft diffuse splash right at the landing point, distinct from the crisp
+    // rings tracing outward — reads as the "liquid" reacting to the drop.
+    if (glow) {
+      glow.style.transition = 'none';
+      glow.style.width = glow.style.height = '0px';
+      glow.style.opacity = '0';
+      glow.offsetHeight;
+      glow.style.transition = `width ${glowDuration}s ease-out, height ${glowDuration}s ease-out, opacity ${glowDuration}s ease-out`;
+      glow.style.opacity = '0.4';
+      glow.offsetHeight;
+      glow.style.width = glow.style.height = glowMaxSize + 'px';
+      glow.style.opacity = '0';
+    }
 
     let delay = 0;
     for (let i = 0; i < ringCount; i++) {
@@ -72,7 +87,7 @@ if (stage) {
     el.className = 'node';
     el.href = p.href;
     el.tabIndex = 0;
-    el.innerHTML = `<div>${p.name}</div><div class="hook">${p.hook}</div>`;
+    el.innerHTML = `<span class="node-inner"><div>${p.name}</div><div class="hook">${p.hook}</div></span>`;
     stage.appendChild(el);
     p.el = el;
 
@@ -123,18 +138,20 @@ if (stage) {
     played = true;
     playRaindrop({
       container: stage,
-      holdBeforeImpact: 1220,
+      holdBeforeImpact: 1800,
       ringCount: 4,
-      ringStagger: 420,
-      ringDuration: 1.5,
-      ringMaxSize: 400,
+      ringStagger: 580,
+      ringDuration: 2.3,
+      ringMaxSize: 420,
+      glowDuration: 1,
+      glowMaxSize: 260,
       registerTimer: (id) => timers.push(id),
       onImpact: () => {
         projects.forEach((p, i) => {
           timers.push(setTimeout(() => {
             p.el.style.transform = `translate(-50%,-50%) ${targetTransform(p.angle, p.radius)} scale(1)`;
             p.el.classList.add('placed');
-          }, i * 50));
+          }, i * 90));
         });
       },
     });
@@ -166,11 +183,11 @@ if (accordion) {
   function playMiniRipple(stageEl) {
     playRaindrop({
       container: stageEl,
-      holdBeforeImpact: 300,
+      holdBeforeImpact: 480,
       ringCount: 2,
-      ringStagger: 160,
-      ringDuration: 0.8,
-      ringMaxSize: 150,
+      ringStagger: 220,
+      ringDuration: 1.2,
+      ringMaxSize: 160,
     });
   }
 
