@@ -171,16 +171,34 @@ if (stage) {
 
 // --- Work section: mobile accordion (below ~700px, see style.css) ---
 // Same `projects` array as the desktop raindrop layout, rendered as a
-// tap-to-expand list. Unlike the previous version, taps no longer spawn a
-// drop — the only drop here is a single section-entrance sequence that
-// plays once (see playMobileEntrance), after which the accordion "surfaces"
-// (blur/scale/opacity). Per-project previews get their own short surfacing
-// reveal driven purely by CSS (.work-item-preview-bloom + its
-// previewSurface keyframe), triggered by the .open class alone.
+// tap-to-expand list. The whole thing is one causal chain rather than
+// independent animations: drop falls -> impact -> ripple expands -> the
+// dropdown materializes out of that same ripple (clip-path circle-reveal
+// anchored at the impact point, not a blur/fade). Tapping a project doesn't
+// spawn another falling drop — instead a small ripple opens from the center
+// of the tapped header (spawnTapRipple) and the preview materializes the
+// same way the dropdown did, just faster and anchored at the tap instead of
+// the drop.
 const accordion = document.getElementById('workAccordion');
 const mobileStage = document.getElementById('workMobileStage');
 if (accordion) {
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Single reusable expanding-ring element, kept separate from playRaindrop's
+  // multi-ring impact sequence since this always fires from a fixed point
+  // (the tapped header) rather than a falling drop. Same reflow-before-
+  // transition requirement as the rings in playRaindrop applies here too.
+  function spawnTapRipple(ripple, { maxSize = 110, duration = 0.5 } = {}) {
+    ripple.style.transition = 'none';
+    ripple.style.width = ripple.style.height = '0px';
+    ripple.style.opacity = '0';
+    ripple.offsetHeight;
+    ripple.style.transition = `width ${duration}s cubic-bezier(.19,1,.22,1), height ${duration}s cubic-bezier(.19,1,.22,1), opacity ${duration}s ease`;
+    ripple.style.opacity = '0.5';
+    ripple.offsetHeight;
+    ripple.style.width = ripple.style.height = maxSize + 'px';
+    ripple.style.opacity = '0';
+  }
 
   let mobileEntrancePlayed = false;
   function playMobileEntrance() {
@@ -192,15 +210,17 @@ if (accordion) {
       return;
     }
 
+    // holdBeforeImpact must match the .falling transition duration in CSS
+    // (1.05s) so impact/ripple/reveal all trigger the instant the drop lands.
     playRaindrop({
       container: mobileStage,
-      holdBeforeImpact: 600,
+      holdBeforeImpact: 1050,
       ringCount: 2,
-      ringStagger: 220,
-      ringDuration: 0.9,
-      ringMaxSize: 220,
-      glowDuration: 0.7,
-      glowMaxSize: 170,
+      ringStagger: 260,
+      ringDuration: 0.65,
+      ringMaxSize: 260,
+      glowDuration: 0.6,
+      glowMaxSize: 200,
       onImpact: () => { accordion.classList.add('revealed'); },
     });
   }
@@ -234,6 +254,9 @@ if (accordion) {
     header.setAttribute('aria-expanded', 'false');
     header.setAttribute('aria-controls', panelId);
     header.innerHTML = `<span><span class="name">${p.name}</span><span class="hook">${p.hook}</span></span><span class="chevron">v</span>`;
+    const tapRipple = document.createElement('span');
+    tapRipple.className = 'tap-ripple';
+    header.appendChild(tapRipple);
 
     const panel = document.createElement('div');
     panel.className = 'work-item-panel';
@@ -254,6 +277,14 @@ if (accordion) {
       if (!isOpen) {
         item.classList.add('open');
         header.setAttribute('aria-expanded', 'true');
+
+        // The preview materializes on its own (pure CSS, driven by .open) —
+        // this ripple is purely the visible "cause": it establishes that the
+        // tap is what's generating the reveal below, same relationship the
+        // falling drop has to the dropdown's entrance.
+        if (!prefersReducedMotion) {
+          spawnTapRipple(tapRipple);
+        }
 
         // Scroll the preview into view only if it would land below the
         // fold. The open panel's height is a known fixed value (CSS

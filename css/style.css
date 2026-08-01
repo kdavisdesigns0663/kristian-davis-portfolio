@@ -157,10 +157,12 @@ a{ color:inherit; text-decoration:none; }
    width it's replaced entirely by a tap-to-expand accordion. Reuses the same .preview.KEY
    color rules above for the reveal image, just laid out inline instead of absolutely.
 
-   Unlike the desktop stage, mobile does NOT replay a drop on every tap — per-project taps
-   are a plain accordion interaction (see .work-item-preview-bloom's own surfacing reveal
-   below). The only drop here is a single, once-per-visit section entrance (.work-mobile-stage
-   + .work-accordion.revealed, driven by playMobileEntrance() in main.js). */
+   Unlike the desktop stage, mobile does NOT replay a drop on every tap. There is exactly one
+   drop per visit (.work-mobile-stage, driven by playMobileEntrance() in main.js), and every
+   reveal after that — the dropdown, then each project preview — is a clip-path circle-reveal
+   anchored at whatever caused it (the drop's impact point for the dropdown, the tapped header
+   for a preview), not a fade. That's what makes the reveal read as "emerging from the ripple"
+   instead of just materializing independently of it. */
 .work-accordion{ position:relative; z-index:2; display:none; }
 .work-mobile-stage{ display:none; }
 @media (max-width:700px){
@@ -168,33 +170,44 @@ a{ color:inherit; text-decoration:none; }
   .work-section{ display:block; padding:120px 0; }
   .work-accordion{
     display:block; width:100%;
-    opacity:0; filter:blur(16px); transform:scale(0.94) translateY(6px);
-    transition:opacity .6s ease, filter .6s ease, transform .65s cubic-bezier(.22,1,.36,1);
+    clip-path:circle(0% at 50% 0%); filter:blur(6px); transform:scaleY(0.97);
+    transition:clip-path .68s cubic-bezier(.19,1,.22,1), filter .5s ease, transform .6s cubic-bezier(.22,1,.36,1);
   }
-  .work-accordion.revealed{ opacity:1; filter:blur(0); transform:scale(1) translateY(0); }
+  .work-accordion.revealed{ clip-path:circle(150% at 50% 0%); filter:blur(0); transform:scaleY(1); }
 
   /* Entrance stage: a zero-height marker right above the accordion. The drop falls from
      off the top of the viewport down to top:0 (landing right where the accordion begins,
      which sits roughly mid-viewport given .work-section's own vertical centering) — same
      mechanics as the desktop/old per-item drops (reflow-before-transition, falling removed
-     before impact is added), just a single play, never reset. */
+     before impact is added), just a single play, never reset. Timings are slowed down and
+     spaced out from the old version so each stage — fall, impact, ripple, reveal — reads as
+     its own beat rather than one quick blur-in. */
   .work-mobile-stage{ position:relative; height:0; overflow:visible; display:block; z-index:3; pointer-events:none; }
   .work-mobile-stage .drop-wrap{ position:absolute; left:50%; top:-90vh; transform:translateX(-50%) scaleY(1); opacity:0; z-index:5; }
-  .work-mobile-stage .drop-wrap.falling{ opacity:1; transition:top .6s cubic-bezier(.36,.06,.29,.99), transform .6s cubic-bezier(.36,.06,.29,.99); top:0; transform:translateX(-50%) scaleY(1.35); }
-  .work-mobile-stage .drop-wrap.impact{ top:0; transition:transform .22s ease-out, opacity .3s ease-out .06s; transform:translateX(-50%) scaleY(0.4); opacity:0; }
+  .work-mobile-stage .drop-wrap.falling{ opacity:1; transition:top 1.05s cubic-bezier(.36,.06,.29,.99), transform 1.05s cubic-bezier(.36,.06,.29,.99); top:0; transform:translateX(-50%) scaleY(1.35); }
+  .work-mobile-stage .drop-wrap.impact{ top:0; transition:transform .28s ease-out, opacity .34s ease-out .06s; transform:translateX(-50%) scaleY(0.4); opacity:0; }
   .work-mobile-stage .drop-shape{ width:10px; height:10px; background:var(--accent); box-shadow:0 0 12px 3px rgba(var(--accent-rgb),0.55); border-radius:50% 50% 50% 0; transform:rotate(135deg); }
   .work-mobile-stage .impact-flash{ position:absolute; left:50%; top:0; width:5px; height:5px; border-radius:50%; background:#fff; transform:translate(-50%,-50%) scale(1); opacity:0; z-index:4; }
-  .work-mobile-stage .impact-flash.flash{ transition:transform .45s ease-out, opacity .45s ease-out; transform:translate(-50%,-50%) scale(9); opacity:0; }
+  .work-mobile-stage .impact-flash.flash{ transition:transform .5s ease-out, opacity .5s ease-out; transform:translate(-50%,-50%) scale(9); opacity:0; }
   .work-mobile-stage .impact-glow{ position:absolute; left:50%; top:0; width:0; height:0; border-radius:50%; background:radial-gradient(circle, rgba(var(--accent-rgb),0.4), transparent 70%); transform:translate(-50%,-50%); opacity:0; filter:blur(2px); z-index:3; }
   .work-mobile-stage .ring{ position:absolute; left:50%; top:0; width:0; height:0; border:2px solid var(--accent); border-radius:50%; transform:translate(-50%,-50%); opacity:0; }
 }
 .work-item{ border-bottom:1px solid var(--line); position:relative; }
 .work-item:first-child{ border-top:1px solid var(--line); }
 .work-item-header{
+  position:relative;
   display:flex; align-items:center; justify-content:space-between; gap:16px;
   width:100%; padding:24px 4px; background:none; border:none; cursor:pointer;
   font-family:inherit; text-align:left; color:var(--text);
   transition:color .3s ease, transform .35s cubic-bezier(.22,1,.36,1);
+}
+/* The tap-triggered ripple (spawnTapRipple in main.js) — sits behind the header's own text
+   (negative z-index, header is its containing block via position:relative above) so it reads
+   as light passing under the label rather than a shape drawn on top of it. */
+.work-item-header .tap-ripple{
+  position:absolute; left:50%; top:50%; width:0; height:0;
+  border:1px solid var(--accent); border-radius:50%;
+  transform:translate(-50%,-50%); opacity:0; pointer-events:none; z-index:-1;
 }
 .work-item-header .name{ position:relative; display:inline-block; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:22px; }
 .work-item-header .hook{ display:block; font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-mute); font-weight:400; margin-top:4px; }
@@ -212,43 +225,51 @@ a{ color:inherit; text-decoration:none; }
 .work-item.open .work-item-panel{ max-height:340px; }
 
 .work-item-preview-stage{ position:relative; width:100%; height:180px; margin:4px 0 20px; }
-/* Preview "surfaces" on open — starts blurred/undersized/slightly compressed vertically,
-   overshoots a touch as it settles (the scaleY beats in the keyframe), lands crisp. Closing
-   (an item losing .open) falls back to the plain transition below rather than the keyframe,
-   so switching projects reads as the old one dissolving while the new one surfaces, not a
-   hard swap. */
+/* Preview materializes the same way the dropdown does — a clip-path circle expanding from the
+   top-center of its own box (i.e. from where the tapped header sits just above it), not a
+   fade. The transition is only declared once, on the base (closed) rule, so it runs
+   symmetrically: opening plays it forward from the tap, closing plays it in reverse, which is
+   what makes switching projects read as the old preview dissolving back into the point it
+   came from rather than a hard swap or a stack of overlapping previews. The delay on opening
+   only (via the .open override, since that's the rule the browser uses when clip-path is
+   animating toward it) is what makes the reveal feel caused by the tap ripple instead of
+   simultaneous with it. */
 .work-item-preview-bloom{
   position:absolute; inset:0;
-  opacity:0; filter:blur(14px); transform:scale(0.92) translateY(8px);
+  clip-path:circle(0% at 50% 0%); filter:blur(12px); transform:scaleY(0.95);
   border-radius:8px; overflow:hidden; pointer-events:none;
-  transition:opacity .45s ease, filter .45s ease, transform .5s cubic-bezier(.22,1,.36,1);
+  transition:clip-path .5s cubic-bezier(.19,1,.22,1), filter .4s ease, transform .45s cubic-bezier(.22,1,.36,1);
 }
 .work-item-preview-bloom::before{ content:""; position:absolute; inset:-40px; filter:blur(40px); opacity:0.5; border-radius:50%; }
 .work-item-preview-bloom .bar{ position:relative; height:12%; }
 .work-item-preview-bloom .body{ position:relative; height:88%; display:flex; flex-direction:column; justify-content:center; gap:8px; padding:0 20px; }
 .work-item-preview-bloom .body span{ display:block; height:8px; border-radius:4px; opacity:0.7; }
 .work-item.open .work-item-preview-bloom{
-  opacity:1; filter:blur(0); transform:scale(1) translateY(0);
-  animation:previewSurface .55s cubic-bezier(.22,1,.36,1);
-}
-@keyframes previewSurface{
-  0%{ opacity:0; filter:blur(14px); transform:scale(0.9) scaleY(0.92) translateY(8px); }
-  60%{ opacity:0.9; filter:blur(2px); transform:scale(1.015) scaleY(1.03) translateY(-1px); }
-  100%{ opacity:1; filter:blur(0); transform:scale(1) scaleY(1) translateY(0); }
+  clip-path:circle(140% at 50% 0%); filter:blur(0); transform:scaleY(1);
+  transition:clip-path .55s cubic-bezier(.19,1,.22,1) .08s, filter .45s ease .08s, transform .5s cubic-bezier(.22,1,.36,1) .08s;
 }
 .work-item-btn{
   display:inline-block; margin-bottom:24px; padding:12px 24px; border:1px solid var(--line-strong);
   font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--text);
-  opacity:0; transition:border-color .3s ease, color .3s ease, opacity .4s ease .25s;
+  opacity:0; transition:border-color .3s ease, color .3s ease, opacity .35s ease .4s;
 }
 .work-item-btn:hover, .work-item-btn:focus-visible{ border-color:var(--accent); color:var(--accent); }
 .work-item.open .work-item-btn{ opacity:1; }
 
 @media (prefers-reduced-motion: reduce){
-  .work-accordion{ transition:opacity .3s ease !important; filter:none !important; transform:none !important; }
+  .work-accordion{
+    clip-path:none !important; filter:none !important; transform:none !important;
+    opacity:0; transition:opacity .3s ease !important;
+  }
+  .work-accordion.revealed{ opacity:1; }
   .work-item-header{ transition:color .3s ease !important; }
   .work-item.open .work-item-header{ transform:none !important; }
-  .work-item-preview-bloom{ transition:opacity .3s ease !important; filter:none !important; transform:none !important; animation:none !important; }
+  .work-item-header .tap-ripple{ display:none !important; }
+  .work-item-preview-bloom{
+    clip-path:none !important; filter:none !important; transform:none !important;
+    opacity:0; transition:opacity .3s ease !important;
+  }
+  .work-item.open .work-item-preview-bloom{ opacity:1; }
 }
 
 /* About photo — duotone treatment, matches reference/img-treatment-preview.html for the base
