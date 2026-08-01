@@ -17,11 +17,22 @@ html{ scroll-snap-type:y mandatory; }
 
 *{ margin:0; padding:0; box-sizing:border-box; }
 
+/* Ambient atmosphere: two soft, far-off-screen violet glows fixed to the viewport so they
+   read as one consistent light source across the whole page rather than tied to any single
+   section — gallery lighting, not a gradient background. Opacity is intentionally low enough
+   that this should barely register as "purple" on a quick glance, just enough that pure flat
+   black doesn't feel dead. background-attachment:fixed keeps it steady while scroll-snapping
+   between sections instead of jumping section to section. */
 body{
-  background:var(--bg);
+  background:
+    radial-gradient(ellipse 900px 700px at 12% -8%, rgba(160,107,255,0.055), transparent 60%),
+    radial-gradient(ellipse 1000px 800px at 92% 105%, rgba(160,107,255,0.045), transparent 62%),
+    var(--bg);
+  background-attachment:fixed;
   color:var(--text);
   font-family:'Inter',sans-serif;
   line-height:1.6;
+  overflow-x:hidden;
 }
 
 a{ color:inherit; text-decoration:none; }
@@ -206,66 +217,61 @@ a{ color:inherit; text-decoration:none; }
 .work-item.open .work-item-btn{ opacity:1; }
 
 /* About photo — duotone treatment, matches reference/img-treatment-preview.html for the base
-   filter/color mood. Crop and fade are deliberately different per breakpoint (see notes below)
-   rather than one crop scaled three ways: the source photo has a lot of empty wall to the
-   subject's left, and how much of that gets cropped away vs. faded into the page background
-   depends on how much room each layout actually has to work with.
+   filter/color mood. On desktop the portrait is a large, absolutely-positioned anchor that
+   bleeds past the wrap's right edge and sits behind part of the skills column (z-index below
+   .about-text), rather than a framed image sitting beside the copy in a flex row. A real
+   mask-image now does the "dissolve into the page" work on the whole frame (img + duotone
+   overlay composited together, since mask applies to the element's full rendered subtree) —
+   softer and more literal than painting a bg-colored gradient on top of hard edges, which is
+   what this used to do.
 
-   object-position Y is set HIGH (85-90%) everywhere: with object-fit:cover, a higher Y value
+   object-position Y is set HIGH (82-90%) everywhere: with object-fit:cover, a higher Y value
    pushes any vertical crop toward the TOP of the source image, preserving the bottom — where
    his crossed arms/hands sit right at the frame edge. Getting this backwards (a low Y) was an
    earlier bug here; it doesn't show up until the frame's aspect ratio forces real vertical
-   crop, which the two narrower breakpoints below now do. */
-.about-layout{ display:flex; gap:64px; align-items:center; }
-@media (max-width:900px){ .about-layout{ flex-direction:column; } }
-.about-photo-frame{ position:relative; width:340px; height:420px; flex-shrink:0; overflow:hidden; }
-.about-photo{ width:100%; height:100%; object-fit:cover; object-position:50% 88%; filter:grayscale(1) contrast(1.15) brightness(0.95); display:block; }
-.about-photo-frame::after{ content:""; position:absolute; inset:0; background:linear-gradient(160deg, rgba(var(--accent-rgb),0.35), rgba(5,5,5,0.55) 70%); mix-blend-mode:multiply; }
-/* Desktop: photo sits right of the text column, so the dominant fade is the left edge —
-   soft multi-stop falloff (not a hard two-stop gradient) so the wall dissolves into the page
-   gradually, plus a light top fade for the ceiling strip above his head. Bottom and right are
-   left untouched: bottom because his hands are right at that edge, right because almost no
-   wall is visible there to begin with (mostly shadow already). */
-.about-photo-frame::before{
-  content:""; position:absolute; inset:0; z-index:2;
-  background:
-    linear-gradient(90deg, #050505 0%, rgba(5,5,5,0.8) 18%, rgba(5,5,5,0.4) 42%, transparent 68%),
-    linear-gradient(180deg, rgba(5,5,5,0.6) 0%, transparent 20%);
+   crop, which the two narrower breakpoints below do (desktop's 460x580 box doesn't). */
+.about-layout{ position:relative; }
+.about-photo-frame{
+  position:absolute; z-index:1; top:-40px; right:-200px; width:460px; height:580px;
+  /* Diagonal fade (not a centered vignette): transparent through the zone that overlaps the
+     skills column, ramping to solid by roughly where the subject actually starts (~45% into
+     the frame, since this box's aspect ratio is still wide enough that object-fit:cover
+     doesn't crop horizontally — the full source width shows, so his on-screen position here
+     matches his position in the source photo). Slight downward tilt (100deg, not a flat 90deg)
+     folds in a bit of top-edge fade for the ceiling strip above his head at the same time. */
+  mask-image:linear-gradient(100deg, transparent 0%, transparent 26%, black 56%, black 100%);
+  -webkit-mask-image:linear-gradient(100deg, transparent 0%, transparent 26%, black 56%, black 100%);
 }
-.about-text{ flex:1; }
+.about-photo{ width:100%; height:100%; object-fit:cover; object-position:55% 85%; filter:grayscale(1) contrast(1.15) brightness(0.95); display:block; }
+.about-photo-frame::after{ content:""; position:absolute; inset:0; background:linear-gradient(160deg, rgba(var(--accent-rgb),0.32), rgba(5,5,5,0.5) 70%); mix-blend-mode:multiply; }
+.about-text{ position:relative; z-index:2; max-width:900px; }
 
-/* Tablet (600–900px): about-layout has already stacked (text above, photo below), but there's
-   still enough width that full-bleed would make the photo absurdly tall. Instead it's a
-   centered, capped-width column with a moderate crop (2:3 — enough to hide a meaningful slice
-   of the wall via cropping, unlike desktop's 0% horizontal crop) and a fade doing the rest of
-   the work, since a moderate crop alone still leaves real wall visible. */
+/* Tablet (600–900px): about-layout has already stacked (text above, photo below) — the
+   overlap/bleed composition is a desktop-only device, since there's no side column to bleed
+   past once things stack. Back to a normal-flow, centered column with a moderate crop (2:3,
+   hides a real slice of the wall) and the same mask technique doing a softer all-around fade
+   instead of the old directional overlay. */
 @media (max-width:900px){
   .about-photo-frame{
-    width:100%; max-width:480px; height:auto; aspect-ratio:2/3; margin:0 auto;
+    position:static; width:100%; max-width:480px; height:auto; aspect-ratio:2/3; margin:56px auto 0;
+    mask-image:radial-gradient(ellipse 82% 92% at 62% 40%, black 45%, transparent 92%);
+    -webkit-mask-image:radial-gradient(ellipse 82% 92% at 62% 40%, black 45%, transparent 92%);
   }
   .about-photo{ object-position:78% 90%; }
-  .about-photo-frame::before{
-    background:
-      linear-gradient(90deg, #050505 0%, rgba(5,5,5,0.85) 22%, rgba(5,5,5,0.45) 48%, transparent 72%),
-      linear-gradient(180deg, rgba(5,5,5,0.55) 0%, transparent 18%);
-  }
 }
 
 /* Phone (<600px): full-bleed edge to edge, breaking out of .wrap's padding entirely — there's
    no side column to balance against, so it goes full width and leans on an aggressive 3:5 crop
-   to hide most of the wall outright. The fade is lighter here than tablet/desktop since crop is
-   doing most of the work already; it just softens the sliver of wall that's still in frame. */
+   to hide most of the wall outright. Mask fade is lighter here since crop is doing most of the
+   work already; it just softens the sliver of wall still in frame plus the top/bottom edges. */
 @media (max-width:600px){
   .about-photo-frame{
-    width:100vw; max-width:100vw; aspect-ratio:3/5; margin:0 auto;
+    width:100vw; max-width:100vw; aspect-ratio:3/5; margin:40px auto 0;
     margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw);
+    mask-image:radial-gradient(ellipse 90% 94% at 68% 45%, black 55%, transparent 96%);
+    -webkit-mask-image:radial-gradient(ellipse 90% 94% at 68% 45%, black 55%, transparent 96%);
   }
   .about-photo{ object-position:90% 90%; }
-  .about-photo-frame::before{
-    background:
-      linear-gradient(90deg, #050505 0%, rgba(5,5,5,0.6) 12%, transparent 30%),
-      linear-gradient(180deg, rgba(5,5,5,0.45) 0%, transparent 14%);
-  }
 }
 
 /* About / Contact now sit inside full-viewport snap sections, centered */
@@ -273,13 +279,21 @@ a{ color:inherit; text-decoration:none; }
 .about .wrap, .contact .wrap{ position:relative; z-index:2; width:100%; }
 
 /* Background / About */
-.about{ padding:100px 0; border-top:1px solid var(--line); }
-.about .grid{ display:grid; grid-template-columns:1fr 1fr; gap:64px; margin-top:48px; }
-@media (max-width:720px){ .about .grid{ grid-template-columns:1fr; } }
-.about .col p{ font-size:16px; color:var(--text-dim); margin-bottom:16px; }
-.about .skills{ margin-top:8px; }
-.about .skills .k{ font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-mute); margin:20px 0 8px; text-transform:uppercase; letter-spacing:.05em; }
-.about .skills .v{ font-size:15px; color:var(--text); }
+.about{ padding:120px 0; border-top:1px solid var(--line); overflow:hidden; }
+.about .section-head{ padding-top:0; }
+.about .section-head h2::after{
+  content:""; display:block; width:64px; height:1px; margin-top:24px;
+  background:linear-gradient(90deg, var(--accent), transparent);
+  opacity:0.8;
+}
+.about .grid{ display:grid; grid-template-columns:minmax(0,500px) 1fr; gap:64px; margin-top:44px; }
+@media (max-width:900px){ .about .grid{ grid-template-columns:1fr; } }
+.about .col p{ font-size:16px; line-height:1.8; color:var(--text-dim); margin-bottom:26px; max-width:52ch; }
+.about .col p:last-child{ margin-bottom:0; }
+.about .skills{ display:flex; flex-direction:column; }
+.about .skills .k{ font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:400; color:var(--text-mute); margin:32px 0 10px; text-transform:uppercase; letter-spacing:.08em; }
+.about .skills .k:first-child{ margin-top:0; }
+.about .skills .v{ font-size:15px; color:var(--text); line-height:1.6; }
 
 /* Contact */
 .contact{ padding:100px 0 120px; border-top:1px solid var(--line); }
