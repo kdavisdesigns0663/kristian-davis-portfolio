@@ -188,7 +188,7 @@ if (accordion) {
   // multi-ring impact sequence since this always fires from a fixed point
   // (the tapped header) rather than a falling drop. Same reflow-before-
   // transition requirement as the rings in playRaindrop applies here too.
-  function spawnTapRipple(ripple, { maxSize = 110, duration = 0.5 } = {}) {
+  function spawnTapRipple(ripple, { maxSize = 130, duration = 0.7 } = {}) {
     ripple.style.transition = 'none';
     ripple.style.width = ripple.style.height = '0px';
     ripple.style.opacity = '0';
@@ -211,16 +211,16 @@ if (accordion) {
     }
 
     // holdBeforeImpact must match the .falling transition duration in CSS
-    // (1.05s) so impact/ripple/reveal all trigger the instant the drop lands.
+    // (1.6s) so impact/ripple/reveal all trigger the instant the drop lands.
     playRaindrop({
       container: mobileStage,
-      holdBeforeImpact: 1050,
+      holdBeforeImpact: 1600,
       ringCount: 2,
-      ringStagger: 260,
-      ringDuration: 0.65,
-      ringMaxSize: 260,
-      glowDuration: 0.6,
-      glowMaxSize: 200,
+      ringStagger: 380,
+      ringDuration: 0.95,
+      ringMaxSize: 300,
+      glowDuration: 0.85,
+      glowMaxSize: 230,
       onImpact: () => { accordion.classList.add('revealed'); },
     });
   }

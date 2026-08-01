@@ -167,28 +167,31 @@ a{ color:inherit; text-decoration:none; }
 .work-mobile-stage{ display:none; }
 @media (max-width:700px){
   .ripple-stage{ display:none; }
-  .work-section{ display:block; padding:120px 0; }
+  /* flex + justify-content:center vertically centers the accordion (the only in-flow content —
+     the ghost word is absolutely positioned) within the full-viewport section, so the collapsed
+     accordion's own center lands at the same point the drop falls to below. */
+  .work-section{ display:flex; flex-direction:column; justify-content:center; padding:120px 0; }
   .work-accordion{
     display:block; width:100%;
-    clip-path:circle(0% at 50% 0%); filter:blur(6px); transform:scaleY(0.97);
-    transition:clip-path .68s cubic-bezier(.19,1,.22,1), filter .5s ease, transform .6s cubic-bezier(.22,1,.36,1);
+    clip-path:circle(0% at 50% 50%); filter:blur(6px); transform:scaleY(0.97);
+    transition:clip-path 1s cubic-bezier(.19,1,.22,1), filter .6s ease, transform .7s cubic-bezier(.22,1,.36,1);
   }
-  .work-accordion.revealed{ clip-path:circle(150% at 50% 0%); filter:blur(0); transform:scaleY(1); }
+  .work-accordion.revealed{ clip-path:circle(150% at 50% 50%); filter:blur(0); transform:scaleY(1); }
 
-  /* Entrance stage: a zero-height marker right above the accordion. The drop falls from
-     off the top of the viewport down to top:0 (landing right where the accordion begins,
-     which sits roughly mid-viewport given .work-section's own vertical centering) — same
-     mechanics as the desktop/old per-item drops (reflow-before-transition, falling removed
-     before impact is added), just a single play, never reset. Timings are slowed down and
-     spaced out from the old version so each stage — fall, impact, ripple, reveal — reads as
-     its own beat rather than one quick blur-in. */
-  .work-mobile-stage{ position:relative; height:0; overflow:visible; display:block; z-index:3; pointer-events:none; }
+  /* Entrance stage: a zero-size anchor centered on the section itself (not an in-flow marker
+     above the accordion) so the drop falls to the true center of the screen rather than to
+     wherever the accordion happens to start. The drop's own -90vh -> 0 fall is unchanged;
+     only the anchor it falls relative to has moved. Same mechanics as the desktop/old per-item
+     drops otherwise (reflow-before-transition, falling removed before impact is added), just a
+     single play, never reset. Timings are intentionally slow and spaced out so each stage —
+     fall, impact, ripple, reveal — reads as its own unhurried beat. */
+  .work-mobile-stage{ position:absolute; top:50%; left:50%; width:0; height:0; overflow:visible; display:block; z-index:3; pointer-events:none; }
   .work-mobile-stage .drop-wrap{ position:absolute; left:50%; top:-90vh; transform:translateX(-50%) scaleY(1); opacity:0; z-index:5; }
-  .work-mobile-stage .drop-wrap.falling{ opacity:1; transition:top 1.05s cubic-bezier(.36,.06,.29,.99), transform 1.05s cubic-bezier(.36,.06,.29,.99); top:0; transform:translateX(-50%) scaleY(1.35); }
-  .work-mobile-stage .drop-wrap.impact{ top:0; transition:transform .28s ease-out, opacity .34s ease-out .06s; transform:translateX(-50%) scaleY(0.4); opacity:0; }
+  .work-mobile-stage .drop-wrap.falling{ opacity:1; transition:top 1.6s cubic-bezier(.36,.06,.29,.99), transform 1.6s cubic-bezier(.36,.06,.29,.99); top:0; transform:translateX(-50%) scaleY(1.35); }
+  .work-mobile-stage .drop-wrap.impact{ top:0; transition:transform .4s ease-out, opacity .48s ease-out .08s; transform:translateX(-50%) scaleY(0.4); opacity:0; }
   .work-mobile-stage .drop-shape{ width:10px; height:10px; background:var(--accent); box-shadow:0 0 12px 3px rgba(var(--accent-rgb),0.55); border-radius:50% 50% 50% 0; transform:rotate(135deg); }
   .work-mobile-stage .impact-flash{ position:absolute; left:50%; top:0; width:5px; height:5px; border-radius:50%; background:#fff; transform:translate(-50%,-50%) scale(1); opacity:0; z-index:4; }
-  .work-mobile-stage .impact-flash.flash{ transition:transform .5s ease-out, opacity .5s ease-out; transform:translate(-50%,-50%) scale(9); opacity:0; }
+  .work-mobile-stage .impact-flash.flash{ transition:transform .65s ease-out, opacity .65s ease-out; transform:translate(-50%,-50%) scale(9); opacity:0; }
   .work-mobile-stage .impact-glow{ position:absolute; left:50%; top:0; width:0; height:0; border-radius:50%; background:radial-gradient(circle, rgba(var(--accent-rgb),0.4), transparent 70%); transform:translate(-50%,-50%); opacity:0; filter:blur(2px); z-index:3; }
   .work-mobile-stage .ring{ position:absolute; left:50%; top:0; width:0; height:0; border:2px solid var(--accent); border-radius:50%; transform:translate(-50%,-50%); opacity:0; }
 }
@@ -238,7 +241,7 @@ a{ color:inherit; text-decoration:none; }
   position:absolute; inset:0;
   clip-path:circle(0% at 50% 0%); filter:blur(12px); transform:scaleY(0.95);
   border-radius:8px; overflow:hidden; pointer-events:none;
-  transition:clip-path .5s cubic-bezier(.19,1,.22,1), filter .4s ease, transform .45s cubic-bezier(.22,1,.36,1);
+  transition:clip-path .7s cubic-bezier(.19,1,.22,1), filter .5s ease, transform .55s cubic-bezier(.22,1,.36,1);
 }
 .work-item-preview-bloom::before{ content:""; position:absolute; inset:-40px; filter:blur(40px); opacity:0.5; border-radius:50%; }
 .work-item-preview-bloom .bar{ position:relative; height:12%; }
@@ -246,12 +249,12 @@ a{ color:inherit; text-decoration:none; }
 .work-item-preview-bloom .body span{ display:block; height:8px; border-radius:4px; opacity:0.7; }
 .work-item.open .work-item-preview-bloom{
   clip-path:circle(140% at 50% 0%); filter:blur(0); transform:scaleY(1);
-  transition:clip-path .55s cubic-bezier(.19,1,.22,1) .08s, filter .45s ease .08s, transform .5s cubic-bezier(.22,1,.36,1) .08s;
+  transition:clip-path .75s cubic-bezier(.19,1,.22,1) .15s, filter .55s ease .15s, transform .6s cubic-bezier(.22,1,.36,1) .15s;
 }
 .work-item-btn{
   display:inline-block; margin-bottom:24px; padding:12px 24px; border:1px solid var(--line-strong);
   font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--text);
-  opacity:0; transition:border-color .3s ease, color .3s ease, opacity .35s ease .4s;
+  opacity:0; transition:border-color .3s ease, color .3s ease, opacity .4s ease .65s;
 }
 .work-item-btn:hover, .work-item-btn:focus-visible{ border-color:var(--accent); color:var(--accent); }
 .work-item.open .work-item-btn{ opacity:1; }
