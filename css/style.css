@@ -155,66 +155,101 @@ a{ color:inherit; text-decoration:none; }
 /* Work section — mobile fallback. The X-layout raindrop animation assumes a desktop-sized
    canvas and doesn't translate below ~700px (nodes overflow the viewport), so under that
    width it's replaced entirely by a tap-to-expand accordion. Reuses the same .preview.KEY
-   color rules above for the reveal image, just laid out inline instead of absolutely. */
+   color rules above for the reveal image, just laid out inline instead of absolutely.
+
+   Unlike the desktop stage, mobile does NOT replay a drop on every tap — per-project taps
+   are a plain accordion interaction (see .work-item-preview-bloom's own surfacing reveal
+   below). The only drop here is a single, once-per-visit section entrance (.work-mobile-stage
+   + .work-accordion.revealed, driven by playMobileEntrance() in main.js). */
 .work-accordion{ position:relative; z-index:2; display:none; }
+.work-mobile-stage{ display:none; }
 @media (max-width:700px){
   .ripple-stage{ display:none; }
   .work-section{ display:block; padding:120px 0; }
-  .work-accordion{ display:block; width:100%; }
+  .work-accordion{
+    display:block; width:100%;
+    opacity:0; filter:blur(16px); transform:scale(0.94) translateY(6px);
+    transition:opacity .6s ease, filter .6s ease, transform .65s cubic-bezier(.22,1,.36,1);
+  }
+  .work-accordion.revealed{ opacity:1; filter:blur(0); transform:scale(1) translateY(0); }
+
+  /* Entrance stage: a zero-height marker right above the accordion. The drop falls from
+     off the top of the viewport down to top:0 (landing right where the accordion begins,
+     which sits roughly mid-viewport given .work-section's own vertical centering) — same
+     mechanics as the desktop/old per-item drops (reflow-before-transition, falling removed
+     before impact is added), just a single play, never reset. */
+  .work-mobile-stage{ position:relative; height:0; overflow:visible; display:block; z-index:3; pointer-events:none; }
+  .work-mobile-stage .drop-wrap{ position:absolute; left:50%; top:-90vh; transform:translateX(-50%) scaleY(1); opacity:0; z-index:5; }
+  .work-mobile-stage .drop-wrap.falling{ opacity:1; transition:top .6s cubic-bezier(.36,.06,.29,.99), transform .6s cubic-bezier(.36,.06,.29,.99); top:0; transform:translateX(-50%) scaleY(1.35); }
+  .work-mobile-stage .drop-wrap.impact{ top:0; transition:transform .22s ease-out, opacity .3s ease-out .06s; transform:translateX(-50%) scaleY(0.4); opacity:0; }
+  .work-mobile-stage .drop-shape{ width:10px; height:10px; background:var(--accent); box-shadow:0 0 12px 3px rgba(var(--accent-rgb),0.55); border-radius:50% 50% 50% 0; transform:rotate(135deg); }
+  .work-mobile-stage .impact-flash{ position:absolute; left:50%; top:0; width:5px; height:5px; border-radius:50%; background:#fff; transform:translate(-50%,-50%) scale(1); opacity:0; z-index:4; }
+  .work-mobile-stage .impact-flash.flash{ transition:transform .45s ease-out, opacity .45s ease-out; transform:translate(-50%,-50%) scale(9); opacity:0; }
+  .work-mobile-stage .impact-glow{ position:absolute; left:50%; top:0; width:0; height:0; border-radius:50%; background:radial-gradient(circle, rgba(var(--accent-rgb),0.4), transparent 70%); transform:translate(-50%,-50%); opacity:0; filter:blur(2px); z-index:3; }
+  .work-mobile-stage .ring{ position:absolute; left:50%; top:0; width:0; height:0; border:2px solid var(--accent); border-radius:50%; transform:translate(-50%,-50%); opacity:0; }
 }
 .work-item{ border-bottom:1px solid var(--line); position:relative; }
 .work-item:first-child{ border-top:1px solid var(--line); }
 .work-item-header{
   display:flex; align-items:center; justify-content:space-between; gap:16px;
   width:100%; padding:24px 4px; background:none; border:none; cursor:pointer;
-  font-family:inherit; text-align:left; color:var(--text); transition:color .3s ease;
+  font-family:inherit; text-align:left; color:var(--text);
+  transition:color .3s ease, transform .35s cubic-bezier(.22,1,.36,1);
 }
-.work-item-header .name{ display:block; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:22px; }
+.work-item-header .name{ position:relative; display:inline-block; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:22px; }
 .work-item-header .hook{ display:block; font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-mute); font-weight:400; margin-top:4px; }
 .work-item-header .chevron{ font-family:'JetBrains Mono',monospace; font-size:14px; color:var(--text-mute); flex-shrink:0; transition:transform .3s ease; }
-.work-item.open .work-item-header{ color:var(--accent); }
+/* Item "sinks" slightly on selection rather than sitting static — active state is carried by
+   color + this restrained underline + the sink, not by animation alone. */
+.work-item.open .work-item-header{ color:var(--accent); transform:translateY(4px); }
 .work-item.open .work-item-header .chevron{ transform:rotate(180deg); }
+.work-item.open .work-item-header .name::after{
+  content:""; position:absolute; left:0; right:0; bottom:-4px; height:1px;
+  background:var(--accent); opacity:0.7;
+}
 
-.work-item-panel{ max-height:0; overflow:hidden; transition:max-height .75s ease; }
+.work-item-panel{ max-height:0; overflow:hidden; transition:max-height .5s ease; }
 .work-item.open .work-item-panel{ max-height:340px; }
 
-/* Ripple layer: a SEPARATE, unclipped sibling sitting right at the header/panel seam —
-   not nested inside .work-item-panel, because that has overflow:hidden for the collapse
-   animation, which would clip a drop falling from off-screen until the panel was already
-   most of the way open. Landing point (94px) is calculated to land at the preview-stage's
-   vertical center once the panel is open: stage's own 4px top margin + half its 180px
-   height. Timed to land exactly when the panel finishes its .75s expand (see main.js). */
-.work-item-ripple{ position:relative; height:0; overflow:visible; pointer-events:none; z-index:3; }
-.work-item-ripple .drop-wrap{ position:absolute; left:50%; top:-90vh; transform:translateX(-50%) scaleY(1); opacity:0; z-index:5; }
-.work-item-ripple .drop-wrap.falling{ opacity:1; transition:top .75s cubic-bezier(.36,.06,.29,.99), transform .75s cubic-bezier(.36,.06,.29,.99); top:94px; transform:translateX(-50%) scaleY(1.3); }
-.work-item-ripple .drop-wrap.impact{ top:94px; transition:transform .22s ease-out, opacity .3s ease-out .06s; transform:translateX(-50%) scaleY(0.4); opacity:0; }
-.work-item-ripple .drop-shape{ width:8px; height:8px; background:var(--accent); box-shadow:0 0 10px 2px rgba(var(--accent-rgb),0.55); border-radius:50% 50% 50% 0; transform:rotate(135deg); }
-.work-item-ripple .impact-flash{ position:absolute; left:50%; top:94px; width:5px; height:5px; border-radius:50%; background:#fff; transform:translate(-50%,-50%) scale(1); opacity:0; z-index:4; }
-.work-item-ripple .impact-flash.flash{ transition:transform .5s ease-out, opacity .5s ease-out; transform:translate(-50%,-50%) scale(8); opacity:0; }
-.work-item-ripple .ring{ position:absolute; left:50%; top:94px; width:0; height:0; border:2px solid var(--accent); border-radius:50%; transform:translate(-50%,-50%); opacity:0; }
-
-/* Preview stage: lives INSIDE the clipped panel since it's a real layout box (not just a
-   decorative overlay), holding only the bloom now — the ripple effects above land visually
-   at this box's center without needing to be inside it. */
 .work-item-preview-stage{ position:relative; width:100%; height:180px; margin:4px 0 20px; }
+/* Preview "surfaces" on open — starts blurred/undersized/slightly compressed vertically,
+   overshoots a touch as it settles (the scaleY beats in the keyframe), lands crisp. Closing
+   (an item losing .open) falls back to the plain transition below rather than the keyframe,
+   so switching projects reads as the old one dissolving while the new one surfaces, not a
+   hard swap. */
 .work-item-preview-bloom{
-  position:absolute; top:50%; left:50%; width:44px; height:28px;
-  transform:translate(-50%,-50%) scale(0.3); opacity:0;
-  border-radius:8px; overflow:hidden; z-index:2; pointer-events:none;
-  transition:opacity .6s ease .75s, transform .75s cubic-bezier(.2,.8,.2,1) .75s, width .75s cubic-bezier(.2,.8,.2,1) .75s, height .75s cubic-bezier(.2,.8,.2,1) .75s;
+  position:absolute; inset:0;
+  opacity:0; filter:blur(14px); transform:scale(0.92) translateY(8px);
+  border-radius:8px; overflow:hidden; pointer-events:none;
+  transition:opacity .45s ease, filter .45s ease, transform .5s cubic-bezier(.22,1,.36,1);
 }
 .work-item-preview-bloom::before{ content:""; position:absolute; inset:-40px; filter:blur(40px); opacity:0.5; border-radius:50%; }
 .work-item-preview-bloom .bar{ position:relative; height:12%; }
 .work-item-preview-bloom .body{ position:relative; height:88%; display:flex; flex-direction:column; justify-content:center; gap:8px; padding:0 20px; }
 .work-item-preview-bloom .body span{ display:block; height:8px; border-radius:4px; opacity:0.7; }
-.work-item.open .work-item-preview-bloom{ opacity:1; transform:translate(-50%,-50%) scale(1); width:100%; height:180px; }
+.work-item.open .work-item-preview-bloom{
+  opacity:1; filter:blur(0); transform:scale(1) translateY(0);
+  animation:previewSurface .55s cubic-bezier(.22,1,.36,1);
+}
+@keyframes previewSurface{
+  0%{ opacity:0; filter:blur(14px); transform:scale(0.9) scaleY(0.92) translateY(8px); }
+  60%{ opacity:0.9; filter:blur(2px); transform:scale(1.015) scaleY(1.03) translateY(-1px); }
+  100%{ opacity:1; filter:blur(0); transform:scale(1) scaleY(1) translateY(0); }
+}
 .work-item-btn{
   display:inline-block; margin-bottom:24px; padding:12px 24px; border:1px solid var(--line-strong);
   font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--text);
-  opacity:0; transition:border-color .3s ease, color .3s ease, opacity .5s ease .85s;
+  opacity:0; transition:border-color .3s ease, color .3s ease, opacity .4s ease .25s;
 }
 .work-item-btn:hover, .work-item-btn:focus-visible{ border-color:var(--accent); color:var(--accent); }
 .work-item.open .work-item-btn{ opacity:1; }
+
+@media (prefers-reduced-motion: reduce){
+  .work-accordion{ transition:opacity .3s ease !important; filter:none !important; transform:none !important; }
+  .work-item-header{ transition:color .3s ease !important; }
+  .work-item.open .work-item-header{ transform:none !important; }
+  .work-item-preview-bloom{ transition:opacity .3s ease !important; filter:none !important; transform:none !important; animation:none !important; }
+}
 
 /* About photo — duotone treatment, matches reference/img-treatment-preview.html for the base
    filter/color mood. On desktop the portrait is a large, absolutely-positioned anchor that

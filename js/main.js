@@ -169,45 +169,75 @@ if (stage) {
   if (workSection) rippleObserver.observe(workSection);
 }
 
-// --- Work section: mobile accordion fallback (below ~700px, see style.css) ---
-// Same `projects` array as the desktop raindrop layout, just rendered as a
-// tap-to-expand list instead of positioned around the ripple stage. Reuses
-// playRaindrop above at a smaller scale for the open animation.
+// --- Work section: mobile accordion (below ~700px, see style.css) ---
+// Same `projects` array as the desktop raindrop layout, rendered as a
+// tap-to-expand list. Unlike the previous version, taps no longer spawn a
+// drop — the only drop here is a single section-entrance sequence that
+// plays once (see playMobileEntrance), after which the accordion "surfaces"
+// (blur/scale/opacity). Per-project previews get their own short surfacing
+// reveal driven purely by CSS (.work-item-preview-bloom + its
+// previewSurface keyframe), triggered by the .open class alone.
 const accordion = document.getElementById('workAccordion');
+const mobileStage = document.getElementById('workMobileStage');
 if (accordion) {
-  // Drop falls from off the top of the viewport, landing at the preview
-  // stage's center exactly as the panel's own .75s expand finishes (see the
-  // matching holdBeforeImpact below). Lives in .work-item-ripple, a sibling
-  // of .work-item-panel rather than nested inside it, since the panel's
-  // overflow:hidden would otherwise clip the drop while it's still above
-  // the (mostly closed) panel.
-  function playMiniRipple(rippleEl) {
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  let mobileEntrancePlayed = false;
+  function playMobileEntrance() {
+    if (mobileEntrancePlayed) return;
+    mobileEntrancePlayed = true;
+
+    if (prefersReducedMotion || !mobileStage) {
+      accordion.classList.add('revealed');
+      return;
+    }
+
     playRaindrop({
-      container: rippleEl,
-      holdBeforeImpact: 750,
+      container: mobileStage,
+      holdBeforeImpact: 600,
       ringCount: 2,
       ringStagger: 220,
-      ringDuration: 1.2,
-      ringMaxSize: 160,
+      ringDuration: 0.9,
+      ringMaxSize: 220,
+      glowDuration: 0.7,
+      glowMaxSize: 170,
+      onImpact: () => { accordion.classList.add('revealed'); },
     });
+  }
+
+  // Watching #work (not the accordion itself) means this observer still
+  // fires on desktop, where the accordion is display:none — the visibility
+  // check below is what actually gates the entrance to mobile. threshold
+  // 0.5 plus the one-shot `mobileEntrancePlayed` flag (never reset) is what
+  // keeps small scroll jitters near the section boundary from re-triggering
+  // it, unlike desktop's ripple which deliberately resets on scroll-out.
+  const workSectionEl = document.getElementById('work');
+  if (workSectionEl) {
+    const entranceObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && getComputedStyle(accordion).display !== 'none') {
+          playMobileEntrance();
+        }
+      });
+    }, { threshold: 0.5 });
+    entranceObserver.observe(workSectionEl);
   }
 
   projects.forEach(p => {
     const item = document.createElement('div');
     item.className = 'work-item';
+    const panelId = 'work-panel-' + p.key;
 
     const header = document.createElement('button');
     header.className = 'work-item-header';
     header.type = 'button';
     header.setAttribute('aria-expanded', 'false');
+    header.setAttribute('aria-controls', panelId);
     header.innerHTML = `<span><span class="name">${p.name}</span><span class="hook">${p.hook}</span></span><span class="chevron">v</span>`;
-
-    const ripple = document.createElement('div');
-    ripple.className = 'work-item-ripple';
-    ripple.innerHTML = `<div class="drop-wrap"><div class="drop-shape"></div></div><div class="impact-flash"></div>`;
 
     const panel = document.createElement('div');
     panel.className = 'work-item-panel';
+    panel.id = panelId;
     panel.innerHTML = `
       <div class="work-item-preview-stage">
         <div class="preview ${p.key} work-item-preview-bloom"><div class="bar"></div><div class="body"><span style="width:70%"></span><span style="width:45%"></span></div></div>
@@ -224,12 +254,31 @@ if (accordion) {
       if (!isOpen) {
         item.classList.add('open');
         header.setAttribute('aria-expanded', 'true');
-        playMiniRipple(ripple);
+
+        // Scroll the preview into view only if it would land below the
+        // fold. The open panel's height is a known fixed value (CSS
+        // max-height:340px), so this can be computed immediately instead
+        // of waiting for the expand transition to finish.
+        const headerRect = header.getBoundingClientRect();
+        const expectedBottom = headerRect.bottom + 340;
+        if (expectedBottom > window.innerHeight) {
+          // scroll-snap-type:mandatory on <html> hijacks a plain scrollBy
+          // here and snaps straight to the next section instead of making
+          // the small in-section nudge we want, so it's suspended for the
+          // duration of this scroll and restored once it settles.
+          const html = document.documentElement;
+          const prevSnap = html.style.scrollSnapType;
+          html.style.scrollSnapType = 'none';
+          window.scrollBy({ top: expectedBottom - window.innerHeight + 24, behavior: 'smooth' });
+          clearTimeout(header._snapRestoreTimer);
+          header._snapRestoreTimer = setTimeout(() => {
+            html.style.scrollSnapType = prevSnap;
+          }, 650);
+        }
       }
     });
 
     item.appendChild(header);
-    item.appendChild(ripple);
     item.appendChild(panel);
     accordion.appendChild(item);
   });
