@@ -178,14 +178,15 @@ a{ color:inherit; text-decoration:none; }
 
 .ripple-stage .preview{ position:absolute; top:50%; left:50%; width:80px; height:52px; transform:translate(-50%,-50%) scale(0.3); opacity:0; border-radius:12px; overflow:hidden; z-index:6; pointer-events:none; transition:opacity .4s ease, transform .5s cubic-bezier(.2,.8,.2,1); }
 .ripple-stage .preview.active{ opacity:1; transform:translate(-50%,-50%) scale(1); width:320px; height:200px; }
-.ripple-stage .preview::before{ content:""; position:absolute; inset:-40px; filter:blur(40px); opacity:0.5; border-radius:50%; }
-.ripple-stage .preview .bar{ height:12%; }
-.ripple-stage .preview .body{ height:88%; display:flex; flex-direction:column; justify-content:center; gap:8px; padding:0 20px; }
-.ripple-stage .preview .body span{ display:block; height:8px; border-radius:4px; opacity:0.7; }
-.preview.nitefind::before{ background:radial-gradient(circle,#b04ad6,transparent 65%); } .preview.nitefind .body{ background:#12081a; } .preview.nitefind .bar{ background:#2a0f3a; } .preview.nitefind .body span{ background:#b04ad6; }
-.preview.smiteforge::before{ background:radial-gradient(circle,#e0b84a,transparent 65%); } .preview.smiteforge .body{ background:#0d0a03; } .preview.smiteforge .bar{ background:#2b2205; } .preview.smiteforge .body span{ background:#e0b84a; }
-.preview.zentra::before{ background:radial-gradient(circle,#4a8fd6,transparent 65%); } .preview.zentra .body{ background:#0d1a26; } .preview.zentra .bar{ background:#173049; } .preview.zentra .body span{ background:#4a8fd6; }
-.preview.amun::before{ background:radial-gradient(circle,#8f8f8f,transparent 65%); } .preview.amun .body{ background:#0a0a0a; } .preview.amun .bar{ background:#222; } .preview.amun .body span{ background:#8f8f8f; }
+.ripple-stage .preview::before{ content:""; position:absolute; inset:-40px; filter:blur(40px); opacity:0.5; border-radius:50%; z-index:0; }
+.ripple-stage .preview img{ position:relative; z-index:1; width:100%; height:100%; object-fit:cover; object-position:top; display:block; }
+/* Glow color per project, cropped from each real screenshot's own palette (Zentra's app is
+   actually green/gold, not the blue used back when this was a placeholder color guess). Amun
+   stays neutral gray — it's the one project still showing an honest placeholder image. */
+.preview.nitefind::before{ background:radial-gradient(circle,#b04ad6,transparent 65%); }
+.preview.smiteforge::before{ background:radial-gradient(circle,#e0b84a,transparent 65%); }
+.preview.zentra::before{ background:radial-gradient(circle,#4fbf82,transparent 65%); }
+.preview.amun::before{ background:radial-gradient(circle,#8f8f8f,transparent 65%); }
 
 /* Work section — mobile fallback. The X-layout raindrop animation assumes a desktop-sized
    canvas and doesn't translate below ~700px (nodes overflow the viewport), so under that
@@ -289,10 +290,8 @@ a{ color:inherit; text-decoration:none; }
   border-radius:8px; overflow:hidden; pointer-events:none;
   transition:clip-path 1.1s cubic-bezier(.19,1,.22,1), filter .85s ease, transform .9s cubic-bezier(.22,1,.36,1);
 }
-.work-item-preview-bloom::before{ content:""; position:absolute; inset:-40px; filter:blur(40px); opacity:0.5; border-radius:50%; }
-.work-item-preview-bloom .bar{ position:relative; height:12%; }
-.work-item-preview-bloom .body{ position:relative; height:88%; display:flex; flex-direction:column; justify-content:center; gap:8px; padding:0 20px; }
-.work-item-preview-bloom .body span{ display:block; height:8px; border-radius:4px; opacity:0.7; }
+.work-item-preview-bloom::before{ content:""; position:absolute; inset:-40px; filter:blur(40px); opacity:0.5; border-radius:50%; z-index:0; }
+.work-item-preview-bloom img{ position:relative; z-index:1; width:100%; height:100%; object-fit:cover; object-position:top; display:block; }
 .work-item.open .work-item-preview-bloom{
   clip-path:circle(140% at 50% 0%); filter:blur(0); transform:scaleY(1);
   transition:clip-path 1.15s cubic-bezier(.19,1,.22,1) .25s, filter .9s ease .25s, transform .95s cubic-bezier(.22,1,.36,1) .25s;

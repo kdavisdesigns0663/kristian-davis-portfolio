@@ -32,10 +32,10 @@ if (heroSection) {
 // 4 projects currently, arranged in an X (angles 45deg apart from cardinal).
 // To add another, just add one object here — position/animation are computed from this list.
 const projects = [
-  { key:'nitefind', name:'Nitefind', hook:'too many options, not enough certainty', href:'case-studies/nitefind.html', angle:-45, radius:220 },
-  { key:'smiteforge', name:'SmiteForge', hook:'one brand, two very different platforms', href:'case-studies/smiteforge.html', angle:45, radius:220 },
-  { key:'zentra', name:'Zentra', hook:'saving money without losing motivation', href:'case-studies/zentra.html', angle:135, radius:220 },
-  { key:'amun', name:'Amun', hook:'still being built', href:'case-studies/amun.html', angle:225, radius:220 },
+  { key:'nitefind', name:'Nitefind', hook:'too many options, not enough certainty', href:'case-studies/nitefind.html', angle:-45, radius:220, img:'img/previews/nitefind-preview.jpg' },
+  { key:'smiteforge', name:'SmiteForge', hook:'one brand, two very different platforms', href:'case-studies/smiteforge.html', angle:45, radius:220, img:'img/previews/smiteforge-preview.jpg' },
+  { key:'zentra', name:'Zentra', hook:'saving money without losing motivation', href:'case-studies/zentra.html', angle:135, radius:220, img:'img/previews/zentra-preview.jpg' },
+  { key:'amun', name:'Amun', hook:'still being built', href:'case-studies/amun.html', angle:225, radius:220, img:'img/previews/amun-preview.jpg', isPlaceholder:true },
 ];
 
 // Shared drop-fall + ripple mechanic, used by both the desktop stage and the
@@ -121,11 +121,9 @@ if (stage) {
     stage.appendChild(el);
     p.el = el;
 
-    // Preview screen still placeholder color blocks — swap for real cropped
-    // screenshots once available, per HANDOFF.md open item.
     const preview = document.createElement('div');
-    preview.className = 'preview ' + p.key;
-    preview.innerHTML = `<div class="bar"></div><div class="body"><span style="width:70%"></span><span style="width:45%"></span></div>`;
+    preview.className = 'preview ' + p.key + (p.isPlaceholder ? ' is-placeholder' : '');
+    preview.innerHTML = `<img src="${p.img}" alt="${p.isPlaceholder ? '' : p.name + ' preview'}" loading="lazy">`;
     stage.appendChild(preview);
     p.preview = preview;
 
@@ -315,7 +313,7 @@ if (accordion) {
     panel.id = panelId;
     panel.innerHTML = `
       <div class="work-item-preview-stage">
-        <div class="preview ${p.key} work-item-preview-bloom"><div class="bar"></div><div class="body"><span style="width:70%"></span><span style="width:45%"></span></div></div>
+        <div class="preview ${p.key} work-item-preview-bloom${p.isPlaceholder ? ' is-placeholder' : ''}"><img src="${p.img}" alt="${p.isPlaceholder ? '' : p.name + ' preview'}" loading="lazy"></div>
       </div>
       <a class="work-item-btn mono" href="${p.href}">view project</a>
     `;
