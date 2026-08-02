@@ -320,6 +320,7 @@ if (accordion) {
 
     header.addEventListener('click', () => {
       const isOpen = item.classList.contains('open');
+      const previouslyOpen = accordion.querySelector('.work-item.open');
       accordion.querySelectorAll('.work-item.open').forEach(other => {
         other.classList.remove('open');
         other.querySelector('.work-item-header').setAttribute('aria-expanded', 'false');
@@ -336,25 +337,45 @@ if (accordion) {
           spawnTapRipple(tapRipple);
         }
 
-        // Scroll the preview into view only if it would land below the
-        // fold. The open panel's height is a known fixed value (CSS
-        // max-height:340px), so this can be computed immediately instead
-        // of waiting for the expand transition to finish.
+        // Keep the tapped project centered in the viewport as it opens (and any previously
+        // open project collapses around it), rather than the old "nudge into view only if
+        // below the fold". The old version computed the scroll amount from the header's
+        // position AT CLICK TIME plus a hardcoded panel-height constant — both wrong the
+        // moment a second item was tapped while a first was still open: the header had
+        // already moved (collapse + expand run together) and the constant had drifted out
+        // of sync with the real panel height, which is what caused the scroll to overshoot
+        // or undershoot ("scrolls up and down weird") when switching between projects.
+        // panel.scrollHeight gives the panel's real content height even while it's still
+        // visually clipped by max-height:0, so the final (post-transition) position can be
+        // computed exactly up front instead of guessed.
         const headerRect = header.getBoundingClientRect();
-        const expectedBottom = headerRect.bottom + 340;
-        if (expectedBottom > window.innerHeight) {
-          // scroll-snap-type:mandatory on <html> hijacks a plain scrollBy
-          // here and snaps straight to the next section instead of making
-          // the small in-section nudge we want, so it's suspended for the
-          // duration of this scroll and restored once it settles.
-          const html = document.documentElement;
-          html.style.scrollSnapType = 'none';
-          window.scrollBy({ top: expectedBottom - window.innerHeight + 24, behavior: 'smooth' });
-          clearTimeout(snapRestoreTimer);
-          snapRestoreTimer = setTimeout(() => {
-            html.style.scrollSnapType = '';
-          }, 650);
+        const headerDocTop = window.scrollY + headerRect.top;
+        const closingIsAbove = previouslyOpen && previouslyOpen !== item &&
+          !!(previouslyOpen.compareDocumentPosition(item) & Node.DOCUMENT_POSITION_FOLLOWING);
+        const closingHeight = closingIsAbove
+          ? previouslyOpen.querySelector('.work-item-panel').scrollHeight
+          : 0;
+        const finalHeaderTop = headerDocTop - closingHeight;
+        const blockHeight = headerRect.height + panel.scrollHeight;
+        const targetScroll = Math.max(0, finalHeaderTop + blockHeight / 2 - window.innerHeight / 2);
+
+        // scroll-snap-type:mandatory on <html> blocks smooth scroll animations that leave a
+        // section entirely, and can otherwise fight a mid-section nudge like this one — same
+        // suspend/restore pattern used by the wheel-driven section controller further down
+        // this file, scoped to this tap instead of a section transition.
+        const html = document.documentElement;
+        html.style.scrollSnapType = 'none';
+        let restored = false;
+        function restoreSnap() {
+          if (restored) return;
+          restored = true;
+          html.style.scrollSnapType = '';
         }
+        window.addEventListener('scrollend', restoreSnap, { once: true });
+        clearTimeout(snapRestoreTimer);
+        snapRestoreTimer = setTimeout(restoreSnap, 1200);
+
+        window.scrollTo({ top: targetScroll, behavior: 'smooth' });
       }
     });
 
@@ -393,7 +414,8 @@ document.querySelectorAll('a[href^="#"]').forEach(function(link){
   );
   if (stops.length < 2) return;
 
-  var THRESHOLD = 150;   // accumulated wheel delta (px) needed to commit to moving one stop
+  var THRESHOLD = 70;    // accumulated wheel delta (px) needed to commit to moving one stop —
+                         // 150 held sections too hard (too much scrolling needed to get out)
   var IDLE_RESET = 220;  // ms of no wheel activity before the accumulator drops back to 0
   var LOCK_MS = 1200;    // wheel-input lock + scroll-snap-restore fallback ceiling (scrollend
                          // fires sooner in browsers that support it; this just has to safely

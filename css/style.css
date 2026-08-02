@@ -75,21 +75,21 @@ a{ color:inherit; text-decoration:none; }
 @media (max-width:900px){ .ghost{ font-size:110px; top:10px; } }
 
 /* Hero — locked, matches reference/hero-pattern.html exactly. Do not modify without updating that file too. */
-.hero{ position:relative; padding:80px 64px 160px; min-height:820px; }
+.hero{ position:relative; padding:80px 64px 180px; min-height:820px; }
 .hero .eyebrow{ position:relative; z-index:2; padding-top:260px; font-family:'JetBrains Mono',monospace; font-size:15px; margin-left:24px; color:var(--text-dim); }
 .hero .eyebrow b{ color:var(--accent); font-weight:500; }
-.hero .headline{ position:relative; z-index:2; margin-top:20px; margin-left:24px; }
+.hero .headline{ position:relative; z-index:2; margin-top:32px; margin-left:24px; }
 .hero .headline .l1, .hero .headline .l2{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:76px; line-height:1.15; color:var(--text); }
 .hero .headline .l2{ font-size:70px;}
-.hero .headline .l3{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:100px; line-height:1.15; color:var(--accent); margin-left:56px; margin-top:4px; }
-.hero .sub{ position:relative; z-index:2; margin-top:60px; margin-left:400px; max-width:440px; font-size:15px; line-height:1.7; color:var(--text-dim); padding-left:24px; border-left:2px solid var(--accent); }
+.hero .headline .l3{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:100px; line-height:1.15; color:var(--accent); margin-left:56px; margin-top:18px; }
+.hero .sub{ position:relative; z-index:2; margin-top:76px; margin-left:400px; max-width:440px; font-size:15px; line-height:1.7; color:var(--text-dim); padding-left:24px; border-left:2px solid var(--accent); }
 @media (max-width:900px){
-  .hero{ padding:60px 24px 120px; }
-  .hero .eyebrow{ padding-top:110px; margin-left:0; }
-  .hero .headline{ margin-left:0; }
+  .hero{ padding:60px 24px 130px; }
+  .hero .eyebrow{ padding-top:120px; margin-left:0; }
+  .hero .headline{ margin-left:0; margin-top:26px; }
   .hero .headline .l1, .hero .headline .l2{ font-size:30px; }
-  .hero .headline .l3{ font-size:38px; margin-left:20px; }
-  .hero .sub{ margin-left:0; margin-top:32px; }
+  .hero .headline .l3{ font-size:38px; margin-left:20px; margin-top:12px; }
+  .hero .sub{ margin-left:0; margin-top:40px; }
 }
 
 /* Hero headline lines started as an exact reuse of .ripple-stage .node's transition, but at
@@ -400,12 +400,15 @@ a{ color:inherit; text-decoration:none; }
    no text column height to match once it's not sitting beside one. */
 @media (max-width:900px){
   .about-layout{ flex-direction:column; gap:32px; }
-  .about-photo-frame{ order:-1; width:100%; aspect-ratio:4/3; }
+  .about-photo-frame{ order:-1; width:100%; aspect-ratio:2/1; }
   .about-photo{ object-position:50% 8%; }
 }
 @media (max-width:600px){
+  /* Aspect ratio inherited from the 900px breakpoint (2/1) rather than going full-square here
+     — a 1:1 crop at full viewport width was costing ~375px of a ~812px-tall phone viewport on
+     its own, a big part of why About ran to more than double the viewport height on mobile. */
   .about-photo-frame{
-    aspect-ratio:1/1; border-radius:0;
+    border-radius:0;
     width:100vw; margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw);
   }
   .about-photo{ object-position:50% 10%; }
@@ -438,6 +441,28 @@ a{ color:inherit; text-decoration:none; }
 .about .skills{ display:flex; flex-direction:column; }
 .about .skills .k{ font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:400; color:var(--text-mute); margin:32px 0 10px; text-transform:uppercase; letter-spacing:.08em; }
 .about .skills .k:first-child{ margin-top:0; }
+
+/* Mobile spacing tightened further than desktop's — stacking the paragraph and skills columns
+   (rather than sitting side by side) already roughly doubles this section's content height on
+   its own, on top of the photo now sitting above it too; without this the section ran to more
+   than double the viewport height, which is what made scroll-snap into/out of it feel like
+   "free scroll, nothing pulling you along" rather than a section transition. */
+@media (max-width:900px){
+  .about{ padding:48px 0; }
+  .about-layout{ gap:24px; }
+  .about .grid{ gap:28px; margin-top:24px; }
+  .about .col p{ font-size:15px; line-height:1.55; margin-bottom:14px; }
+  /* Multi-column instead of the stacked single column — CSS multicol keeps each label
+     directly above its own value (unlike a 2-col grid, which would place plain sibling
+     elements side by side and break the k-above-v pairing) while roughly halving how much
+     vertical space the four design/development/platforms/focus rows take up. */
+  /* column-count only works on a non-flex container — .skills is display:flex normally
+     (for the desktop single-column stack), which silently disables multicol entirely if left
+     as-is here. */
+  .about .skills{ display:block; column-count:2; column-gap:24px; }
+  .about .skills .k{ margin:18px 0 6px; break-after:avoid; }
+  .about .skills .k:first-child{ margin-top:0; }
+}
 .about .skills .v{ font-size:15px; color:var(--text); line-height:1.6; }
 
 /* Contact */
