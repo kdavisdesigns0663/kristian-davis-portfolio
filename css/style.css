@@ -396,19 +396,33 @@ a{ color:inherit; text-decoration:none; }
    Icons are hand-drawn line art (thin stroke, no fill except the LinkedIn dot) matching the
    ghost word's outline treatment and the bordered-box language already used by .cta/
    .work-item-btn elsewhere, rather than imported brand-icon glyphs. Static on purpose — no
-   transform/motion, only the same color/border-color transition already used sitewide on hover. */
-.contact .email-plain{ margin-top:16px; font-size:14px; color:var(--text-mute); }
-.contact .email-plain a{ color:inherit; border-bottom:1px solid var(--line-strong); transition:color .3s ease, border-color .3s ease; }
-.contact .email-plain a:hover{ color:var(--accent); border-color:var(--accent); }
+   transform/motion, only the same color/border-color transition already used sitewide on hover.
 
-.contact-social{ margin-top:24px; display:flex; gap:12px; }
+   Hierarchy: the button is the one clearly primary action (largest, boldest border). Email
+   and social links are both secondary, each under its own small uppercase label — the exact
+   .k/.v label treatment already used for the About section's skills list, reused here rather
+   than invented fresh, so "email" / "elsewhere" read as the same kind of quiet system label as
+   "design" / "development" do there. */
+.contact-group{ margin-top:32px; }
+.contact-group:first-of-type{ margin-top:36px; }
+.contact-label{ display:block; font-size:11px; font-weight:400; color:var(--text-mute); margin-bottom:10px; text-transform:uppercase; letter-spacing:.08em; }
+.contact .email-plain{ font-size:15px; color:var(--text-dim); border-bottom:1px solid var(--line-strong); transition:color .3s ease, border-color .3s ease; }
+.contact .email-plain:hover{ color:var(--accent); border-color:var(--accent); }
+
+.contact-social{ display:flex; gap:14px; }
 .contact-social a{
   display:inline-flex; align-items:center; justify-content:center;
-  width:42px; height:42px; border:1px solid var(--line-strong); border-radius:8px;
+  width:52px; height:52px; border:1px solid var(--line-strong); border-radius:10px;
   color:var(--text-dim); transition:color .3s ease, border-color .3s ease;
 }
 .contact-social a:hover{ color:var(--accent); border-color:var(--accent); }
-.contact-social svg{ width:18px; height:18px; }
+.contact-social svg{ width:24px; height:24px; }
+
+/* Touch devices have no hover state to reveal the accent color, so on mobile the icons carry
+   it at rest instead — otherwise they'd just look permanently muted/inactive on a phone. */
+@media (max-width:720px){
+  .contact-social a{ color:var(--accent); border-color:var(--accent); }
+}
 
 /* Footer */
 .site-footer{ padding:32px 64px; border-top:1px solid var(--line); font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-mute); display:flex; justify-content:space-between; }
