@@ -85,15 +85,19 @@ a{ color:inherit; text-decoration:none; }
   .hero .sub{ margin-left:0; margin-top:32px; }
 }
 
-/* Hero headline lines reuse the exact liquid-reveal treatment already tuned for
-   .ripple-stage .node below — same opacity/transform/filter transition values, and the same
-   textRipple keyframe (defined further down, referenced by name here) on an inner wrapper —
-   not a new animation. .placed and the per-line transition-delay/animation-delay are set by
-   playHeroReveal() in main.js, staggered in reading order. */
-.hero .headline > div{ opacity:0; transform:scale(0.3); filter:blur(8px); transition:opacity 1.4s ease, transform 2s cubic-bezier(.22,1.44,.36,1), filter 1.7s ease-out; }
+/* Hero headline lines started as an exact reuse of .ripple-stage .node's transition, but at
+   this scale (huge display type vs. a small node label) the same 0.3->1 scale jump with an
+   overshoot curve read as words slamming onto the screen, not a calm ripple. Softened to a
+   much smaller scale delta (0.94->1, barely perceptible as "growth") on a smooth decelerate
+   curve with no overshoot, slowed down further, and given real reading time between lines
+   (see the per-line stagger in playHeroReveal() in main.js — long enough to actually read
+   line one before line two begins). Still reuses the textRipple keyframe (defined further
+   down, referenced by name here) on an inner wrapper for the settle wobble, just at the same
+   slower pace as everything else now. */
+.hero .headline > div{ opacity:0; transform:scale(0.94); filter:blur(8px); transition:opacity 2.2s ease, transform 3.2s cubic-bezier(.16,1,.3,1), filter 2.6s ease-out; }
 .hero .headline > div.placed{ opacity:1; transform:scale(1); filter:blur(0); }
 .hero .headline .line-inner{ display:block; }
-.hero .headline > div.placed .line-inner{ animation:textRipple 1.3s cubic-bezier(.22,1,.36,1) both; }
+.hero .headline > div.placed .line-inner{ animation:textRipple 1.8s cubic-bezier(.22,1,.36,1) both; }
 
 /* Ghost word gets a deliberately quieter treatment than the headline lines -- a plain slow
    fade up to its normal resting opacity, no blur/bounce/wobble -- so it reads as a backdrop

@@ -1,7 +1,9 @@
-// --- Hero: headline lines liquid-reveal on load, reusing the exact .ripple-stage .node
-// transition + textRipple wobble (see style.css) rather than a new animation. Staggered in
-// reading order via inline transition-delay/animation-delay set here, computed from each
-// line's position among its siblings so it works for however many lines the markup has.
+// --- Hero: headline lines liquid-reveal on load (see style.css for the transition/textRipple
+// values — softened and slowed from an earlier version that reused .ripple-stage .node's
+// timing exactly, which read as words slamming in rather than a calm ripple at headline
+// scale). Staggered in reading order via inline transition-delay/animation-delay set here,
+// computed from each line's position among its siblings. The 1.8s gap is deliberate — enough
+// to actually read line one before line two starts materializing, not just a beat between them.
 // Fires once via IntersectionObserver (hero is the first section, so this effectively means
 // "on load") and never resets — this is not a scroll-repeat effect like the work-section ripple.
 const heroSection = document.getElementById('hero');
@@ -12,7 +14,7 @@ if (heroSection) {
     if (heroPlayed) return;
     heroPlayed = true;
     heroLines.forEach((line, i) => {
-      const delay = (i * 0.45) + 's';
+      const delay = (i * 1.8) + 's';
       line.style.transitionDelay = delay;
       line.classList.add('placed');
       const inner = line.querySelector('.line-inner');
