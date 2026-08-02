@@ -151,9 +151,11 @@ if (stage) {
     clearTimers();
     const dropWrap = stage.querySelector('.drop-wrap');
     const flash = stage.querySelector('.impact-flash');
+    const card = stage.querySelector('.stage-card');
     dropWrap.classList.remove('falling', 'impact');
     dropWrap.style.opacity = '0';
     flash.classList.remove('flash');
+    if (card) card.classList.remove('active');
     stage.querySelectorAll('.ring').forEach(r => r.remove());
     projects.forEach(p => {
       p.el.classList.remove('placed');
@@ -164,9 +166,11 @@ if (stage) {
   function playSequence() {
     if (played) return;
     played = true;
+    // holdBeforeImpact must match the .falling transition duration in CSS (0.9s) — sped up
+    // from 2.2s, which left the section looking empty for too long before anything happened.
     playRaindrop({
       container: stage,
-      holdBeforeImpact: 2200,
+      holdBeforeImpact: 900,
       ringCount: 4,
       ringStagger: 580,
       ringDuration: 2.3,
@@ -175,6 +179,8 @@ if (stage) {
       glowMaxSize: 260,
       registerTimer: (id) => timers.push(id),
       onImpact: () => {
+        const card = stage.querySelector('.stage-card');
+        if (card) card.classList.add('active');
         projects.forEach((p, i) => {
           timers.push(setTimeout(() => {
             p.el.style.transform = `translate(-50%,-50%) ${targetTransform(p.angle, p.radius)} scale(1)`;
