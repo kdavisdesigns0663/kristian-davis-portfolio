@@ -85,6 +85,22 @@ a{ color:inherit; text-decoration:none; }
   .hero .sub{ margin-left:0; margin-top:32px; }
 }
 
+/* Hero headline lines reuse the exact liquid-reveal treatment already tuned for
+   .ripple-stage .node below — same opacity/transform/filter transition values, and the same
+   textRipple keyframe (defined further down, referenced by name here) on an inner wrapper —
+   not a new animation. .placed and the per-line transition-delay/animation-delay are set by
+   playHeroReveal() in main.js, staggered in reading order. */
+.hero .headline > div{ opacity:0; transform:scale(0.3); filter:blur(8px); transition:opacity 1.4s ease, transform 2s cubic-bezier(.22,1.44,.36,1), filter 1.7s ease-out; }
+.hero .headline > div.placed{ opacity:1; transform:scale(1); filter:blur(0); }
+.hero .headline .line-inner{ display:block; }
+.hero .headline > div.placed .line-inner{ animation:textRipple 1.3s cubic-bezier(.22,1,.36,1) both; }
+
+/* Ghost word gets a deliberately quieter treatment than the headline lines -- a plain slow
+   fade up to its normal resting opacity, no blur/bounce/wobble -- so it reads as a backdrop
+   settling in behind the text, not part of the same liquid-reveal sequence. */
+.hero .ghost{ opacity:0; transition:opacity 2.8s ease; }
+.hero.revealed .ghost{ opacity:0.35; }
+
 /* Section heading */
 .section-head{ padding:80px 0 0; }
 .section-head h2{

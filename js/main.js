@@ -1,3 +1,31 @@
+// --- Hero: headline lines liquid-reveal on load, reusing the exact .ripple-stage .node
+// transition + textRipple wobble (see style.css) rather than a new animation. Staggered in
+// reading order via inline transition-delay/animation-delay set here, computed from each
+// line's position among its siblings so it works for however many lines the markup has.
+// Fires once via IntersectionObserver (hero is the first section, so this effectively means
+// "on load") and never resets — this is not a scroll-repeat effect like the work-section ripple.
+const heroSection = document.getElementById('hero');
+if (heroSection) {
+  const heroLines = heroSection.querySelectorAll('.headline > div');
+  let heroPlayed = false;
+  function playHeroReveal() {
+    if (heroPlayed) return;
+    heroPlayed = true;
+    heroLines.forEach((line, i) => {
+      const delay = (i * 0.45) + 's';
+      line.style.transitionDelay = delay;
+      line.classList.add('placed');
+      const inner = line.querySelector('.line-inner');
+      if (inner) inner.style.animationDelay = delay;
+    });
+    heroSection.classList.add('revealed');
+  }
+  const heroObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => { if (entry.isIntersecting) playHeroReveal(); });
+  }, { threshold: 0.5 });
+  heroObserver.observe(heroSection);
+}
+
 // --- Work section: raindrop fall + ripple reveal, scroll-triggered, center-anchored hover preview ---
 // 4 projects currently, arranged in an X (angles 45deg apart from cardinal).
 // To add another, just add one object here — position/animation are computed from this list.
