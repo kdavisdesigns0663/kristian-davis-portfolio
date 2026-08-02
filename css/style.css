@@ -392,6 +392,24 @@ a{ color:inherit; text-decoration:none; }
 }
 .contact .cta:hover{ border-color:var(--accent); color:var(--accent); }
 
+/* Plain-text email fallback for anyone who can't use the button, and LinkedIn/Behance links.
+   Icons are hand-drawn line art (thin stroke, no fill except the LinkedIn dot) matching the
+   ghost word's outline treatment and the bordered-box language already used by .cta/
+   .work-item-btn elsewhere, rather than imported brand-icon glyphs. Static on purpose — no
+   transform/motion, only the same color/border-color transition already used sitewide on hover. */
+.contact .email-plain{ margin-top:16px; font-size:14px; color:var(--text-mute); }
+.contact .email-plain a{ color:inherit; border-bottom:1px solid var(--line-strong); transition:color .3s ease, border-color .3s ease; }
+.contact .email-plain a:hover{ color:var(--accent); border-color:var(--accent); }
+
+.contact-social{ margin-top:24px; display:flex; gap:12px; }
+.contact-social a{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:42px; height:42px; border:1px solid var(--line-strong); border-radius:8px;
+  color:var(--text-dim); transition:color .3s ease, border-color .3s ease;
+}
+.contact-social a:hover{ color:var(--accent); border-color:var(--accent); }
+.contact-social svg{ width:18px; height:18px; }
+
 /* Footer */
 .site-footer{ padding:32px 64px; border-top:1px solid var(--line); font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-mute); display:flex; justify-content:space-between; }
 @media (max-width:720px){ .site-footer{ padding:24px; flex-direction:column; gap:8px; } }
