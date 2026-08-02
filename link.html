@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Kristian Davis</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+  /* This page is intentionally standalone and mobile-only (reached via a QR code, not site
+     nav) — everything below reuses css/style.css tokens/classes directly (--bg, --accent,
+     .ghost, .mono, the shared textRipple keyframe) rather than inventing a new look. The two
+     things that genuinely need page-specific rules: laying the ghost word out as a centered
+     focal element instead of its usual absolute-positioned background bleed, and giving it
+     the hero headline's liquid-reveal treatment instead of the ghost word's own usual quiet
+     fade — this page has no separate headline for that treatment to live on, so the ghost
+     word IS the headline here. */
+  body.link-page{
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    min-height:100vh; padding:32px 24px; text-align:center; gap:56px;
+  }
+
+  /* Overrides .ghost's absolute/bled-off-edge positioning (built for sitting behind other
+     content) with a centered, in-flow block, since here it's the only thing on screen.
+     Reveal values (transition + textRipple) are copied exactly from .hero .headline > div /
+     .line-inner in css/style.css, not retimed. */
+  .link-page .ghost.link-ghost{
+    position:static; top:auto; left:auto; z-index:auto;
+    display:block; width:100%;
+    font-size:clamp(56px, 16vw, 90px);
+    opacity:0; transform:scale(0.94); filter:blur(8px);
+    transition:opacity 2.2s ease, transform 3.2s cubic-bezier(.16,1,.3,1), filter 2.6s ease-out;
+  }
+  .link-page .ghost.link-ghost.placed{ opacity:1; transform:scale(1); filter:blur(0); }
+  .link-page .ghost.link-ghost .line-inner{ display:block; }
+  .link-page .ghost.link-ghost.placed .line-inner{ animation:textRipple 1.8s cubic-bezier(.22,1,.36,1) both; }
+
+  @media (prefers-reduced-motion: reduce){
+    .link-page .ghost.link-ghost{
+      transition:opacity .3s ease !important; filter:none !important; transform:none !important;
+    }
+    .link-page .ghost.link-ghost.placed .line-inner{ animation:none !important; }
+  }
+
+  /* Same visual language as .contact .cta (border box, JetBrains Mono, violet hover/focus),
+     just stacked as a full-width column instead of .cta's single inline-block usage. */
+  .link-actions{ display:flex; flex-direction:column; gap:14px; width:100%; max-width:300px; }
+  .link-actions a{
+    display:block; padding:16px 32px; border:1px solid var(--line-strong);
+    font-size:14px; color:var(--text); transition:border-color .3s ease, color .3s ease;
+  }
+  .link-actions a:hover, .link-actions a:focus-visible{ border-color:var(--accent); color:var(--accent); }
+</style>
+</head>
+<body class="link-page">
+
+  <div class="ghost link-ghost" id="linkGhost"><span class="line-inner">KRISTIAN</span></div>
+
+  <div class="link-actions">
+    <a class="mono" href="index.html">Portfolio</a>
+    <a class="mono" href="https://www.linkedin.com/in/kdavisdesigns/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+    <a class="mono" href="https://www.behance.net/kristiandavis3" target="_blank" rel="noopener noreferrer">Behance</a>
+  </div>
+
+  <script>
+    // Single-element version of playHeroReveal() from js/main.js — no stagger needed, just
+    // one liquid reveal firing once on load.
+    var ghost = document.getElementById('linkGhost');
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        ghost.classList.add('placed');
+      });
+    });
+  </script>
+
+</body>
+</html>
