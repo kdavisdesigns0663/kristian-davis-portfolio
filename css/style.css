@@ -148,55 +148,54 @@ a{ color:inherit; text-decoration:none; }
 .philosophy .step h3{ font-family:'Space Grotesk',sans-serif; font-weight:500; font-size:18px; margin-bottom:8px; }
 .philosophy .step p{ font-size:14px; color:var(--text-dim); }
 
-/* Work section — ripple reveal. EXPERIMENTAL color-inversion pass (violet hero -> violet-washed
-   work section, drop flips from violet to black crossing that boundary, projects sit on a black
-   card) — kept isolated to its own commit specifically so it's a clean single revert if it
-   doesn't land well. See reference/raindrop-v4.html for the original tested source. */
+/* Work section — ripple reveal. EXPERIMENTAL color-inversion pass (violet-washed work section,
+   projects sit on a black card) — kept isolated to its own commit specifically so it's a clean
+   single revert if it doesn't land well. See reference/raindrop-v4.html for the original tested
+   source. Drop itself stays violet (matches the hero hint and the mobile version) -- only the
+   section wash, ghost word, and card are part of the inversion. */
 .work-section{
   position:relative; display:flex; align-items:center; justify-content:center;
   background:rgba(var(--accent-rgb),0.14);
 }
-/* Ghost word reads as black instead of the sitewide violet stroke here specifically, since it
-   now sits on the violet wash rather than near-black — same outline treatment, just recolored. */
-.work-section .ghost{ -webkit-text-stroke:1px #000; opacity:0.45; }
+/* White instead of the sitewide violet stroke -- against this section's dark violet wash, a
+   violet-on-violet stroke nearly disappears, and the black tried here first failed WCAG contrast
+   entirely. White clears AA's 3:1 large-text minimum with room to spare. */
+.work-section .ghost{ -webkit-text-stroke:1px #fff; opacity:0.45; }
 .ripple-stage{ position:relative; z-index:2; width:600px; height:600px; max-width:90vw; max-height:90vw; }
 
 /* Wrapper handles vertical fall + squash/stretch in true screen-space. Shape handles rotation only.
    These are deliberately separate elements -- combining stretch and rotation on one element
    causes the stretch to skew diagonally instead of falling straight down. Start point is
    -90vh (well above the viewport, not just above the stage) so it visibly falls INTO view
-   instead of materializing a few dozen pixels above the text. Fall is deliberately quick now
-   (0.9s, was 2.2s) -- the section was reading as empty/blank while the old slow fall was still
-   in progress. */
+   instead of materializing a few dozen pixels above the text. Fall duration is unchanged from
+   the original (2.2s) -- what actually needed fixing was how late the fall STARTED, not its
+   speed; see the IntersectionObserver rootMargin in main.js. */
 .ripple-stage .drop-wrap{ position:absolute; left:50%; top:-90vh; transform:translateX(-50%) scaleY(1); z-index:5; opacity:0; }
-.ripple-stage .drop-wrap.falling{ opacity:1; transition:top 0.9s cubic-bezier(.36,.06,.29,.99), transform 0.9s cubic-bezier(.36,.06,.29,.99); top:50%; transform:translateX(-50%) scaleY(1.4); }
+.ripple-stage .drop-wrap.falling{ opacity:1; transition:top 2.2s cubic-bezier(.36,.06,.29,.99), transform 2.2s cubic-bezier(.36,.06,.29,.99); top:50%; transform:translateX(-50%) scaleY(1.4); }
 .ripple-stage .drop-wrap.impact{ top:50%; transition:transform 0.32s ease-out, opacity 0.4s ease-out 0.08s; transform:translateX(-50%) scaleY(0.4); opacity:0; }
-/* Drop is black here (not the violet used everywhere else, including the hero hint and the
-   mobile version of this same drop) -- the color-inversion motif: violet on black in the hero,
-   black on violet once it crosses into the work section's wash. Glow swapped for a soft dark
-   drop-shadow instead of a colored box-shadow, since a black shape "glowing" black doesn't read
-   the same way the violet version did against a pure black background. */
-.ripple-stage .drop-shape{ width:12px; height:12px; background:#000; box-shadow:0 2px 10px 1px rgba(0,0,0,0.4); border-radius:50% 50% 50% 0; transform:rotate(135deg); }
+.ripple-stage .drop-shape{ width:12px; height:12px; background:var(--accent); box-shadow:0 0 14px 3px rgba(var(--accent-rgb),0.55); border-radius:50% 50% 50% 0; transform:rotate(135deg); }
 
 .ripple-stage .impact-flash{ position:absolute; top:50%; left:50%; width:6px; height:6px; border-radius:50%; background:#fff; transform:translate(-50%,-50%) scale(1); opacity:0; z-index:4; }
 .ripple-stage .impact-flash.flash{ transition:transform 0.6s ease-out, opacity 0.6s ease-out; transform:translate(-50%,-50%) scale(6); opacity:0; }
 
 /* Soft filled pulse at the exact impact point -- a diffuse "splash" that reads as a liquid
    disturbance, distinct from the crisp ring outlines which trace the water rippling outward
-   from it. Must start at explicit 0 size for the same reflow-before-transition reason as .ring.
-   Black instead of violet, matching the drop. */
-.ripple-stage .impact-glow{ position:absolute; top:50%; left:50%; width:0; height:0; border-radius:50%; background:radial-gradient(circle, rgba(0,0,0,0.35), transparent 70%); transform:translate(-50%,-50%); opacity:0; filter:blur(2px); z-index:3; }
+   from it. Must start at explicit 0 size for the same reflow-before-transition reason as .ring. */
+.ripple-stage .impact-glow{ position:absolute; top:50%; left:50%; width:0; height:0; border-radius:50%; background:radial-gradient(circle, rgba(var(--accent-rgb),0.4), transparent 70%); transform:translate(-50%,-50%); opacity:0; filter:blur(2px); z-index:3; }
 
 /* Ring MUST start at explicit 0 width/height -- transitioning from implicit "auto" does not
    reliably animate in browsers. This was the root cause of the ripple not appearing at all.
-   Black to match the drop; z-index above .stage-card so the ripple still reads as tracing
-   across the card's surface rather than getting hidden behind it. */
-.ripple-stage .ring{ position:absolute; top:50%; left:50%; width:0; height:0; border:3px solid #000; border-radius:50%; transform:translate(-50%,-50%); opacity:0; filter:blur(0px); z-index:2; }
+   z-index above .stage-card so the ripple still reads as tracing across the card's surface
+   rather than getting hidden behind it. */
+.ripple-stage .ring{ position:absolute; top:50%; left:50%; width:0; height:0; border:3px solid var(--accent); border-radius:50%; transform:translate(-50%,-50%); opacity:0; filter:blur(0px); z-index:2; }
 
-/* Card the projects sit on once the ripple lands -- roughly 2/3 of the stage, not a fixed px
-   size, so it stays proportional however big .ripple-stage itself ends up (600px, or 90vw on
-   a narrower desktop window). Sits behind the rings/nodes (z-index:1) but above the section's
-   own background. Grows in from the center in sync with the ripple, not before or after it. */
+/* Card the projects sit on once the ripple lands. Sized so every node's full two-line label
+   (name + hook) clears the card edge with ~65px to spare, not just the node's center point --
+   at the original 66.6% size the widest hooks (e.g. Zentra's) overflowed the card by ~58px.
+   108% of the stage (not a fixed px value) so it still scales with .ripple-stage's own
+   90vw cap on narrower desktop windows. Sits behind the rings/nodes (z-index:1) but above the
+   section's own background. Grows in from the center in sync with the ripple, not before or
+   after it. */
 .ripple-stage .stage-card{
   position:absolute; top:50%; left:50%; width:0; height:0;
   transform:translate(-50%,-50%); opacity:0; z-index:1;
@@ -204,7 +203,7 @@ a{ color:inherit; text-decoration:none; }
   box-shadow:0 40px 100px -24px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.05);
   transition:width .8s cubic-bezier(.19,1,.22,1), height .8s cubic-bezier(.19,1,.22,1), opacity .6s ease;
 }
-.ripple-stage .stage-card.active{ width:66.6%; height:66.6%; opacity:1; }
+.ripple-stage .stage-card.active{ width:108%; height:108%; opacity:1; }
 
 .ripple-stage .node{ position:absolute; top:50%; left:50%; opacity:0; color:var(--text); font-family:'Space Grotesk',sans-serif; font-size:20px; font-weight:700; white-space:nowrap; text-align:center; cursor:pointer; z-index:2; transform:translate(-50%,-50%) scale(0.3); filter:blur(8px); transition:opacity 1.4s ease, transform 2s cubic-bezier(.22,1.44,.36,1), filter 1.7s ease-out; }
 .ripple-stage .node .hook{ font-family:'Inter',sans-serif; font-size:11px; color:var(--text-mute); font-weight:400; margin-top:4px; }

@@ -166,11 +166,12 @@ if (stage) {
   function playSequence() {
     if (played) return;
     played = true;
-    // holdBeforeImpact must match the .falling transition duration in CSS (0.9s) — sped up
-    // from 2.2s, which left the section looking empty for too long before anything happened.
+    // holdBeforeImpact matches the .falling transition duration in CSS (2.2s, unchanged) --
+    // the fix for "nothing happens" was starting the sequence earlier (see the observer's
+    // rootMargin below), not making the fall itself faster.
     playRaindrop({
       container: stage,
-      holdBeforeImpact: 900,
+      holdBeforeImpact: 2200,
       ringCount: 4,
       ringStagger: 580,
       ringDuration: 2.3,
@@ -192,14 +193,19 @@ if (stage) {
   }
 
   // Watch the SECTION (guaranteed full-viewport via scroll-snap) so the trigger
-  // is reliable, and reset on exit so scrolling back replays the sequence.
+  // is reliable, and reset on exit so scrolling back replays the sequence. Threshold
+  // dropped from 0.9 (had to nearly finish the scroll into the section before anything
+  // happened, reading as "blank") to 0.15 -- low enough that the fall starts within the
+  // first ~80px of scrolling away from the hero, so the scroll itself reads as what
+  // triggers the drop, but still above the section's small natural peek at rest (hero is
+  // a hair shorter than the viewport) so it doesn't fire before any scrolling happens.
   const workSection = document.getElementById('work');
   const rippleObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) playSequence();
       else resetSequence();
     });
-  }, { threshold: 0.9 });
+  }, { threshold: 0.15 });
   if (workSection) rippleObserver.observe(workSection);
 }
 
