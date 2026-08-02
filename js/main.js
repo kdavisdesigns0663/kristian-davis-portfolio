@@ -123,7 +123,7 @@ if (stage) {
 
     const preview = document.createElement('div');
     preview.className = 'preview ' + p.key + (p.isPlaceholder ? ' is-placeholder' : '');
-    preview.innerHTML = `<img src="${p.img}" alt="${p.isPlaceholder ? '' : p.name + ' preview'}" loading="lazy">`;
+    preview.innerHTML = `<img src="${p.img}" alt="${p.isPlaceholder ? '' : p.name + ' preview'}" loading="lazy"><span class="preview-tag">${p.name}</span>`;
     stage.appendChild(preview);
     p.preview = preview;
 
@@ -313,7 +313,7 @@ if (accordion) {
     panel.id = panelId;
     panel.innerHTML = `
       <div class="work-item-preview-stage">
-        <div class="preview ${p.key} work-item-preview-bloom${p.isPlaceholder ? ' is-placeholder' : ''}"><img src="${p.img}" alt="${p.isPlaceholder ? '' : p.name + ' preview'}" loading="lazy"></div>
+        <div class="preview ${p.key} work-item-preview-bloom${p.isPlaceholder ? ' is-placeholder' : ''}"><img src="${p.img}" alt="${p.isPlaceholder ? '' : p.name + ' preview'}" loading="lazy"><span class="preview-tag">${p.name}</span></div>
       </div>
       <a class="work-item-btn mono" href="${p.href}">view project</a>
     `;

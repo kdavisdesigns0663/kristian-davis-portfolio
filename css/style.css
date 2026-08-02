@@ -176,17 +176,47 @@ a{ color:inherit; text-decoration:none; }
 .ripple-stage .node-inner{ display:block; }
 .ripple-stage .node.placed .node-inner{ animation:textRipple 1.3s cubic-bezier(.22,1,.36,1) both; }
 
-.ripple-stage .preview{ position:absolute; top:50%; left:50%; width:80px; height:52px; transform:translate(-50%,-50%) scale(0.3); opacity:0; border-radius:12px; overflow:hidden; z-index:6; pointer-events:none; transition:opacity .4s ease, transform .5s cubic-bezier(.2,.8,.2,1); }
-.ripple-stage .preview.active{ opacity:1; transform:translate(-50%,-50%) scale(1); width:320px; height:200px; }
-.ripple-stage .preview::before{ content:""; position:absolute; inset:-40px; filter:blur(40px); opacity:0.5; border-radius:50%; z-index:0; }
+/* Preview frame — sized to a 9:19.5 phone-screen ratio to match the new screenshot crops
+   (previously a 1.6:1 landscape box, back when previews were cropped to a landscape strip).
+   Three stacked layers sit above the image itself: ::before is a corner-positioned accent
+   tint (subtle, photo still reads through), ::after is a bottom-up dark fade for text
+   legibility, and .preview-tag is the project name sitting on top of that fade. The outer
+   glow is a box-shadow (transitioned from transparent/0-blur at rest) rather than the old
+   blurred-pseudo-element trick, per-project color driven by --proj-rgb so the same rule works
+   for all four instead of repeating the gradient per project. */
+.ripple-stage .preview{
+  position:absolute; top:50%; left:50%; width:56px; height:121px;
+  transform:translate(-50%,-50%) scale(0.3); opacity:0;
+  border-radius:12px; overflow:hidden; z-index:6; pointer-events:none;
+  box-shadow:0 0 0 0 rgba(var(--proj-rgb),0);
+  transition:opacity .4s ease, transform .5s cubic-bezier(.2,.8,.2,1),
+    width .5s cubic-bezier(.2,.8,.2,1), height .5s cubic-bezier(.2,.8,.2,1), box-shadow .5s ease;
+}
+.ripple-stage .preview.active{
+  opacity:1; transform:translate(-50%,-50%) scale(1); width:170px; height:368px;
+  box-shadow:0 0 60px 8px rgba(var(--proj-rgb),0.35);
+}
 .ripple-stage .preview img{ position:relative; z-index:1; width:100%; height:100%; object-fit:cover; object-position:top; display:block; }
-/* Glow color per project, cropped from each real screenshot's own palette (Zentra's app is
-   actually green/gold, not the blue used back when this was a placeholder color guess). Amun
-   stays neutral gray — it's the one project still showing an honest placeholder image. */
-.preview.nitefind::before{ background:radial-gradient(circle,#b04ad6,transparent 65%); }
-.preview.smiteforge::before{ background:radial-gradient(circle,#e0b84a,transparent 65%); }
-.preview.zentra::before{ background:radial-gradient(circle,#4fbf82,transparent 65%); }
-.preview.amun::before{ background:radial-gradient(circle,#8f8f8f,transparent 65%); }
+.ripple-stage .preview::before{
+  content:""; position:absolute; inset:0; z-index:2; pointer-events:none;
+  background:radial-gradient(circle at 82% 14%, rgba(var(--proj-rgb),0.4), transparent 55%);
+}
+.ripple-stage .preview::after{
+  content:""; position:absolute; inset:0; z-index:3; pointer-events:none;
+  background:linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 22%, transparent 46%);
+}
+.ripple-stage .preview .preview-tag{
+  position:absolute; left:14px; bottom:12px; z-index:4;
+  font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:14px; color:#f4f2ee;
+  pointer-events:none;
+}
+/* --proj-rgb drives the tint, the outer glow, and (via .preview-tag being plain white above)
+   is the one thing that changes per project — same treatment otherwise. Colors match each
+   project's actual screenshot; Amun stays neutral gray since it has no real screen yet. */
+.preview.nitefind{ --proj-rgb:176,74,214; }
+.preview.smiteforge{ --proj-rgb:224,184,74; }
+.preview.zentra{ --proj-rgb:79,191,130; }
+.preview.amun{ --proj-rgb:143,143,143; }
 
 /* Work section — mobile fallback. The X-layout raindrop animation assumes a desktop-sized
    canvas and doesn't translate below ~700px (nodes overflow the viewport), so under that
@@ -272,9 +302,11 @@ a{ color:inherit; text-decoration:none; }
 }
 
 .work-item-panel{ max-height:0; overflow:hidden; transition:max-height .75s ease; }
-.work-item.open .work-item-panel{ max-height:340px; }
+.work-item.open .work-item-panel{ max-height:440px; }
 
-.work-item-preview-stage{ position:relative; width:100%; height:180px; margin:4px 0 20px; }
+/* Fixed portrait width (9:19.5, matching the screenshot crops) centered in the panel, rather
+   than the old full-width landscape strip — a wide box no longer suits a phone-shaped image. */
+.work-item-preview-stage{ position:relative; width:150px; height:325px; margin:4px auto 20px; }
 /* Preview materializes the same way the dropdown does — a clip-path circle expanding from the
    top-center of its own box (i.e. from where the tapped header sits just above it), not a
    fade. The transition is only declared once, on the base (closed) rule, so it runs
@@ -283,18 +315,35 @@ a{ color:inherit; text-decoration:none; }
    came from rather than a hard swap or a stack of overlapping previews. The delay on opening
    only (via the .open override, since that's the rule the browser uses when clip-path is
    animating toward it) is what makes the reveal feel caused by the tap ripple instead of
-   simultaneous with it. */
+   simultaneous with it. Same corner-tint/bottom-fade/label/glow layers as the desktop preview,
+   sharing --proj-rgb, so the two feel like the same treatment rather than two designs. */
 .work-item-preview-bloom{
   position:absolute; inset:0;
   clip-path:circle(0% at 50% 0%); filter:blur(12px); transform:scaleY(0.95);
-  border-radius:8px; overflow:hidden; pointer-events:none;
-  transition:clip-path 1.1s cubic-bezier(.19,1,.22,1), filter .85s ease, transform .9s cubic-bezier(.22,1,.36,1);
+  border-radius:12px; overflow:hidden; pointer-events:none;
+  box-shadow:0 0 0 0 rgba(var(--proj-rgb),0);
+  transition:clip-path 1.1s cubic-bezier(.19,1,.22,1), filter .85s ease, transform .9s cubic-bezier(.22,1,.36,1),
+    box-shadow .6s ease;
 }
-.work-item-preview-bloom::before{ content:""; position:absolute; inset:-40px; filter:blur(40px); opacity:0.5; border-radius:50%; z-index:0; }
 .work-item-preview-bloom img{ position:relative; z-index:1; width:100%; height:100%; object-fit:cover; object-position:top; display:block; }
+.work-item-preview-bloom::before{
+  content:""; position:absolute; inset:0; z-index:2; pointer-events:none;
+  background:radial-gradient(circle at 82% 14%, rgba(var(--proj-rgb),0.4), transparent 55%);
+}
+.work-item-preview-bloom::after{
+  content:""; position:absolute; inset:0; z-index:3; pointer-events:none;
+  background:linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 22%, transparent 46%);
+}
+.work-item-preview-bloom .preview-tag{
+  position:absolute; left:14px; bottom:12px; z-index:4;
+  font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:14px; color:#f4f2ee;
+  pointer-events:none;
+}
 .work-item.open .work-item-preview-bloom{
   clip-path:circle(140% at 50% 0%); filter:blur(0); transform:scaleY(1);
-  transition:clip-path 1.15s cubic-bezier(.19,1,.22,1) .25s, filter .9s ease .25s, transform .95s cubic-bezier(.22,1,.36,1) .25s;
+  box-shadow:0 0 50px 6px rgba(var(--proj-rgb),0.3);
+  transition:clip-path 1.15s cubic-bezier(.19,1,.22,1) .25s, filter .9s ease .25s, transform .95s cubic-bezier(.22,1,.36,1) .25s,
+    box-shadow .7s ease .25s;
 }
 .work-item-btn{
   display:inline-block; margin-bottom:24px; padding:12px 24px; border:1px solid var(--line-strong);
