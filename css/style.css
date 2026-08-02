@@ -8,26 +8,39 @@
   --text:#e9e7df;
   --text-dim:#a09c92;
   --text-mute:#5a5754;
-  --accent:#c9a878;
+  --accent:#a06bff;
+  --accent-rgb:160,107,255;
 }
 
-/* proximity, not mandatory — with mandatory, any scroll gesture that carried the viewport even
-   slightly past a section's snap zone committed hard to the next section instead of settling
-   back, which is what made the bottom of the About section feel like it "pushed" you into
-   Contact from a small scroll. proximity still snaps firmly, it just requires the scroll to
-   actually get close to the next section before committing. scroll-snap-stop:always is kept —
-   sections still can't be skipped over by a fast fling, only the "how much scroll counts as
-   intent to move on" threshold changed. */
-html{ scroll-snap-type:y proximity; }
+html{ scroll-snap-type:y mandatory; }
 .snap-section{ min-height:100vh; scroll-snap-align:start; scroll-snap-stop:always; }
+/* Nav and the footer live outside the .snap-section flow (above hero, below contact), so
+   with only 4 snap points, scrolling toward either one landed in the gap between a real snap
+   point and the edge of the page — mandatory has nowhere valid to rest there, so it kept
+   yanking the scroll back into hero/contact. Making nav/footer snap targets themselves (start
+   for nav so its top settles at the viewport top, end for the footer so its bottom settles at
+   the viewport bottom) gives mandatory somewhere legitimate to land at both ends. */
+.site-nav{ scroll-snap-align:start; }
+.site-footer{ scroll-snap-align:end; }
 
 *{ margin:0; padding:0; box-sizing:border-box; }
 
+/* Ambient atmosphere: two soft, far-off-screen violet glows fixed to the viewport so they
+   read as one consistent light source across the whole page rather than tied to any single
+   section — gallery lighting, not a gradient background. Opacity is intentionally low enough
+   that this should barely register as "purple" on a quick glance, just enough that pure flat
+   black doesn't feel dead. background-attachment:fixed keeps it steady while scroll-snapping
+   between sections instead of jumping section to section. */
 body{
-  background:var(--bg);
+  background:
+    radial-gradient(ellipse 900px 700px at 12% -8%, rgba(160,107,255,0.055), transparent 60%),
+    radial-gradient(ellipse 1000px 800px at 92% 105%, rgba(160,107,255,0.045), transparent 62%),
+    var(--bg);
+  background-attachment:fixed;
   color:var(--text);
   font-family:'Inter',sans-serif;
   line-height:1.6;
+  overflow-x:hidden;
 }
 
 a{ color:inherit; text-decoration:none; }
@@ -48,43 +61,25 @@ a{ color:inherit; text-decoration:none; }
 .site-nav ul{ display:flex; gap:32px; list-style:none; font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--text-dim); }
 .site-nav ul a:hover{ color:var(--text); }
 
+/* Ghost word — oversized outline text bleeding off the left edge, used as a
+   background/wayfinding mark. One shared treatment, reused across sections
+   (hero, work, about, contact) rather than redefined per section. */
+.ghost{ position:absolute; top:20px; left:-30px; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:280px; line-height:1; color:transparent; -webkit-text-stroke:1px var(--accent); letter-spacing:-0.02em; z-index:0; opacity:0.35; pointer-events:none; }
+@media (max-width:900px){ .ghost{ font-size:110px; top:10px; } }
+
 /* Hero — locked, matches reference/hero-pattern.html exactly. Do not modify without updating that file too. */
 .hero{ position:relative; padding:80px 64px 160px; min-height:820px; }
-.hero .ghost{ position:absolute; top:20px; left:-30px; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:280px; line-height:1; color:transparent; -webkit-text-stroke:1px var(--accent); letter-spacing:-0.02em; z-index:0; opacity:0.35; animation:heroGhostIn 1.1s ease-out both; }
-.hero .eyebrow{ position:relative; z-index:2; padding-top:260px; padding-left:400px; font-family:'JetBrains Mono',monospace; font-size:15px; color:var(--text-dim); animation:heroPop .75s cubic-bezier(.34,1.56,.64,1) .15s both; }
+.hero .eyebrow{ position:relative; z-index:2; padding-top:260px; font-family:'JetBrains Mono',monospace; font-size:15px; margin-left:24px; color:var(--text-dim); }
 .hero .eyebrow b{ color:var(--accent); font-weight:500; }
-.hero .headline{ position:relative; z-index:2; margin-top:20px; padding-left:400px; }
-.hero .headline .l1, .hero .headline .l2{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:64px; line-height:1.15; color:var(--text); }
-.hero .headline .l1{ animation:heroPop .75s cubic-bezier(.34,1.56,.64,1) .32s both; }
-.hero .headline .l2{ animation:heroPop .75s cubic-bezier(.34,1.56,.64,1) .46s both; }
-.hero .headline .l3{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:80px; line-height:1.15; color:var(--accent); margin-left:70px; margin-top:4px; animation:heroPop .75s cubic-bezier(.34,1.56,.64,1) .6s both; }
-.hero .sub{ position:relative; z-index:2; margin-top:60px; margin-left:400px; max-width:440px; font-size:17px; line-height:1.7; color:var(--text-dim); padding-left:24px; border-left:2px solid var(--accent); animation:heroPop .75s cubic-bezier(.34,1.56,.64,1) .78s both; }
-
-/* Hero lines "pop" in reading order (eyebrow -> l1 -> l2 -> l3 -> sub, staggered via
-   animation-delay above) rather than appearing all at once. Blur resolving faster than the
-   position settle (60% keyframe) plus the bouncy easing curve — same curve the work-section
-   nodes settle with — is what gives the "rippling into focus" feel instead of a flat slide-up.
-   Ghost word gets its own simpler fade so the huge background outline doesn't visibly "pop". */
-@keyframes heroPop{
-  0%{ opacity:0; transform:translateY(28px) scale(0.94); filter:blur(10px); }
-  60%{ opacity:1; filter:blur(0); }
-  100%{ opacity:1; transform:translateY(0) scale(1); filter:blur(0); }
-}
-@keyframes heroGhostIn{
-  from{ opacity:0; }
-  to{ opacity:0.35; }
-}
-@media (prefers-reduced-motion: reduce){
-  .hero .ghost, .hero .eyebrow, .hero .headline .l1, .hero .headline .l2, .hero .headline .l3, .hero .sub{
-    animation:none !important; opacity:1; transform:none; filter:none;
-  }
-  .hero .ghost{ opacity:0.35; }
-}
+.hero .headline{ position:relative; z-index:2; margin-top:20px; margin-left:24px; }
+.hero .headline .l1, .hero .headline .l2{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:76px; line-height:1.15; color:var(--text); }
+.hero .headline .l2{ font-size:70px;}
+.hero .headline .l3{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:100px; line-height:1.15; color:var(--accent); margin-left:56px; margin-top:4px; }
+.hero .sub{ position:relative; z-index:2; margin-top:60px; margin-left:400px; max-width:440px; font-size:15px; line-height:1.7; color:var(--text-dim); padding-left:24px; border-left:2px solid var(--accent); }
 @media (max-width:900px){
   .hero{ padding:60px 24px 120px; }
-  .hero .ghost{ font-size:110px; top:10px; }
-  .hero .eyebrow{ padding-top:110px; padding-left:0; }
-  .hero .headline{ padding-left:0; }
+  .hero .eyebrow{ padding-top:110px; margin-left:0; }
+  .hero .headline{ margin-left:0; }
   .hero .headline .l1, .hero .headline .l2{ font-size:30px; }
   .hero .headline .l3{ font-size:38px; margin-left:0; }
   .hero .sub{ margin-left:0; margin-top:32px; }
@@ -109,110 +104,263 @@ a{ color:inherit; text-decoration:none; }
 .philosophy .step p{ font-size:14px; color:var(--text-dim); }
 
 /* Work section — ripple reveal, locked. See reference/raindrop-v4.html for the tested source of this animation. */
-.work-section{ display:flex; align-items:center; justify-content:center; }
-.ripple-stage{ position:relative; width:600px; height:600px; max-width:90vw; max-height:90vw; }
+.work-section{ position:relative; display:flex; align-items:center; justify-content:center; }
+.ripple-stage{ position:relative; z-index:2; width:600px; height:600px; max-width:90vw; max-height:90vw; }
 
 /* Wrapper handles vertical fall + squash/stretch in true screen-space. Shape handles rotation only.
    These are deliberately separate elements -- combining stretch and rotation on one element
-   causes the stretch to skew diagonally instead of falling straight down. */
-.ripple-stage .drop-wrap{ position:absolute; left:50%; top:-50px; transform:translateX(-50%) scaleY(1); z-index:5; opacity:0; }
-.ripple-stage .drop-wrap.falling{ opacity:1; transition:top 1.2s cubic-bezier(.45,0,.4,1), transform 1.2s cubic-bezier(.45,0,.4,1); top:50%; transform:translateX(-50%) scaleY(1.4); }
-.ripple-stage .drop-wrap.impact{ transition:transform 0.16s ease-out, opacity 0.22s ease-out 0.05s; transform:translateX(-50%) scaleY(0.4); opacity:0; }
-.ripple-stage .drop-shape{ width:12px; height:12px; background:var(--accent); box-shadow:0 0 14px 3px rgba(160,107,255,0.55); border-radius:50% 50% 50% 0; transform:rotate(135deg); }
+   causes the stretch to skew diagonally instead of falling straight down. Start point is
+   -90vh (well above the viewport, not just above the stage) so it visibly falls INTO view
+   instead of materializing a few dozen pixels above the text. */
+.ripple-stage .drop-wrap{ position:absolute; left:50%; top:-90vh; transform:translateX(-50%) scaleY(1); z-index:5; opacity:0; }
+.ripple-stage .drop-wrap.falling{ opacity:1; transition:top 2.2s cubic-bezier(.36,.06,.29,.99), transform 2.2s cubic-bezier(.36,.06,.29,.99); top:50%; transform:translateX(-50%) scaleY(1.4); }
+.ripple-stage .drop-wrap.impact{ top:50%; transition:transform 0.32s ease-out, opacity 0.4s ease-out 0.08s; transform:translateX(-50%) scaleY(0.4); opacity:0; }
+.ripple-stage .drop-shape{ width:12px; height:12px; background:var(--accent); box-shadow:0 0 14px 3px rgba(var(--accent-rgb),0.55); border-radius:50% 50% 50% 0; transform:rotate(135deg); }
 
 .ripple-stage .impact-flash{ position:absolute; top:50%; left:50%; width:6px; height:6px; border-radius:50%; background:#fff; transform:translate(-50%,-50%) scale(1); opacity:0; z-index:4; }
-.ripple-stage .impact-flash.flash{ transition:transform 0.4s ease-out, opacity 0.4s ease-out; transform:translate(-50%,-50%) scale(6); opacity:0; }
+.ripple-stage .impact-flash.flash{ transition:transform 0.6s ease-out, opacity 0.6s ease-out; transform:translate(-50%,-50%) scale(6); opacity:0; }
+
+/* Soft filled pulse at the exact impact point -- a diffuse "splash" that reads as a liquid
+   disturbance, distinct from the crisp ring outlines which trace the water rippling outward
+   from it. Must start at explicit 0 size for the same reflow-before-transition reason as .ring. */
+.ripple-stage .impact-glow{ position:absolute; top:50%; left:50%; width:0; height:0; border-radius:50%; background:radial-gradient(circle, rgba(var(--accent-rgb),0.4), transparent 70%); transform:translate(-50%,-50%); opacity:0; filter:blur(2px); z-index:3; }
 
 /* Ring MUST start at explicit 0 width/height -- transitioning from implicit "auto" does not
    reliably animate in browsers. This was the root cause of the ripple not appearing at all. */
 .ripple-stage .ring{ position:absolute; top:50%; left:50%; width:0; height:0; border:3px solid var(--accent); border-radius:50%; transform:translate(-50%,-50%); opacity:0; filter:blur(0px); }
 
-.ripple-stage .node{ position:absolute; top:50%; left:50%; opacity:0; color:var(--text); font-family:'Space Grotesk',sans-serif; font-size:20px; font-weight:700; white-space:nowrap; text-align:center; cursor:pointer; z-index:2; transform:translate(-50%,-50%) scale(0.3); filter:blur(8px); transition:opacity 0.9s ease, transform 1.3s cubic-bezier(.34,1.56,.64,1), filter 1.1s ease-out; }
+.ripple-stage .node{ position:absolute; top:50%; left:50%; opacity:0; color:var(--text); font-family:'Space Grotesk',sans-serif; font-size:20px; font-weight:700; white-space:nowrap; text-align:center; cursor:pointer; z-index:2; transform:translate(-50%,-50%) scale(0.3); filter:blur(8px); transition:opacity 1.4s ease, transform 2s cubic-bezier(.22,1.44,.36,1), filter 1.7s ease-out; }
 .ripple-stage .node .hook{ font-family:'Inter',sans-serif; font-size:11px; color:var(--text-mute); font-weight:400; margin-top:4px; }
 .ripple-stage .node:hover, .ripple-stage .node:focus{ color:var(--accent); }
 .ripple-stage .node.placed{ opacity:1; filter:blur(0px); }
 .ripple-stage.hovering .node:not(:hover){ opacity:0.25 !important; }
 
-.ripple-stage .preview{ position:absolute; top:50%; left:50%; width:80px; height:52px; transform:translate(-50%,-50%) scale(0.3); opacity:0; border-radius:12px; overflow:hidden; z-index:6; pointer-events:none; transition:opacity .4s ease, transform .5s cubic-bezier(.2,.8,.2,1); }
-.ripple-stage .preview.active{ opacity:1; transform:translate(-50%,-50%) scale(1); width:220px; height:320px; }
-.ripple-stage .preview img{ width:100%; height:100%; object-fit:cover; object-position:50% 12%; display:block; }
-.ripple-stage .preview::after{ content:""; position:absolute; inset:0; z-index:2; }
-.ripple-stage .preview .preview-tag{ position:absolute; left:14px; bottom:12px; z-index:3; font-family:'Space Grotesk',sans-serif; font-weight:700; color:#f4f2ee; font-size:14px; }
-.preview.nitefind{ box-shadow:0 0 34px 4px rgba(176,74,214,0.3); } .preview.nitefind::after{ background:radial-gradient(circle at 30% 75%, rgba(176,74,214,0.32), transparent 60%), linear-gradient(0deg, rgba(5,5,5,0.7) 0%, transparent 40%); }
-.preview.smiteforge{ box-shadow:0 0 34px 4px rgba(224,184,74,0.3); } .preview.smiteforge::after{ background:radial-gradient(circle at 30% 75%, rgba(224,184,74,0.32), transparent 60%), linear-gradient(0deg, rgba(5,5,5,0.7) 0%, transparent 40%); }
-.preview.zentra{ box-shadow:0 0 34px 4px rgba(74,143,214,0.3); } .preview.zentra::after{ background:radial-gradient(circle at 30% 75%, rgba(74,143,214,0.32), transparent 60%), linear-gradient(0deg, rgba(5,5,5,0.7) 0%, transparent 40%); }
-.preview.amun{ box-shadow:0 0 34px 4px rgba(143,143,143,0.25); } .preview.amun::after{ background:radial-gradient(circle at 30% 75%, rgba(143,143,143,0.25), transparent 60%), linear-gradient(0deg, rgba(5,5,5,0.7) 0%, transparent 40%); }
-.preview.is-placeholder .preview-tag::after{ content:" — screen pending"; font-family:'Inter',sans-serif; font-weight:400; font-size:10px; color:#8a8780; }
+/* Text ripple: a damped scale/skew wobble on the text itself as it settles, like it's the
+   surface a ripple just passed under. Lives on an inner wrapper so it doesn't fight the
+   outer .node's own position/opacity/blur transition (both would be animating `transform`
+   otherwise). Plays once via `animation`, independent of the transition above. */
+@keyframes textRipple{
+  0%{ transform:scale(.82) skewX(0deg); }
+  32%{ transform:scale(1.07) skewX(-5deg); }
+  56%{ transform:scale(.96) skewX(3.5deg); }
+  76%{ transform:scale(1.02) skewX(-1.5deg); }
+  100%{ transform:scale(1) skewX(0deg); }
+}
+.ripple-stage .node-inner{ display:block; }
+.ripple-stage .node.placed .node-inner{ animation:textRipple 1.3s cubic-bezier(.22,1,.36,1) both; }
 
-/* About photo — duotone treatment, asymmetric crop, matches reference/img-treatment-preview.html */
-.about-layout{ display:flex; gap:64px; align-items:center; }
-@media (max-width:900px){ .about-layout{ flex-direction:column; } }
-.about-photo-frame{ position:relative; width:340px; height:420px; flex-shrink:0; overflow:hidden; }
-@media (max-width:900px){ .about-photo-frame{ width:100%; max-width:340px; } }
-.about-photo{ width:100%; height:100%; object-fit:cover; object-position:60% 20%; filter:grayscale(1) contrast(1.15) brightness(0.95); display:block; }
-.about-photo-frame::after{ content:""; position:absolute; inset:0; background:linear-gradient(160deg, rgba(160,107,255,0.35), rgba(5,5,5,0.55) 70%); mix-blend-mode:multiply; }
-.about-photo-frame::before{ content:""; position:absolute; right:0; top:0; bottom:0; width:60px; background:linear-gradient(90deg, transparent, var(--bg)); z-index:2; }
-.about-text{ flex:1; }
+.ripple-stage .preview{ position:absolute; top:50%; left:50%; width:80px; height:52px; transform:translate(-50%,-50%) scale(0.3); opacity:0; border-radius:12px; overflow:hidden; z-index:6; pointer-events:none; transition:opacity .4s ease, transform .5s cubic-bezier(.2,.8,.2,1); }
+.ripple-stage .preview.active{ opacity:1; transform:translate(-50%,-50%) scale(1); width:320px; height:200px; }
+.ripple-stage .preview::before{ content:""; position:absolute; inset:-40px; filter:blur(40px); opacity:0.5; border-radius:50%; }
+.ripple-stage .preview .bar{ height:12%; }
+.ripple-stage .preview .body{ height:88%; display:flex; flex-direction:column; justify-content:center; gap:8px; padding:0 20px; }
+.ripple-stage .preview .body span{ display:block; height:8px; border-radius:4px; opacity:0.7; }
+.preview.nitefind::before{ background:radial-gradient(circle,#b04ad6,transparent 65%); } .preview.nitefind .body{ background:#12081a; } .preview.nitefind .bar{ background:#2a0f3a; } .preview.nitefind .body span{ background:#b04ad6; }
+.preview.smiteforge::before{ background:radial-gradient(circle,#e0b84a,transparent 65%); } .preview.smiteforge .body{ background:#0d0a03; } .preview.smiteforge .bar{ background:#2b2205; } .preview.smiteforge .body span{ background:#e0b84a; }
+.preview.zentra::before{ background:radial-gradient(circle,#4a8fd6,transparent 65%); } .preview.zentra .body{ background:#0d1a26; } .preview.zentra .bar{ background:#173049; } .preview.zentra .body span{ background:#4a8fd6; }
+.preview.amun::before{ background:radial-gradient(circle,#8f8f8f,transparent 65%); } .preview.amun .body{ background:#0a0a0a; } .preview.amun .bar{ background:#222; } .preview.amun .body span{ background:#8f8f8f; }
+
+/* Work section — mobile fallback. The X-layout raindrop animation assumes a desktop-sized
+   canvas and doesn't translate below ~700px (nodes overflow the viewport), so under that
+   width it's replaced entirely by a tap-to-expand accordion. Reuses the same .preview.KEY
+   color rules above for the reveal image, just laid out inline instead of absolutely.
+
+   Unlike the desktop stage, mobile does NOT replay a drop on every tap. There is exactly one
+   drop per visit (.work-mobile-stage, driven by playMobileEntrance() in main.js), and every
+   reveal after that — the dropdown, then each project preview — is a clip-path circle-reveal
+   anchored at whatever caused it (the drop's impact point for the dropdown, the tapped header
+   for a preview), not a fade. That's what makes the reveal read as "emerging from the ripple"
+   instead of just materializing independently of it. */
+.work-accordion{ position:relative; z-index:2; display:none; }
+.work-mobile-stage{ display:none; }
+@media (max-width:700px){
+  .ripple-stage{ display:none; }
+  /* flex + justify-content:center vertically centers the accordion (the only in-flow content —
+     the ghost word is absolutely positioned) within the full-viewport section, so the collapsed
+     accordion's own center lands at the same point the drop falls to below. */
+  .work-section{ display:flex; flex-direction:column; justify-content:center; padding:120px 0; }
+  .work-accordion{
+    display:block; width:100%;
+    clip-path:circle(0% at 50% 50%); filter:blur(6px); transform:scaleY(0.97);
+    transition:clip-path 1s cubic-bezier(.19,1,.22,1), filter .6s ease, transform .7s cubic-bezier(.22,1,.36,1);
+  }
+  .work-accordion.revealed{ clip-path:circle(150% at 50% 50%); filter:blur(0); transform:scaleY(1); }
+
+  /* Entrance stage: a zero-size anchor centered on the section itself (not an in-flow marker
+     above the accordion) so the drop falls to the true center of the screen rather than to
+     wherever the accordion happens to start. The drop's own -90vh -> 0 fall is unchanged;
+     only the anchor it falls relative to has moved. Same mechanics as the desktop/old per-item
+     drops otherwise (reflow-before-transition, falling removed before impact is added), just a
+     single play, never reset. Timings are intentionally slow and spaced out so each stage —
+     fall, impact, ripple, reveal — reads as its own unhurried beat. */
+  .work-mobile-stage{ position:absolute; top:50%; left:50%; width:0; height:0; overflow:visible; display:block; z-index:3; pointer-events:none; }
+  .work-mobile-stage .drop-wrap{ position:absolute; left:50%; top:-90vh; transform:translateX(-50%) scaleY(1); opacity:0; z-index:5; }
+  .work-mobile-stage .drop-wrap.falling{ opacity:1; transition:top 1.6s cubic-bezier(.36,.06,.29,.99), transform 1.6s cubic-bezier(.36,.06,.29,.99); top:0; transform:translateX(-50%) scaleY(1.35); }
+  .work-mobile-stage .drop-wrap.impact{ top:0; transition:transform .4s ease-out, opacity .48s ease-out .08s; transform:translateX(-50%) scaleY(0.4); opacity:0; }
+  .work-mobile-stage .drop-shape{ width:10px; height:10px; background:var(--accent); box-shadow:0 0 12px 3px rgba(var(--accent-rgb),0.55); border-radius:50% 50% 50% 0; transform:rotate(135deg); }
+  .work-mobile-stage .impact-flash{ position:absolute; left:50%; top:0; width:5px; height:5px; border-radius:50%; background:#fff; transform:translate(-50%,-50%) scale(1); opacity:0; z-index:4; }
+  .work-mobile-stage .impact-flash.flash{ transition:transform .65s ease-out, opacity .65s ease-out; transform:translate(-50%,-50%) scale(9); opacity:0; }
+  .work-mobile-stage .impact-glow{ position:absolute; left:50%; top:0; width:0; height:0; border-radius:50%; background:radial-gradient(circle, rgba(var(--accent-rgb),0.4), transparent 70%); transform:translate(-50%,-50%); opacity:0; filter:blur(2px); z-index:3; }
+  .work-mobile-stage .ring{ position:absolute; left:50%; top:0; width:0; height:0; border:2px solid var(--accent); border-radius:50%; transform:translate(-50%,-50%); opacity:0; }
+}
+.work-item{ border-bottom:1px solid var(--line); position:relative; }
+.work-item:first-child{ border-top:1px solid var(--line); }
+.work-item-header{
+  position:relative;
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  width:100%; padding:24px 4px; background:none; border:none; cursor:pointer;
+  font-family:inherit; text-align:left; color:var(--text);
+  transition:color .3s ease, transform .35s cubic-bezier(.22,1,.36,1);
+}
+/* The tap-triggered ripple (spawnTapRipple in main.js) — sits behind the header's own text
+   (negative z-index, header is its containing block via position:relative above) so it reads
+   as light passing under the label rather than a shape drawn on top of it. */
+.work-item-header .tap-ripple{
+  position:absolute; left:50%; top:50%; width:0; height:0;
+  border:1px solid var(--accent); border-radius:50%;
+  transform:translate(-50%,-50%); opacity:0; pointer-events:none; z-index:-1;
+}
+.work-item-header .name{ position:relative; display:inline-block; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:22px; }
+.work-item-header .hook{ display:block; font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-mute); font-weight:400; margin-top:4px; }
+.work-item-header .chevron{ font-family:'JetBrains Mono',monospace; font-size:14px; color:var(--text-mute); flex-shrink:0; transition:transform .3s ease; }
+/* Item "sinks" slightly on selection rather than sitting static — active state is carried by
+   color + this restrained underline + the sink, not by animation alone. */
+.work-item.open .work-item-header{ color:var(--accent); transform:translateY(4px); }
+.work-item.open .work-item-header .chevron{ transform:rotate(180deg); }
+.work-item.open .work-item-header .name::after{
+  content:""; position:absolute; left:0; right:0; bottom:-4px; height:1px;
+  background:var(--accent); opacity:0.7;
+}
+
+.work-item-panel{ max-height:0; overflow:hidden; transition:max-height .5s ease; }
+.work-item.open .work-item-panel{ max-height:340px; }
+
+.work-item-preview-stage{ position:relative; width:100%; height:180px; margin:4px 0 20px; }
+/* Preview materializes the same way the dropdown does — a clip-path circle expanding from the
+   top-center of its own box (i.e. from where the tapped header sits just above it), not a
+   fade. The transition is only declared once, on the base (closed) rule, so it runs
+   symmetrically: opening plays it forward from the tap, closing plays it in reverse, which is
+   what makes switching projects read as the old preview dissolving back into the point it
+   came from rather than a hard swap or a stack of overlapping previews. The delay on opening
+   only (via the .open override, since that's the rule the browser uses when clip-path is
+   animating toward it) is what makes the reveal feel caused by the tap ripple instead of
+   simultaneous with it. */
+.work-item-preview-bloom{
+  position:absolute; inset:0;
+  clip-path:circle(0% at 50% 0%); filter:blur(12px); transform:scaleY(0.95);
+  border-radius:8px; overflow:hidden; pointer-events:none;
+  transition:clip-path .7s cubic-bezier(.19,1,.22,1), filter .5s ease, transform .55s cubic-bezier(.22,1,.36,1);
+}
+.work-item-preview-bloom::before{ content:""; position:absolute; inset:-40px; filter:blur(40px); opacity:0.5; border-radius:50%; }
+.work-item-preview-bloom .bar{ position:relative; height:12%; }
+.work-item-preview-bloom .body{ position:relative; height:88%; display:flex; flex-direction:column; justify-content:center; gap:8px; padding:0 20px; }
+.work-item-preview-bloom .body span{ display:block; height:8px; border-radius:4px; opacity:0.7; }
+.work-item.open .work-item-preview-bloom{
+  clip-path:circle(140% at 50% 0%); filter:blur(0); transform:scaleY(1);
+  transition:clip-path .75s cubic-bezier(.19,1,.22,1) .15s, filter .55s ease .15s, transform .6s cubic-bezier(.22,1,.36,1) .15s;
+}
+.work-item-btn{
+  display:inline-block; margin-bottom:24px; padding:12px 24px; border:1px solid var(--line-strong);
+  font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--text);
+  opacity:0; transition:border-color .3s ease, color .3s ease, opacity .4s ease .65s;
+}
+.work-item-btn:hover, .work-item-btn:focus-visible{ border-color:var(--accent); color:var(--accent); }
+.work-item.open .work-item-btn{ opacity:1; }
+
+@media (prefers-reduced-motion: reduce){
+  .work-accordion{
+    clip-path:none !important; filter:none !important; transform:none !important;
+    opacity:0; transition:opacity .3s ease !important;
+  }
+  .work-accordion.revealed{ opacity:1; }
+  .work-item-header{ transition:color .3s ease !important; }
+  .work-item.open .work-item-header{ transform:none !important; }
+  .work-item-header .tap-ripple{ display:none !important; }
+  .work-item-preview-bloom{
+    clip-path:none !important; filter:none !important; transform:none !important;
+    opacity:0; transition:opacity .3s ease !important;
+  }
+  .work-item.open .work-item-preview-bloom{ opacity:1; }
+}
+
+/* About photo — duotone treatment, matches reference/img-treatment-preview.html for the base
+   filter/color mood. On desktop the portrait is a large, absolutely-positioned anchor that
+   bleeds past the wrap's right edge and sits behind part of the skills column (z-index below
+   .about-text), rather than a framed image sitting beside the copy in a flex row. A real
+   mask-image now does the "dissolve into the page" work on the whole frame (img + duotone
+   overlay composited together, since mask applies to the element's full rendered subtree) —
+   softer and more literal than painting a bg-colored gradient on top of hard edges, which is
+   what this used to do.
+
+   object-position Y is set HIGH (82-90%) everywhere: with object-fit:cover, a higher Y value
+   pushes any vertical crop toward the TOP of the source image, preserving the bottom — where
+   his crossed arms/hands sit right at the frame edge. Getting this backwards (a low Y) was an
+   earlier bug here; it doesn't show up until the frame's aspect ratio forces real vertical
+   crop, which the two narrower breakpoints below do (desktop's 460x580 box doesn't). */
+.about-layout{ position:relative; }
+.about-photo-frame{
+  position:absolute; z-index:1; top:-40px; right:-200px; width:460px; height:580px;
+  /* Diagonal fade (not a centered vignette): transparent through the zone that overlaps the
+     skills column, ramping to solid by roughly where the subject actually starts (~45% into
+     the frame, since this box's aspect ratio is still wide enough that object-fit:cover
+     doesn't crop horizontally — the full source width shows, so his on-screen position here
+     matches his position in the source photo). Slight downward tilt (100deg, not a flat 90deg)
+     folds in a bit of top-edge fade for the ceiling strip above his head at the same time. */
+  mask-image:linear-gradient(100deg, transparent 0%, transparent 26%, black 56%, black 100%);
+  -webkit-mask-image:linear-gradient(100deg, transparent 0%, transparent 26%, black 56%, black 100%);
+}
+.about-photo{ width:100%; height:100%; object-fit:cover; object-position:55% 85%; filter:grayscale(1) contrast(1.15) brightness(0.95); display:block; }
+.about-photo-frame::after{ content:""; position:absolute; inset:0; background:linear-gradient(160deg, rgba(var(--accent-rgb),0.32), rgba(5,5,5,0.5) 70%); mix-blend-mode:multiply; }
+.about-text{ position:relative; z-index:2; max-width:900px; }
+
+/* Tablet (600–900px): about-layout has already stacked (text above, photo below) — the
+   overlap/bleed composition is a desktop-only device, since there's no side column to bleed
+   past once things stack. Back to a normal-flow, centered column with a moderate crop (2:3,
+   hides a real slice of the wall) and the same mask technique doing a softer all-around fade
+   instead of the old directional overlay. */
+@media (max-width:900px){
+  .about-photo-frame{
+    position:static; width:100%; max-width:480px; height:auto; aspect-ratio:2/3; margin:56px auto 0;
+    mask-image:radial-gradient(ellipse 82% 92% at 62% 40%, black 45%, transparent 92%);
+    -webkit-mask-image:radial-gradient(ellipse 82% 92% at 62% 40%, black 45%, transparent 92%);
+  }
+  .about-photo{ object-position:78% 90%; }
+}
+
+/* Phone (<600px): full-bleed edge to edge, breaking out of .wrap's padding entirely — there's
+   no side column to balance against, so it goes full width and leans on an aggressive 3:5 crop
+   to hide most of the wall outright. Mask fade is lighter here since crop is doing most of the
+   work already; it just softens the sliver of wall still in frame plus the top/bottom edges. */
+@media (max-width:600px){
+  .about-photo-frame{
+    width:100vw; max-width:100vw; aspect-ratio:3/5; margin:40px auto 0;
+    margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw);
+    mask-image:radial-gradient(ellipse 90% 94% at 68% 45%, black 55%, transparent 96%);
+    -webkit-mask-image:radial-gradient(ellipse 90% 94% at 68% 45%, black 55%, transparent 96%);
+  }
+  .about-photo{ object-position:90% 90%; }
+}
 
 /* About / Contact now sit inside full-viewport snap sections, centered */
-.about, .contact{ display:flex; align-items:center; min-height:100vh; }
-.about .wrap, .contact .wrap{ width:100%; }
-
-/* Work index */
-.index{ margin-top:60px; border-top:1px solid var(--line); }
-.row{
-  display:flex; align-items:center; padding:34px 4px; border-bottom:1px solid var(--line);
-  cursor:pointer; position:relative; text-decoration:none; color:inherit;
-  transition:opacity .35s ease;
-}
-.index:hover .row:not(:hover){ opacity:.28; }
-.row .idx{ font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--text-mute); width:44px; position:relative; z-index:2; }
-.row .title{ font-family:'Space Grotesk',sans-serif; font-weight:500; font-size:26px; flex:1; position:relative; z-index:2; transition:color .3s ease; }
-.row .tag{ font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-mute); position:relative; z-index:2; text-align:right; }
-.row:hover .title{ color:#fff; }
-.row.focus-bloom .title{ color:#fff; }
-.row.focus-bloom .bloom{ opacity:1; width:460px; height:290px; transform:translate(-50%,-50%) scale(1); }
-.index:has(.focus-bloom) .row:not(.focus-bloom){ opacity:.28; }
-.row:focus-visible{ outline:1px solid var(--accent); outline-offset:4px; }
-@media (max-width:720px){
-  .row{ flex-wrap:wrap; padding:24px 4px; }
-  .row .title{ font-size:20px; flex-basis:100%; margin:8px 0; }
-}
-
-.bloom{
-  position:absolute; left:50%; top:50%; width:120px; height:76px;
-  transform:translate(-50%,-50%) scale(.3); opacity:0; border-radius:14px; overflow:hidden;
-  transition:transform .55s cubic-bezier(.2,.8,.2,1), opacity .4s ease, width .55s ease, height .55s ease;
-  z-index:0; pointer-events:none;
-}
-.row:hover .bloom{ opacity:1; width:460px; height:290px; transform:translate(-50%,-50%) scale(1); }
-.bloom::before{ content:""; position:absolute; inset:-60px; filter:blur(50px); opacity:.5; border-radius:50%; }
-.bloom .screen{ position:relative; width:100%; height:100%; display:flex; flex-direction:column; }
-.bloom .bar{ height:10%; }
-.bloom .body{ flex:1; display:flex; flex-direction:column; justify-content:center; gap:10px; padding:0 22px; }
-.bloom .body span{ display:block; height:10px; border-radius:5px; opacity:.7; }
-
-.row.zentra .bloom::before{ background:radial-gradient(circle,#4a8fd6,transparent 65%); }
-.row.smiteforge .bloom::before{ background:radial-gradient(circle,#e0b84a,transparent 65%); }
-.row.nitefind .bloom::before{ background:radial-gradient(circle,#b04ad6,transparent 65%); }
-.row.freya .bloom::before{ background:radial-gradient(circle,#d64a4a,transparent 65%); }
-.row.amun .bloom::before{ background:radial-gradient(circle,#8f8f8f,transparent 65%); }
-.zentra .screen{ background:#0d1a26; } .zentra .bar{ background:#173049; } .zentra .body span{ background:#4a8fd6; }
-.smiteforge .screen{ background:#0d0a03; } .smiteforge .bar{ background:#2b2205; } .smiteforge .body span{ background:#e0b84a; }
-.nitefind .screen{ background:#12081a; } .nitefind .bar{ background:#2a0f3a; } .nitefind .body span{ background:#b04ad6; }
-.freya .screen{ background:#1a0808; } .freya .bar{ background:#3a0f0f; } .freya .body span{ background:#d64a4a; }
-.amun .screen{ background:#0a0a0a; } .amun .bar{ background:#222; } .amun .body span{ background:#8f8f8f; }
-
-.note{ margin-top:40px; font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-mute); max-width:560px; }
+.about, .contact{ position:relative; display:flex; align-items:center; min-height:100vh; }
+.about .wrap, .contact .wrap{ position:relative; z-index:2; width:100%; }
 
 /* Background / About */
-.about{ padding:100px 0; border-top:1px solid var(--line); }
-.about .grid{ display:grid; grid-template-columns:1fr 1fr; gap:64px; margin-top:48px; }
-@media (max-width:720px){ .about .grid{ grid-template-columns:1fr; } }
-.about .col p{ font-size:16px; color:var(--text-dim); margin-bottom:16px; }
-.about .skills{ margin-top:8px; }
-.about .skills .k{ font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-mute); margin:20px 0 8px; text-transform:uppercase; letter-spacing:.05em; }
-.about .skills .v{ font-size:15px; color:var(--text); }
+.about{ padding:120px 0; border-top:1px solid var(--line); overflow:hidden; }
+.about .section-head{ padding-top:0; }
+.about .section-head h2::after{
+  content:""; display:block; width:64px; height:1px; margin-top:24px;
+  background:linear-gradient(90deg, var(--accent), transparent);
+  opacity:0.8;
+}
+.about .grid{ display:grid; grid-template-columns:minmax(0,500px) 1fr; gap:64px; margin-top:44px; }
+@media (max-width:900px){ .about .grid{ grid-template-columns:1fr; } }
+.about .col p{ font-size:16px; line-height:1.8; color:var(--text-dim); margin-bottom:26px; max-width:52ch; }
+.about .col p:last-child{ margin-bottom:0; }
+.about .skills{ display:flex; flex-direction:column; }
+.about .skills .k{ font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:400; color:var(--text-mute); margin:32px 0 10px; text-transform:uppercase; letter-spacing:.08em; }
+.about .skills .k:first-child{ margin-top:0; }
+.about .skills .v{ font-size:15px; color:var(--text); line-height:1.6; }
 
 /* Contact */
 .contact{ padding:100px 0 120px; border-top:1px solid var(--line); }
