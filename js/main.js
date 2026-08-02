@@ -216,12 +216,17 @@ if (accordion) {
   // Filled in as each work-item is built below; playMobileEntrance() reads this once the
   // entrance actually fires, by which point the forEach loop has already run.
   const headerTexts = [];
+  // Shared (not per-header) so opening a second item before the first one's restore fires
+  // cancels and reschedules a single timer instead of racing it — with a per-header timer,
+  // switching items quickly could let an earlier restore re-enable scroll-snap mid-scroll on
+  // the second item, yanking the page into the wrong section.
+  let snapRestoreTimer = null;
 
   // Single reusable expanding-ring element, kept separate from playRaindrop's
   // multi-ring impact sequence since this always fires from a fixed point
   // (the tapped header) rather than a falling drop. Same reflow-before-
   // transition requirement as the rings in playRaindrop applies here too.
-  function spawnTapRipple(ripple, { maxSize = 130, duration = 0.7 } = {}) {
+  function spawnTapRipple(ripple, { maxSize = 130, duration = 0.9 } = {}) {
     ripple.style.transition = 'none';
     ripple.style.width = ripple.style.height = '0px';
     ripple.style.opacity = '0';
@@ -345,12 +350,11 @@ if (accordion) {
           // the small in-section nudge we want, so it's suspended for the
           // duration of this scroll and restored once it settles.
           const html = document.documentElement;
-          const prevSnap = html.style.scrollSnapType;
           html.style.scrollSnapType = 'none';
           window.scrollBy({ top: expectedBottom - window.innerHeight + 24, behavior: 'smooth' });
-          clearTimeout(header._snapRestoreTimer);
-          header._snapRestoreTimer = setTimeout(() => {
-            html.style.scrollSnapType = prevSnap;
+          clearTimeout(snapRestoreTimer);
+          snapRestoreTimer = setTimeout(() => {
+            html.style.scrollSnapType = '';
           }, 650);
         }
       }

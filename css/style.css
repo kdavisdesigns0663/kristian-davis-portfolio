@@ -270,7 +270,7 @@ a{ color:inherit; text-decoration:none; }
   background:var(--accent); opacity:0.7;
 }
 
-.work-item-panel{ max-height:0; overflow:hidden; transition:max-height .5s ease; }
+.work-item-panel{ max-height:0; overflow:hidden; transition:max-height .75s ease; }
 .work-item.open .work-item-panel{ max-height:340px; }
 
 .work-item-preview-stage{ position:relative; width:100%; height:180px; margin:4px 0 20px; }
@@ -287,7 +287,7 @@ a{ color:inherit; text-decoration:none; }
   position:absolute; inset:0;
   clip-path:circle(0% at 50% 0%); filter:blur(12px); transform:scaleY(0.95);
   border-radius:8px; overflow:hidden; pointer-events:none;
-  transition:clip-path .7s cubic-bezier(.19,1,.22,1), filter .5s ease, transform .55s cubic-bezier(.22,1,.36,1);
+  transition:clip-path 1.1s cubic-bezier(.19,1,.22,1), filter .85s ease, transform .9s cubic-bezier(.22,1,.36,1);
 }
 .work-item-preview-bloom::before{ content:""; position:absolute; inset:-40px; filter:blur(40px); opacity:0.5; border-radius:50%; }
 .work-item-preview-bloom .bar{ position:relative; height:12%; }
@@ -295,12 +295,12 @@ a{ color:inherit; text-decoration:none; }
 .work-item-preview-bloom .body span{ display:block; height:8px; border-radius:4px; opacity:0.7; }
 .work-item.open .work-item-preview-bloom{
   clip-path:circle(140% at 50% 0%); filter:blur(0); transform:scaleY(1);
-  transition:clip-path .75s cubic-bezier(.19,1,.22,1) .15s, filter .55s ease .15s, transform .6s cubic-bezier(.22,1,.36,1) .15s;
+  transition:clip-path 1.15s cubic-bezier(.19,1,.22,1) .25s, filter .9s ease .25s, transform .95s cubic-bezier(.22,1,.36,1) .25s;
 }
 .work-item-btn{
   display:inline-block; margin-bottom:24px; padding:12px 24px; border:1px solid var(--line-strong);
   font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--text);
-  opacity:0; transition:border-color .3s ease, color .3s ease, opacity .4s ease .65s;
+  opacity:0; transition:border-color .3s ease, color .3s ease, opacity .5s ease 1s;
 }
 .work-item-btn:hover, .work-item-btn:focus-visible{ border-color:var(--accent); color:var(--accent); }
 .work-item.open .work-item-btn{ opacity:1; }
@@ -327,79 +327,65 @@ a{ color:inherit; text-decoration:none; }
   .work-item.open .work-item-preview-bloom{ opacity:1; }
 }
 
-/* About photo — duotone treatment, matches reference/img-treatment-preview.html for the base
-   filter/color mood. On desktop the portrait is a large, absolutely-positioned anchor that
-   bleeds past the wrap's right edge and sits behind part of the skills column (z-index below
-   .about-text), rather than a framed image sitting beside the copy in a flex row. A real
-   mask-image now does the "dissolve into the page" work on the whole frame (img + duotone
-   overlay composited together, since mask applies to the element's full rendered subtree) —
-   softer and more literal than painting a bg-colored gradient on top of hard edges, which is
-   what this used to do.
-
-   object-position Y is set HIGH (82-90%) everywhere: with object-fit:cover, a higher Y value
-   pushes any vertical crop toward the TOP of the source image, preserving the bottom — where
-   his crossed arms/hands sit right at the frame edge. Getting this backwards (a low Y) was an
-   earlier bug here; it doesn't show up until the frame's aspect ratio forces real vertical
-   crop, which the two narrower breakpoints below do (desktop's 460x580 box doesn't). */
-.about-layout{ position:relative; }
+/* About photo — duotone treatment (grayscale + contrast + violet multiply overlay) unchanged,
+   but the frame itself now matches the text column's actual rendered height exactly (top at
+   the "Background." heading, bottom at the last skills row) via flexbox stretch, instead of a
+   fixed-pixel box that had to be hand-tuned against a specific line count and drifted out of
+   alignment whenever the copy changed length. This replaces the earlier bleed-past-the-edge,
+   overlap-the-skills-column composition — the two columns line up cleanly now instead. */
+.about-layout{ display:flex; align-items:stretch; gap:56px; }
+.about-text{ flex:1; min-width:0; }
+/* flex-basis as a percentage (not a fixed px width) so the photo shrinks proportionally at
+   narrower desktop widths instead of always eating the same fixed slice out of the row — a
+   fixed 420px was fine at 1440px wide but left barely 400px for two columns of text at
+   1024px, wrapping into enough extra lines to make the section taller, not shorter. */
 .about-photo-frame{
-  position:absolute; z-index:1; top:-40px; right:-200px; width:460px; height:580px;
-  /* Diagonal fade (not a centered vignette): transparent through the zone that overlaps the
-     skills column, ramping to solid by roughly where the subject actually starts (~45% into
-     the frame, since this box's aspect ratio is still wide enough that object-fit:cover
-     doesn't crop horizontally — the full source width shows, so his on-screen position here
-     matches his position in the source photo). Slight downward tilt (100deg, not a flat 90deg)
-     folds in a bit of top-edge fade for the ceiling strip above his head at the same time. */
-  mask-image:linear-gradient(100deg, transparent 0%, transparent 26%, black 56%, black 100%);
-  -webkit-mask-image:linear-gradient(100deg, transparent 0%, transparent 26%, black 56%, black 100%);
+  position:relative; z-index:1; order:2; flex:0 0 34%; max-width:420px; min-width:280px;
+  border-radius:4px; overflow:hidden;
 }
-.about-photo{ width:100%; height:100%; object-fit:cover; object-position:55% 85%; filter:grayscale(1) contrast(1.15) brightness(0.95); display:block; }
-.about-photo-frame::after{ content:""; position:absolute; inset:0; background:linear-gradient(160deg, rgba(var(--accent-rgb),0.32), rgba(5,5,5,0.5) 70%); mix-blend-mode:multiply; }
-.about-text{ position:relative; z-index:2; max-width:900px; }
+.about-photo{ width:100%; height:100%; object-fit:cover; object-position:50% 12%; filter:grayscale(1) contrast(1.15) brightness(0.95); display:block; }
+.about-photo-frame::after{ content:""; position:absolute; inset:0; background:linear-gradient(160deg, rgba(var(--accent-rgb),0.28), rgba(5,5,5,0.4) 70%); mix-blend-mode:multiply; }
 
-/* Tablet (600–900px): about-layout has already stacked (text above, photo below) — the
-   overlap/bleed composition is a desktop-only device, since there's no side column to bleed
-   past once things stack. Back to a normal-flow, centered column with a moderate crop (2:3,
-   hides a real slice of the wall) and the same mask technique doing a softer all-around fade
-   instead of the old directional overlay. */
+/* Tablet/phone: stacked, photo above text (order:-1 flips it without reordering the actual
+   markup — the photo stays after the bio copy in the DOM/reading order for screen readers,
+   only its visual position moves). Frame goes back to a fixed aspect-ratio box since there's
+   no text column height to match once it's not sitting beside one. */
 @media (max-width:900px){
-  .about-photo-frame{
-    position:static; width:100%; max-width:480px; height:auto; aspect-ratio:2/3; margin:56px auto 0;
-    mask-image:radial-gradient(ellipse 82% 92% at 62% 40%, black 45%, transparent 92%);
-    -webkit-mask-image:radial-gradient(ellipse 82% 92% at 62% 40%, black 45%, transparent 92%);
-  }
-  .about-photo{ object-position:78% 90%; }
+  .about-layout{ flex-direction:column; gap:32px; }
+  .about-photo-frame{ order:-1; width:100%; aspect-ratio:4/3; }
+  .about-photo{ object-position:50% 8%; }
 }
-
-/* Phone (<600px): full-bleed edge to edge, breaking out of .wrap's padding entirely — there's
-   no side column to balance against, so it goes full width and leans on an aggressive 3:5 crop
-   to hide most of the wall outright. Mask fade is lighter here since crop is doing most of the
-   work already; it just softens the sliver of wall still in frame plus the top/bottom edges. */
 @media (max-width:600px){
   .about-photo-frame{
-    width:100vw; max-width:100vw; aspect-ratio:3/5; margin:40px auto 0;
-    margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw);
-    mask-image:radial-gradient(ellipse 90% 94% at 68% 45%, black 55%, transparent 96%);
-    -webkit-mask-image:radial-gradient(ellipse 90% 94% at 68% 45%, black 55%, transparent 96%);
+    aspect-ratio:1/1; border-radius:0;
+    width:100vw; margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw);
   }
-  .about-photo{ object-position:90% 90%; }
+  .about-photo{ object-position:50% 10%; }
 }
 
 /* About / Contact now sit inside full-viewport snap sections, centered */
 .about, .contact{ position:relative; display:flex; align-items:center; min-height:100vh; }
 .about .wrap, .contact .wrap{ position:relative; z-index:2; width:100%; }
+/* Wider than the sitewide 1100px .wrap cap — the photo now takes a real width slice out of
+   this row (it didn't when it was absolutely positioned), so the text column needs the extra
+   room or paragraphs wrap into more lines than before and the section gets taller, not shorter. */
+.about .wrap{ max-width:1280px; }
 
 /* Background / About */
-.about{ padding:120px 0; border-top:1px solid var(--line); overflow:hidden; }
+/* Padding/spacing here is deliberately tighter than it was — at common laptop viewport heights
+   (~768-900px) the old values made this section run taller than one viewport even in the
+   2-column desktop layout, which meant scroll-snap couldn't settle here in a single gesture
+   and the extra scrolling needed to clear it read as getting "stuck." */
+.about{ padding:90px 0; border-top:1px solid var(--line); overflow:hidden; }
 .about .section-head{ padding-top:0; }
 .about .section-head h2::after{
   content:""; display:block; width:64px; height:1px; margin-top:24px;
   background:linear-gradient(90deg, var(--accent), transparent);
   opacity:0.8;
 }
-.about .grid{ display:grid; grid-template-columns:minmax(0,500px) 1fr; gap:64px; margin-top:44px; }
+.about .grid{ display:grid; grid-template-columns:minmax(0,500px) 1fr; gap:64px; margin-top:32px; }
 @media (max-width:900px){ .about .grid{ grid-template-columns:1fr; } }
-.about .col p{ font-size:16px; line-height:1.8; color:var(--text-dim); margin-bottom:26px; max-width:52ch; }
+.about .col p{ font-size:16px; line-height:1.7; color:var(--text-dim); margin-bottom:20px; max-width:52ch; }
 .about .col p:last-child{ margin-bottom:0; }
 .about .skills{ display:flex; flex-direction:column; }
 .about .skills .k{ font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:400; color:var(--text-mute); margin:32px 0 10px; text-transform:uppercase; letter-spacing:.08em; }
@@ -430,8 +416,11 @@ a{ color:inherit; text-decoration:none; }
 .contact-group{ margin-top:32px; }
 .contact-group:first-of-type{ margin-top:36px; }
 .contact-label{ display:block; font-size:11px; font-weight:400; color:var(--text-mute); margin-bottom:10px; text-transform:uppercase; letter-spacing:.08em; }
+/* No violet here on purpose — the underline is what signals "this is a link," not color, so it
+   doesn't compete with the CTA button for the eye. Hover/focus just brightens to full text
+   color rather than accent. */
 .contact .email-plain{ font-size:15px; color:var(--text-dim); border-bottom:1px solid var(--line-strong); transition:color .3s ease, border-color .3s ease; }
-.contact .email-plain:hover, .contact .email-plain:focus-visible{ color:var(--accent); border-color:var(--accent); }
+.contact .email-plain:hover, .contact .email-plain:focus-visible{ color:var(--text); border-color:var(--text-dim); }
 
 .contact-social{ display:flex; gap:14px; }
 .contact-social a{
@@ -442,13 +431,13 @@ a{ color:inherit; text-decoration:none; }
 .contact-social a:hover, .contact-social a:focus-visible{ color:var(--accent); border-color:var(--accent); }
 .contact-social svg{ width:24px; height:24px; }
 
-/* Touch devices have no hover state to reveal the accent color, so on mobile every contact
-   link — the CTA button, the plain email, and the social icons — carries its hover treatment
-   at rest instead of only on interaction. Otherwise they'd just look permanently muted/inactive
-   on a phone, and only the icons would read as "active" while the button and email looked dead. */
+/* Touch devices have no hover state to reveal the accent color, so on mobile the CTA button
+   and social icons carry their hover treatment at rest instead of only on interaction —
+   otherwise they'd look permanently muted/inactive on a phone. Plain email is deliberately
+   left out of this: it was never violet even on desktop, its underline already reads as a
+   link without needing an active-looking color. */
 @media (max-width:720px){
   .contact .cta{ border-color:var(--accent); color:var(--accent); }
-  .contact .email-plain{ color:var(--accent); border-color:var(--accent); }
   .contact-social a{ color:var(--accent); border-color:var(--accent); }
 }
 
