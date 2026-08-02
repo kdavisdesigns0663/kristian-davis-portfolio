@@ -507,7 +507,71 @@ element easing into place.
 
 
 
+## MAJOR UPDATE 7 — real preview images implemented, replacing placeholder color blocks
+
+### What changed
+The hover-preview screens in the work section (`js/main.js`, `css/style.css`)
+now show real cropped project images instead of fake colored UI blocks.
+Images live in `img/previews/`:
+- `nitefind-tight.png`, `smiteforge-tight.png`, `zentra-tight.png` — real
+  device mockup photos, cropped tight to the phone (bezel included
+  deliberately — see "Chrome decision" below), each with a per-project
+  glow color layered on top via CSS (`::after` radial gradient + a bottom
+  gradient for text legibility).
+- `amun-placeholder.png` — a plain abstract placeholder (dark background,
+  a simple outlined shield shape), NOT a real screen. Amun does not have a
+  mobile screen yet. The preview for Amun includes a small "screen pending"
+  label (`.is-placeholder` class) so it's honest about being a placeholder
+  rather than pretending to be finished. **Replace this file and remove
+  `isPlaceholder: true` from the Amun entry in `js/main.js` the moment a
+  real Amun mobile screen exists** — don't leave the placeholder in place
+  longer than necessary.
+
+### Chrome decision — phone bezel IS included, reversing an earlier plan
+Earlier in this project, the plan was "pure content crop, no device chrome"
+for preview thumbnails. That changed once the owner provided actual source
+images: all three (Nitefind, SmiteForge, Zentra) are polished floating
+device-mockup photography, shot consistently. Stripping the bezel out of an
+angled perspective photo would require masking, not just a rectangular
+crop, and risked looking botched. The better call was to keep the phone and
+crop tightly around it instead — still consistent across all three, still
+looks premium, without the risk. **If new source images arrive in a
+different style (e.g. flat/straight-on screenshots with no angle), the
+"strip the chrome" approach may become viable again — this is a judgment
+call to revisit per-image, not a fixed rule going forward.**
+
+### How the crop was produced — repeatable process for future images
+Each source image had the phone photographed against a plain white
+background. Rather than guess crop coordinates by eye (which failed twice
+earlier in this project on a compiled multi-screen reference sheet), the
+working method was:
+1. Diff the image against a solid white canvas of the same size
+   (`PIL.ImageChops.difference`).
+2. Threshold the diff (pixels differing from white by more than ~18/255)
+   to isolate anything that isn't background.
+3. Call `.getbbox()` on the thresholded result to get the actual bounding
+   box of the phone.
+4. Crop to that bbox plus a small (~6px) padding margin.
+
+This is reliable specifically because the source photos have a plain,
+consistent white background. **It will NOT work on images with a textured,
+colored, or busy background** — that would need a different approach
+(manual crop, or a proper image-matting/background-removal tool). If future
+project images don't have a clean white background, don't reuse this exact
+script blindly — check first.
+
+### Per-project glow colors (already established, now applied to real images)
+Nitefind: `rgba(176,74,214, ...)` (violet-magenta). SmiteForge:
+`rgba(224,184,74, ...)` (gold). Zentra: `rgba(74,143,214, ...)` (blue).
+Amun: `rgba(143,143,143, ...)` (neutral gray, appropriate for a placeholder).
+These match the colors already used elsewhere (e.g. the original bloom
+concept earlier in this project) — keep them consistent if Amun's real
+color gets established later (it may not stay gray once real brand color
+exists for that project).
+
 ## Case studies — five projects, in priority build order
+
+
 
 1. **Nitefind** — nightlife discovery app, 10 weeks, sole designer. Furthest along;
    see `case-studies/nitefind.html` for real content already drafted (mood board
