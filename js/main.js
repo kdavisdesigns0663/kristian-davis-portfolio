@@ -213,6 +213,9 @@ const accordion = document.getElementById('workAccordion');
 const mobileStage = document.getElementById('workMobileStage');
 if (accordion) {
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Filled in as each work-item is built below; playMobileEntrance() reads this once the
+  // entrance actually fires, by which point the forEach loop has already run.
+  const headerTexts = [];
 
   // Single reusable expanding-ring element, kept separate from playRaindrop's
   // multi-ring impact sequence since this always fires from a fixed point
@@ -237,6 +240,7 @@ if (accordion) {
 
     if (prefersReducedMotion || !mobileStage) {
       accordion.classList.add('revealed');
+      headerTexts.forEach(t => t.classList.add('placed'));
       return;
     }
 
@@ -251,7 +255,19 @@ if (accordion) {
       ringMaxSize: 300,
       glowDuration: 0.85,
       glowMaxSize: 230,
-      onImpact: () => { accordion.classList.add('revealed'); },
+      onImpact: () => {
+        accordion.classList.add('revealed');
+        // Starts once the bloom is already underway (0.3s in) rather than racing it, then
+        // ripples through the project names one at a time instead of them all appearing
+        // together the instant the clip-path finishes expanding.
+        headerTexts.forEach((t, i) => {
+          const delay = (0.3 + i * 0.22) + 's';
+          t.style.transitionDelay = delay;
+          t.classList.add('placed');
+          const inner = t.querySelector('.header-text-inner');
+          if (inner) inner.style.animationDelay = delay;
+        });
+      },
     });
   }
 
@@ -283,7 +299,8 @@ if (accordion) {
     header.type = 'button';
     header.setAttribute('aria-expanded', 'false');
     header.setAttribute('aria-controls', panelId);
-    header.innerHTML = `<span><span class="name">${p.name}</span><span class="hook">${p.hook}</span></span><span class="chevron">v</span>`;
+    header.innerHTML = `<span class="header-text"><span class="header-text-inner"><span class="name">${p.name}</span><span class="hook">${p.hook}</span></span></span><span class="chevron">v</span>`;
+    headerTexts.push(header.querySelector('.header-text'));
     const tapRipple = document.createElement('span');
     tapRipple.className = 'tap-ripple';
     header.appendChild(tapRipple);

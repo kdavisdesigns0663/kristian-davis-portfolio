@@ -12,7 +12,12 @@
   --accent-rgb:160,107,255;
 }
 
-html{ scroll-snap-type:y mandatory; }
+/* overflow-x:hidden alone on body doesn't stop horizontal scroll here — html is the actual
+   scrolling container (that's where scroll-snap-type lives), and elements like .ghost
+   deliberately bleed off the left edge (negative left position). Without this, html's own
+   overflow-x stays the default `visible`, so the page could scroll sideways to reveal that
+   bled-off content even though body claimed to hide it. */
+html{ scroll-snap-type:y mandatory; overflow-x:hidden; }
 .snap-section{ min-height:100vh; scroll-snap-align:start; scroll-snap-stop:always; }
 /* Nav and the footer live outside the .snap-section flow (above hero, below contact), so
    with only 4 snap points, scrolling toward either one landed in the gap between a real snap
@@ -57,9 +62,11 @@ a{ color:inherit; text-decoration:none; }
   padding:32px 64px; border-bottom:1px solid var(--line);
 }
 @media (max-width:720px){ .site-nav{ padding:24px; } }
-.site-nav .logo{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:18px; }
+.site-nav .logo{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:18px; transition:color .3s ease; }
+.site-nav .logo:hover, .site-nav .logo:focus-visible{ color:var(--accent); }
 .site-nav ul{ display:flex; gap:32px; list-style:none; font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--text-dim); }
-.site-nav ul a:hover{ color:var(--text); }
+.site-nav ul a{ transition:color .3s ease; }
+.site-nav ul a:hover, .site-nav ul a:focus-visible{ color:var(--text); }
 
 /* Ghost word — oversized outline text bleeding off the left edge, used as a
    background/wayfinding mark. One shared treatment, reused across sections
@@ -81,7 +88,7 @@ a{ color:inherit; text-decoration:none; }
   .hero .eyebrow{ padding-top:110px; margin-left:0; }
   .hero .headline{ margin-left:0; }
   .hero .headline .l1, .hero .headline .l2{ font-size:30px; }
-  .hero .headline .l3{ font-size:38px; margin-left:0; }
+  .hero .headline .l3{ font-size:38px; margin-left:20px; }
   .hero .sub{ margin-left:0; margin-top:32px; }
 }
 
@@ -240,6 +247,17 @@ a{ color:inherit; text-decoration:none; }
   border:1px solid var(--accent); border-radius:50%;
   transform:translate(-50%,-50%); opacity:0; pointer-events:none; z-index:-1;
 }
+/* Project names liquid-reveal the same way the hero headline and desktop work-section nodes
+   do — opacity/transform-scale/filter transition on the outer wrapper, textRipple wobble
+   (same keyframe, referenced not redefined) on an inner one so the two don't fight over
+   `transform`. Values match the calmer hero tuning (small scale delta, no overshoot) rather
+   than the original .node values, which read as slamming in at this text size. Staggered per
+   item via inline transition-delay/animation-delay set in playMobileEntrance() in main.js,
+   starting once the accordion bloom is underway rather than fighting it for attention. */
+.work-item-header .header-text{ display:inline-block; opacity:0; transform:scale(0.94); filter:blur(6px); transition:opacity 1.6s ease, transform 2.2s cubic-bezier(.16,1,.3,1), filter 2s ease-out; }
+.work-item-header .header-text.placed{ opacity:1; transform:scale(1); filter:blur(0); }
+.work-item-header .header-text-inner{ display:block; }
+.work-item-header .header-text.placed .header-text-inner{ animation:textRipple 1.6s cubic-bezier(.22,1,.36,1) both; }
 .work-item-header .name{ position:relative; display:inline-block; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:22px; }
 .work-item-header .hook{ display:block; font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-mute); font-weight:400; margin-top:4px; }
 .work-item-header .chevron{ font-family:'JetBrains Mono',monospace; font-size:14px; color:var(--text-mute); flex-shrink:0; transition:transform .3s ease; }
@@ -296,6 +314,12 @@ a{ color:inherit; text-decoration:none; }
   .work-item-header{ transition:color .3s ease !important; }
   .work-item.open .work-item-header{ transform:none !important; }
   .work-item-header .tap-ripple{ display:none !important; }
+  .work-item-header .header-text{
+    filter:none !important; transform:none !important;
+    opacity:0; transition:opacity .3s ease !important;
+  }
+  .work-item-header .header-text.placed{ opacity:1; }
+  .work-item-header .header-text.placed .header-text-inner{ animation:none !important; }
   .work-item-preview-bloom{
     clip-path:none !important; filter:none !important; transform:none !important;
     opacity:0; transition:opacity .3s ease !important;
@@ -390,7 +414,7 @@ a{ color:inherit; text-decoration:none; }
   display:inline-block; margin-top:40px; padding:16px 32px; border:1px solid var(--line-strong);
   font-family:'JetBrains Mono',monospace; font-size:14px; transition:border-color .3s ease, color .3s ease;
 }
-.contact .cta:hover{ border-color:var(--accent); color:var(--accent); }
+.contact .cta:hover, .contact .cta:focus-visible{ border-color:var(--accent); color:var(--accent); }
 
 /* Plain-text email fallback for anyone who can't use the button, and LinkedIn/Behance links.
    Icons are hand-drawn line art (thin stroke, no fill except the LinkedIn dot) matching the
@@ -407,7 +431,7 @@ a{ color:inherit; text-decoration:none; }
 .contact-group:first-of-type{ margin-top:36px; }
 .contact-label{ display:block; font-size:11px; font-weight:400; color:var(--text-mute); margin-bottom:10px; text-transform:uppercase; letter-spacing:.08em; }
 .contact .email-plain{ font-size:15px; color:var(--text-dim); border-bottom:1px solid var(--line-strong); transition:color .3s ease, border-color .3s ease; }
-.contact .email-plain:hover{ color:var(--accent); border-color:var(--accent); }
+.contact .email-plain:hover, .contact .email-plain:focus-visible{ color:var(--accent); border-color:var(--accent); }
 
 .contact-social{ display:flex; gap:14px; }
 .contact-social a{
@@ -415,12 +439,16 @@ a{ color:inherit; text-decoration:none; }
   width:52px; height:52px; border:1px solid var(--line-strong); border-radius:10px;
   color:var(--text-dim); transition:color .3s ease, border-color .3s ease;
 }
-.contact-social a:hover{ color:var(--accent); border-color:var(--accent); }
+.contact-social a:hover, .contact-social a:focus-visible{ color:var(--accent); border-color:var(--accent); }
 .contact-social svg{ width:24px; height:24px; }
 
-/* Touch devices have no hover state to reveal the accent color, so on mobile the icons carry
-   it at rest instead — otherwise they'd just look permanently muted/inactive on a phone. */
+/* Touch devices have no hover state to reveal the accent color, so on mobile every contact
+   link — the CTA button, the plain email, and the social icons — carries its hover treatment
+   at rest instead of only on interaction. Otherwise they'd just look permanently muted/inactive
+   on a phone, and only the icons would read as "active" while the button and email looked dead. */
 @media (max-width:720px){
+  .contact .cta{ border-color:var(--accent); color:var(--accent); }
+  .contact .email-plain{ color:var(--accent); border-color:var(--accent); }
   .contact-social a{ color:var(--accent); border-color:var(--accent); }
 }
 
@@ -430,8 +458,8 @@ a{ color:inherit; text-decoration:none; }
 
 /* Case study page */
 .cs-hero{ padding:80px 0 60px; border-bottom:1px solid var(--line); }
-.cs-hero .back{ font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--text-mute); display:inline-block; margin-bottom:32px; }
-.cs-hero .back:hover{ color:var(--accent); }
+.cs-hero .back{ font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--text-mute); display:inline-block; margin-bottom:32px; transition:color .3s ease; }
+.cs-hero .back:hover, .cs-hero .back:focus-visible{ color:var(--accent); }
 .cs-hero h1{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:52px; letter-spacing:-0.01em; }
 @media (max-width:720px){ .cs-hero h1{ font-size:32px; } }
 .cs-hero .meta{ display:flex; gap:32px; margin-top:24px; flex-wrap:wrap; font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--text-mute); }
