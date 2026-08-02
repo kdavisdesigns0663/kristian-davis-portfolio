@@ -376,3 +376,104 @@ document.querySelectorAll('a[href^="#"]').forEach(function(link){
     }
   });
 });
+
+// --- Wheel-driven section resistance ---
+// CSS scroll-snap-type is binary (snap or don't) — there's no way to express "resist a little,
+// then commit" with it alone. This adds that on top: while scrolling freely INSIDE a section
+// (one taller than the viewport, like About can be) is untouched, the moment the wheel would
+// carry you PAST a section's edge, that transition is gated behind a small accumulated-delta
+// threshold instead of firing on the first tick. Small/accidental nudges at a boundary do
+// nothing; a sustained scroll crosses the threshold and commits to a smooth scroll into the
+// next section — that's the "resist, then yank through" feel.
+//
+// Wheel-only deliberately: touch has no discrete "wheel tick" to gate the same way, and mobile
+// already gets a clean single-gesture snap from the native CSS scroll-snap-type above. This
+// doesn't touch that — it only ever intervenes on an actual `wheel` event.
+(function () {
+  var stops = Array.prototype.slice.call(
+    document.querySelectorAll('.snap-section, .site-nav, .site-footer')
+  );
+  if (stops.length < 2) return;
+
+  var THRESHOLD = 150;   // accumulated wheel delta (px) needed to commit to moving one stop
+  var IDLE_RESET = 220;  // ms of no wheel activity before the accumulator drops back to 0
+  var LOCK_MS = 1200;    // wheel-input lock + scroll-snap-restore fallback ceiling (scrollend
+                         // fires sooner in browsers that support it; this just has to safely
+                         // outlast the longest realistic section-to-section smooth scroll)
+  var EDGE_TOLERANCE = 2; // px slack for "is this section's edge at the viewport edge"
+
+  var accum = 0;
+  var idleTimer = null;
+  var lockUntil = 0;
+
+  function currentStopIndex() {
+    var idx = 0;
+    for (var i = 0; i < stops.length; i++) {
+      if (stops[i].offsetTop <= window.scrollY + EDGE_TOLERANCE) idx = i;
+    }
+    return idx;
+  }
+
+  function atEdge(direction) {
+    var rect = stops[currentStopIndex()].getBoundingClientRect();
+    return direction > 0
+      ? rect.bottom <= window.innerHeight + EDGE_TOLERANCE
+      : rect.top >= -EDGE_TOLERANCE;
+  }
+
+  function goToStop(index) {
+    index = Math.max(0, Math.min(stops.length - 1, index));
+    var target = stops[index];
+    // scroll-snap-stop:always on every .snap-section blocks ANY smooth scroll animation that
+    // leaves one, programmatic or not — confirmed by testing that even a plain
+    // window.scrollTo({top:500, behavior:'smooth'}) from mid-Work was fully rejected, not just
+    // partially resisted. Same fix as the mobile tap-to-reveal scroll elsewhere in this file:
+    // suspend snapping for the duration of this animation, then hand back control to CSS.
+    //
+    // Restoring on a fixed timeout alone isn't safe — a long hop (e.g. Work to Hero, ~820px)
+    // can still be mid-animation past LOCK_MS, and re-enabling mandatory snap while a scroll is
+    // still in flight yanks it back to wherever it was, undoing the whole move. `scrollend`
+    // (Chrome/Firefox) restores right when the animation actually finishes instead; the timeout
+    // is just the fallback for browsers without it (Safari), given a longer ceiling.
+    var html = document.documentElement;
+    html.style.scrollSnapType = 'none';
+    lockUntil = Date.now() + LOCK_MS;
+
+    var restored = false;
+    function restoreSnap() {
+      if (restored) return;
+      restored = true;
+      html.style.scrollSnapType = '';
+    }
+    window.addEventListener('scrollend', restoreSnap, { once: true });
+    setTimeout(restoreSnap, LOCK_MS);
+
+    target.scrollIntoView({
+      behavior: 'smooth',
+      block: target === document.querySelector('.site-footer') ? 'end' : 'start',
+    });
+  }
+
+  window.addEventListener('wheel', function (e) {
+    if (Date.now() < lockUntil) { e.preventDefault(); return; }
+
+    var direction = e.deltaY > 0 ? 1 : -1;
+
+    if (!atEdge(direction)) {
+      // Room to scroll freely within the current section — get out of the way entirely.
+      accum = 0;
+      clearTimeout(idleTimer);
+      return;
+    }
+
+    e.preventDefault();
+    accum += Math.abs(e.deltaY);
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(function () { accum = 0; }, IDLE_RESET);
+
+    if (accum >= THRESHOLD) {
+      accum = 0;
+      goToStop(currentStopIndex() + direction);
+    }
+  }, { passive: false });
+})();
