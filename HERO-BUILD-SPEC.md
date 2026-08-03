@@ -1,3 +1,13 @@
+> **⚠️ STALE — do not build from this file.** This describes an early hero
+> draft (ghost word "OBSESSED", headline "Pattern reader. / Built together. /
+> Business-obsessed.") that was superseded by several later rounds of
+> rewrites. The LIVE site (`index.html`) is the source of truth for current
+> hero copy/layout — as of 2026-08-03 it's ghost word "KRISTIAN", headline
+> "People don't experience your design. / They experience your decisions.",
+> nav bar now lives inside `#hero` itself (see HANDOFF.md's final update for
+> why). Kept here for historical reasons only. See HANDOFF.md's last update
+> for the current state.
+
 # Hero section — complete build spec
 
 Paste this whole document to Claude Code as one instruction. This reflects

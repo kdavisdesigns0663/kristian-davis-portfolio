@@ -558,3 +558,160 @@ portfolio-site/
     freya-sews.html         — not yet created
     amun.html                — not yet created
 ```
+
+## MAJOR UPDATE 7 — current state snapshot, 2026-08-03. Read this first, it supersedes the technical claims above.
+
+Everything above this point is historical — decisions, rejected directions,
+and the reasoning behind locked choices (thesis wording, "no em dashes,"
+equal-size project titles, violet-only accent, etc. are all still true and
+still worth reading). But the *technical* descriptions of what's built
+(hover previews as "colored placeholder blocks," work section as a static
+radial web, mobile as "not yet designed") are all stale — dozens of commits
+have landed since MAJOR UPDATE 6. This section is a clean snapshot of where
+the live site actually stands. Full blow-by-blow is in `git log`; commit
+messages in this repo are written to carry real context (root causes, not
+just "fixed bug"), so `git log -p <file>` is worth reading before assuming
+something needs rework.
+
+**If you're a fresh agent picking this up cold (including on a different
+device from a synced/joint project): read this section, skim recent
+`git log --oneline -20`, then read `index.html` + `css/style.css` +
+`js/main.js` directly rather than trusting any doc's paraphrase of current
+values** — this project has been burned before (MAJOR UPDATE 5) by a doc/
+reference file drifting out of sync with the real site.
+
+### Current section-by-section state (all built, not placeholders)
+
+- **Nav**: lives INSIDE `<section id="hero">` now (absolutely positioned at
+  hero's own top edge), not a sibling above it. Same for the footer, inside
+  `#contact`. This was a deliberate fix — as separate top-level elements
+  with their own `scroll-snap-align`, they each acted like their own extra
+  section during scroll-snap, requiring an extra scroll gesture to get past
+  them. Don't move them back out without re-solving that.
+- **Hero**: ghost word "KRISTIAN", headline "People don't experience your
+  design. / They experience your decisions." (owner-edited directly in
+  index.html — the second line has a stray `<p>` tag nested inside the
+  `<span class="line-inner">`, which is invalid HTML but harmless in
+  practice: the sitewide `*{margin:0}` reset zeroes out the `<p>`'s default
+  margin, and browsers happily render `<p>` inside `<span>` despite it not
+  being valid per the content model, so it just acts as a manual line break.
+  Not worth "fixing" unless it starts actually breaking something.)
+  Headline reveal is now ONE effect only: opacity fade + a left-to-right
+  mask-based wipe per line (`--reveal` custom property, needs `@property`
+  registration to animate smoothly — falls back to a plain fade in browsers
+  without `@property` support). Explicitly stripped of scale/blur/settle-
+  wobble that used to be layered on top — don't re-add them without being
+  asked, that combination was deliberately rejected as "messed up."
+- **Work section (desktop)**: scroll-triggered ripple reveal, still violet,
+  still an X-layout (angles -45/45/135/225), but several rounds beyond
+  what's described above:
+  - Stage/card sizing is viewport-driven (`min(78vw, 1180px)` wide ×
+    `min(40vw, 56vh, 560px)` tall) and deliberately WIDE now, not square —
+    positioned via `padding-top` on `.work-section` that's tuned to exactly
+    clear the "WORK" ghost word's own height (300px, zero extra buffer) so
+    `align-items:center` splits the remaining space evenly above/below the
+    card. If you ever change the ghost word's font-size, recompute this —
+    the symmetry depends on padding-top matching the ghost's real height
+    exactly, not approximately.
+  - Node spread uses independent `radiusX`/`radiusY` (not one shared
+    radius) to match the wide/short card shape.
+  - Hover preview is REAL cropped screenshots now (`img/previews/*.jpg`,
+    9:19.5 phone-ratio crops), not placeholder blocks. Restructured into
+    `.preview-wrap` (position/size, unclipped) wrapping an inner `.preview`
+    (the clipped image box) so a rotating conic-gradient ring
+    (`previewRingSpin` keyframe) and four HUD-style corner brackets can
+    extend past the image's own rounded corners. Also gets a one-time
+    light-sweep shimmer on activation. `--proj-rgb` (set per-project via a
+    `.preview-wrap.KEY` / `.mobile-preview-wrap.KEY` class) drives the tint/
+    ring/corner/glow color everywhere — same variable, shared rule, both
+    desktop and mobile preview elements key off it.
+  - The fall itself is still 2.2s (NOT sped up — that was tried and
+    explicitly reverted; what actually needed fixing was the trigger firing
+    too late, not the fall being too slow). `IntersectionObserver` threshold
+    is 0.15 (down from 0.9) so the drop starts within ~80px of scrolling
+    toward the section instead of only once it's almost fully in view.
+- **Work section (mobile, <700px)**: tap-to-expand accordion, ONE shared
+  preview element (`#mobilePreviewWrap` in index.html, `position:fixed`,
+  centered on the viewport) — NOT one embedded per accordion item anymore.
+  This was a real architectural bug fix, not polish: with a per-item
+  preview, tapping a different project opened a different DOM element
+  living inside that item's own panel, and since panels above/below it were
+  simultaneously collapsing/expanding, the whole thing visibly relocated
+  between taps. `setMobilePreview()`/`hideMobilePreview()` in `main.js` now
+  just swap that one element's image/label/color and toggle `.active`.
+  **Important, hard-won lesson if you touch this again**: it has to be
+  `position:fixed` (viewport-relative), not `position:absolute` (section-
+  relative) — the tap handler also calls `recenterOnSettledLayout(header)`,
+  which scrolls so the TAPPED header sits at viewport-center, and that
+  scroll target is different for every item in the list. A section-relative
+  preview stayed visually aligned with items near the top (where the
+  section's own midpoint and the post-scroll viewport-center happen to
+  coincide) but drifted noticeably out of alignment for items further down
+  — only caught by explicitly testing the first, middle, and last item, not
+  by eyeballing one. If you're debugging "preview looks misaligned" again,
+  check this first.
+  Also: recentering is deliberately DEFERRED (780ms, matching the panel's
+  own `.75s` max-height transition) rather than computed synchronously on
+  click. `.work-section` uses `justify-content:center` to center the
+  collapsed list, which means the moment a panel starts growing, the flex
+  slack that was distributing space above the list starts collapsing, and
+  the header's true document position drifts throughout the whole
+  transition — reading the position synchronously at click time only ever
+  captured the pre-drift value. This is the actual root cause of an old,
+  repeatedly-reported "dropdown scrolls up and down weird" bug across
+  several earlier fix attempts that only patched the math, not the timing.
+- **About/Bio**: real photo (`img/kristian-about.jpg` desktop,
+  `img/kristian-about-mobile.jpg` mobile via a `<picture>`/`<source
+  media>` swap at the 900px breakpoint) with duotone treatment (grayscale +
+  contrast filter + violet gradient multiply). `object-position` is tuned
+  per breakpoint to frame his face/neck/chest — if a new photo is ever
+  swapped in, expect to re-tune these values by hand (they're specific to
+  where the subject sits in each source image, there's no way to make this
+  automatic). Photo has `margin-top` on the stacked mobile layout
+  specifically so it doesn't fully cover the "BIO" ghost word underneath it.
+- **Contact**: has a small looping "listening pulse" now (accent dot +
+  softly expanding/fading rings, ~3.6s cycle) sitting left of the CTA
+  button, both breakpoints — pure CSS `animation:infinite`, JS
+  (`IntersectionObserver` in `main.js`) only toggles an `.in-view` class to
+  fade it in/out with the section, doesn't drive the loop itself.
+- **Ambient background glow**: removed. `body{ background: var(--bg); }`
+  only now — the two low-opacity radial-gradient "atmosphere" layers that
+  used to sit behind everything are gone.
+
+### Known gaps / open items, current as of this update
+- **Mobile scroll-snap**: `min-height:100dvh` was added alongside the
+  existing `100vh` on `.snap-section` and `.about, .contact` (progressive
+  enhancement — falls back silently where `dvh` isn't supported) to address
+  mobile browsers' address-bar show/hide making `100vh` taller than the
+  actually-visible viewport. **This has NOT been verified on a real mobile
+  device** — only in a desktop browser's mobile-viewport emulation, which
+  can't reproduce the dynamic-toolbar behavior this fix targets. If scroll-
+  snap still feels off on an actual phone, this is the first thing to
+  revisit; check real device behavior before assuming the fix didn't work.
+- **Case study pages**: only `nitefind.html` and `zentra.html` exist.
+  `smiteforge.html`, `freya-sews.html`, `amun.html` are still not built —
+  same gap noted in earlier updates, unchanged.
+- **`HERO-BUILD-SPEC.md` is now stale** (flagged at the top of that file
+  too) — describes an early hero draft that doesn't match the live site at
+  all anymore (wrong ghost word, wrong headline). Kept for history, not a
+  build reference.
+- **`reference/hero-pattern.html` and `reference/raindrop-v4.html`** are
+  the only files left in `reference/` — `web-ripple-center.html` and
+  `work-index-pattern.html`, referenced in earlier updates above, were
+  never actually present in this repo snapshot (or were removed at some
+  point) and describe designs that are no longer current anyway (the work
+  section is the X-layout ripple reveal, not a radial web). Don't go
+  looking for them.
+- Nav bar hover states — still the original flag from early updates,
+  never revisited. Still just color-fade on hover, no bespoke treatment.
+
+### Environment/testing gotcha worth knowing
+If you're testing changes by opening `index.html` directly as a `file://`
+URL in an automated/headless browser tool, watch for stale caching — in at
+least one session, a `file://` tab kept serving an old cached copy of
+`style.css`/`main.js` across multiple reloads (even with cache-disabling
+navigation flags) with no visible indication it was stale, which produced
+confusing false "this fix isn't working" results. Serving the folder over a
+real local HTTP server (e.g. `python3 -m http.server`) and hard-reloading
+(or cache-busting the URL/stylesheet link) resolved it reliably. Worth
+doing from the start rather than re-discovering this.
