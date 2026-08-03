@@ -16,7 +16,7 @@
 const heroSection = document.getElementById('hero');
 if (heroSection) {
   const heroLines = heroSection.querySelectorAll('.headline > div');
-  const REVEAL_RATE = 0.4;
+  const REVEAL_RATE = 0.8;
   const SENTENCE_PAUSE = 0.7;
 
   let heroPlayed = false;

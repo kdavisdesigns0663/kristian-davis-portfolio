@@ -1106,3 +1106,11 @@ the two knobs now. Do not reintroduce per-word spans/staggering -- that
 specific approach was tried twice (UPDATE 11 and 12) and explicitly
 rejected both times, for two different reasons (too fast, then still
 structurally wrong even after slowing down).
+
+**Same-day follow-up**: `REVEAL_RATE` doubled again, `0.4s -> 0.8s` per
+word (line 0's wipe is now 4.0s, "They experience"/"your decisions." are
+1.6s each), per explicit owner request to slow down the per-line wipe
+speed specifically. `SENTENCE_PAUSE` (0.7s, the gap between the two
+phrases) was explicitly NOT touched -- only the in-line sweep speed
+changed. If asked to slow this further, `REVEAL_RATE` is the only value
+that should move; leave `SENTENCE_PAUSE` alone unless told otherwise.
