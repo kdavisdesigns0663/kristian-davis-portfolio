@@ -95,38 +95,33 @@ a{ color:inherit; text-decoration:none; }
   .hero .sub{ margin-left:0; margin-top:40px; }
 }
 
-/* Hero headline lines started as an exact reuse of .ripple-stage .node's transition, but at
-   this scale (huge display type vs. a small node label) the same 0.3->1 scale jump with an
-   overshoot curve read as words slamming onto the screen, not a calm ripple. Softened to a
-   much smaller scale delta (0.94->1, barely perceptible as "growth") on a smooth decelerate
-   curve with no overshoot, slowed down further still (still read as too fast at the previous
-   timing), and given real reading time between lines (see the per-line stagger in
-   playHeroReveal() in main.js — long enough to actually read line one before line two begins).
-   Still reuses the textRipple keyframe (defined further down, referenced by name here) on an
-   inner wrapper for the settle wobble.
-
-   --reveal drives a left-to-right sweep on top of the opacity/blur fade -- a soft-edged mask
-   band that travels across the line as it fades in, so the text visibly materializes from left
-   to right rather than fading up uniformly all at once. Needs @property below to animate the
-   percentage smoothly; browsers without @property support just skip the sweep and fall back to
-   a plain fade (opacity/transform/filter still animate normally either way). */
+/* Hero headline lines: one effect only, a left-to-right fade/wipe per line -- no scale, blur,
+   or settle-wobble (an earlier version combined all of those and it read as messy/busy rather
+   than clean). --reveal drives a soft-edged mask band that travels across the line as it fades
+   in, so the text visibly materializes from left to right instead of fading up uniformly all at
+   once. Needs @property below to animate the percentage smoothly; browsers without @property
+   support just skip the sweep and fall back to a plain opacity fade. Staggered per line via
+   inline transition-delay set in playHeroReveal() in main.js. */
 .hero .headline > div{
   --reveal:0%;
-  opacity:0; transform:scale(0.94); filter:blur(8px);
+  opacity:0;
   -webkit-mask-image:linear-gradient(90deg, #000 0%, #000 var(--reveal), transparent calc(var(--reveal) + 22%), transparent 100%);
   mask-image:linear-gradient(90deg, #000 0%, #000 var(--reveal), transparent calc(var(--reveal) + 22%), transparent 100%);
-  transition:opacity 4.2s ease, transform 4.6s cubic-bezier(.16,1,.3,1), filter 3.8s ease-out, --reveal 4.4s cubic-bezier(.45,0,.2,1);
+  transition:opacity 4.2s ease, --reveal 4.4s cubic-bezier(.45,0,.2,1);
 }
-.hero .headline > div.placed{ opacity:1; transform:scale(1); filter:blur(0); --reveal:100%; }
+.hero .headline > div.placed{ opacity:1; --reveal:100%; }
 .hero .headline .line-inner{ display:block; }
-.hero .headline > div.placed .line-inner{ animation:textRipple 1.8s cubic-bezier(.22,1,.36,1) both; }
 @property --reveal{ syntax:'<percentage>'; inherits:false; initial-value:0%; }
 
 /* Ghost word gets a deliberately quieter treatment than the headline lines -- a plain slow
    fade up to its normal resting opacity, no blur/bounce/wobble -- so it reads as a backdrop
-   settling in behind the text, not part of the same liquid-reveal sequence. */
-.hero .ghost{ opacity:0; transition:opacity 2.8s ease; }
+   settling in behind the text, not part of the same liquid-reveal sequence.
+   top is overridden from the base .ghost's 20px -- now that nav lives inside #hero and is
+   absolutely positioned at the section's own top edge (~94px tall desktop, ~78px mobile), the
+   base value sat the ghost word directly under/behind the nav bar instead of below it. */
+.hero .ghost{ top:118px; opacity:0; transition:opacity 2.8s ease; }
 .hero.revealed .ghost{ opacity:0.35; }
+@media (max-width:900px){ .hero .ghost{ top:96px; } }
 
 /* Section heading */
 .section-head{ padding:80px 0 0; }
@@ -151,20 +146,29 @@ a{ color:inherit; text-decoration:none; }
    single revert if it doesn't land well. See reference/raindrop-v4.html for the original tested
    source. Drop itself stays violet (matches the hero hint and the mobile version) -- only the
    section wash, ghost word, and card are part of the inversion. */
+/* padding-top clears the "WORK" ghost word (~300px tall at this font-size) so the stage sits
+   below it instead of centering through the section's full height and running straight through
+   the ghost -- align-items:center then centers the stage within whatever space is left under
+   that padding, rather than the section's true center. */
 .work-section{
   position:relative; display:flex; align-items:center; justify-content:center;
+  padding-top:340px;
   background:rgba(var(--accent-rgb),0.14);
 }
 /* White instead of the sitewide violet stroke -- against this section's dark violet wash, a
    violet-on-violet stroke nearly disappears, and the black tried here first failed WCAG contrast
    entirely. White clears AA's 3:1 large-text minimum with room to spare. */
 .work-section .ghost{ -webkit-text-stroke:1px #fff; opacity:0.45; }
-/* Viewport-driven instead of a fixed 600px box, so the stage (and the card inside it, at 108%
-   of this) reads as a majority of the viewport's width rather than a fairly small fixed island
-   in the middle of it. Capped by vh as well as vw since this is a square shape inside a
-   full-viewport-height section -- vw alone would let it overflow vertically on narrower/taller
-   windows. */
-.ripple-stage{ position:relative; z-index:2; width:min(78vw, 88vh, 960px); height:min(78vw, 88vh, 960px); }
+/* Wide, not square -- width and height are sized independently (was one min() shared by both)
+   so the stage (and the card inside it, at 108% of this) reads as a deliberately
+   landscape-proportioned panel instead of a square island. Both still viewport-driven so it
+   scales down gracefully on narrower windows; the vh/vw mix of caps is tuned so the ratio stays
+   roughly 2:1-2.3:1 rather than drifting toward square or absurdly thin at either extreme. */
+.ripple-stage{
+  position:relative; z-index:2;
+  width:min(78vw, 1180px);
+  height:min(40vw, 56vh, 560px);
+}
 
 /* Wrapper handles vertical fall + squash/stretch in true screen-space. Shape handles rotation only.
    These are deliberately separate elements -- combining stretch and rotation on one element
@@ -231,26 +235,31 @@ a{ color:inherit; text-decoration:none; }
 .ripple-stage .node-inner{ display:block; }
 .ripple-stage .node.placed .node-inner{ animation:textRipple 1.3s cubic-bezier(.22,1,.36,1) both; }
 
-/* Preview frame — sized to a 9:19.5 phone-screen ratio to match the new screenshot crops
-   (previously a 1.6:1 landscape box, back when previews were cropped to a landscape strip).
-   Three stacked layers sit above the image itself: ::before is a corner-positioned accent
-   tint (subtle, photo still reads through), ::after is a bottom-up dark fade for text
-   legibility, and .preview-tag is the project name sitting on top of that fade. The outer
-   glow is a box-shadow (transitioned from transparent/0-blur at rest) rather than the old
-   blurred-pseudo-element trick, per-project color driven by --proj-rgb so the same rule works
-   for all four instead of repeating the gradient per project. */
-.ripple-stage .preview{
+/* Preview — split into an outer .preview-wrap (position/size/active-toggle, NOT clipped) and
+   an inner .preview (the actual clipped image box), so the ring + HUD corner brackets below can
+   extend past the image's own rounded corners instead of getting cut off by the overflow:hidden
+   that the image itself needs. Sized to a 9:19.5 phone-screen ratio to match the screenshot
+   crops. Three stacked layers sit above the image: ::before is a corner-positioned accent tint
+   (subtle, photo still reads through), ::after is a bottom-up dark fade for text legibility, and
+   .preview-tag is the project name sitting on top of that fade. The outer glow is a box-shadow
+   on the inner .preview, per-project color driven by --proj-rgb so the same rules work for all
+   four instead of repeating values per project. */
+.ripple-stage .preview-wrap{
   position:absolute; top:50%; left:50%; width:56px; height:121px;
   transform:translate(-50%,-50%) scale(0.3); opacity:0;
-  border-radius:12px; overflow:hidden; z-index:6; pointer-events:none;
-  box-shadow:0 0 0 0 rgba(var(--proj-rgb),0);
+  z-index:6; pointer-events:none;
   transition:opacity .4s ease, transform .5s cubic-bezier(.2,.8,.2,1),
-    width .5s cubic-bezier(.2,.8,.2,1), height .5s cubic-bezier(.2,.8,.2,1), box-shadow .5s ease;
+    width .5s cubic-bezier(.2,.8,.2,1), height .5s cubic-bezier(.2,.8,.2,1);
 }
-.ripple-stage .preview.active{
-  opacity:1; transform:translate(-50%,-50%) scale(1); width:200px; height:433px;
-  box-shadow:0 0 90px 14px rgba(var(--proj-rgb),0.4);
+.ripple-stage .preview-wrap.active{
+  opacity:1; transform:translate(-50%,-50%) scale(1); width:230px; height:498px;
 }
+.ripple-stage .preview{
+  position:absolute; inset:0; border-radius:12px; overflow:hidden;
+  box-shadow:0 0 0 0 rgba(var(--proj-rgb),0);
+  transition:box-shadow .5s ease;
+}
+.ripple-stage .preview-wrap.active .preview{ box-shadow:0 0 90px 14px rgba(var(--proj-rgb),0.4); }
 .ripple-stage .preview img{ position:relative; z-index:1; width:100%; height:100%; object-fit:cover; object-position:top; display:block; }
 .ripple-stage .preview::before{
   content:""; position:absolute; inset:0; z-index:2; pointer-events:none;
@@ -265,13 +274,62 @@ a{ color:inherit; text-decoration:none; }
   font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:14px; color:#f4f2ee;
   pointer-events:none;
 }
-/* --proj-rgb drives the tint, the outer glow, and (via .preview-tag being plain white above)
-   is the one thing that changes per project — same treatment otherwise. Colors match each
-   project's actual screenshot; Amun stays neutral gray since it has no real screen yet. */
-.preview.nitefind{ --proj-rgb:176,74,214; }
-.preview.smiteforge{ --proj-rgb:224,184,74; }
-.preview.zentra{ --proj-rgb:79,191,130; }
-.preview.amun{ --proj-rgb:143,143,143; }
+/* One-time light sweep across the image when it activates -- a glass/metal-catching-light cue
+   rather than a loop, so it reads as a premium "reveal" moment instead of a constant gimmick.
+   z-index above the dark fade (3) so it's visible over the whole image, below the tag (4) so
+   the project name still reads clearly through it. */
+.ripple-stage .preview .preview-shimmer{
+  content:""; position:absolute; inset:0; z-index:3.5; pointer-events:none;
+  background:linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.28) 48%, rgba(255,255,255,0.06) 54%, transparent 70%);
+  transform:translateX(-130%);
+}
+.ripple-stage .preview-wrap.active .preview-shimmer{ animation:previewShimmer 1.1s cubic-bezier(.19,1,.22,1) .2s 1; }
+@keyframes previewShimmer{ to{ transform:translateX(130%); } }
+
+/* Rotating conic-gradient ring + HUD-style corner brackets -- the "futuristic/luxury" showcase
+   cue for the active preview, sitting on .preview-wrap (not .preview) specifically so both can
+   extend past the image's own clipped edges instead of being cut off. The ring is a solid
+   conic-gradient box with the center masked out (mask-composite:exclude), leaving just a thin
+   rotating border -- cheaper and crisper than an actual animated SVG/border-image, and it spins
+   as one rigid shape since the whole element rotates rather than trying to animate the gradient
+   angle itself. */
+.ripple-stage .preview-ring{
+  position:absolute; inset:-16px; border-radius:22px; z-index:0;
+  opacity:0; pointer-events:none; padding:1.5px;
+  background:conic-gradient(from 0deg, transparent 0%, rgba(var(--proj-rgb),0.9) 10%, #fff 18%, rgba(var(--proj-rgb),0.9) 26%, transparent 42%, transparent 100%);
+  -webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor;
+  mask-composite:exclude;
+  transition:opacity .6s ease;
+}
+.ripple-stage .preview-wrap.active .preview-ring{ opacity:1; animation:previewRingSpin 3.2s linear infinite; }
+@keyframes previewRingSpin{ to{ transform:rotate(360deg); } }
+
+.ripple-stage .preview-corner{
+  position:absolute; width:16px; height:16px;
+  border:1.5px solid rgba(var(--proj-rgb),0.95);
+  opacity:0; transform:scale(0.5); pointer-events:none;
+  transition:opacity .5s ease, transform .5s cubic-bezier(.19,1,.22,1);
+}
+.ripple-stage .preview-corner.tl{ top:-10px; left:-10px; border-right:none; border-bottom:none; }
+.ripple-stage .preview-corner.tr{ top:-10px; right:-10px; border-left:none; border-bottom:none; }
+.ripple-stage .preview-corner.bl{ bottom:-10px; left:-10px; border-right:none; border-top:none; }
+.ripple-stage .preview-corner.br{ bottom:-10px; right:-10px; border-left:none; border-top:none; }
+.ripple-stage .preview-wrap.active .preview-corner{ opacity:1; transform:scale(1); }
+.ripple-stage .preview-wrap.active .preview-corner.tr{ transition-delay:.05s; }
+.ripple-stage .preview-wrap.active .preview-corner.bl{ transition-delay:.1s; }
+.ripple-stage .preview-wrap.active .preview-corner.br{ transition-delay:.15s; }
+
+/* --proj-rgb drives the tint, the ring, the corners, the glow, and (via .preview-tag being
+   plain white above) is the one thing that changes per project — same treatment otherwise.
+   Colors match each project's actual screenshot; Amun stays neutral gray since it has no real
+   screen yet. Both .preview-wrap.KEY (desktop, see above) and plain .preview.KEY (the mobile
+   accordion's own preview element, styled separately further down) need this same rule -- they
+   don't share a common class to hang it on. */
+.preview-wrap.nitefind, .preview.nitefind{ --proj-rgb:176,74,214; }
+.preview-wrap.smiteforge, .preview.smiteforge{ --proj-rgb:224,184,74; }
+.preview-wrap.zentra, .preview.zentra{ --proj-rgb:79,191,130; }
+.preview-wrap.amun, .preview.amun{ --proj-rgb:143,143,143; }
 
 /* Work section — mobile fallback. The X-layout raindrop animation assumes a desktop-sized
    canvas and doesn't translate below ~700px (nodes overflow the viewport), so under that

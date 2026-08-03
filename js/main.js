@@ -1,11 +1,10 @@
-// --- Hero: headline lines liquid-reveal on load (see style.css for the transition/textRipple
-// values — softened and slowed from an earlier version that reused .ripple-stage .node's
-// timing exactly, which read as words slamming in rather than a calm ripple at headline
-// scale). Staggered in reading order via inline transition-delay/animation-delay set here,
-// computed from each line's position among its siblings. The 2.6s gap is deliberate — enough
-// to actually read line one before line two starts materializing, not just a beat between them.
-// Fires once via IntersectionObserver (hero is the first section, so this effectively means
-// "on load") and never resets — this is not a scroll-repeat effect like the work-section ripple.
+// --- Hero: headline lines fade/wipe in left-to-right on load (see style.css for the
+// opacity/--reveal transition values). Staggered in reading order via inline transition-delay
+// set here, computed from each line's position among its siblings. The 2.6s gap is deliberate —
+// enough to actually read line one before line two starts materializing, not just a beat
+// between them. Fires once via IntersectionObserver (hero is the first section, so this
+// effectively means "on load") and never resets — this is not a scroll-repeat effect like the
+// work-section ripple.
 const heroSection = document.getElementById('hero');
 if (heroSection) {
   const heroLines = heroSection.querySelectorAll('.headline > div');
@@ -14,11 +13,8 @@ if (heroSection) {
     if (heroPlayed) return;
     heroPlayed = true;
     heroLines.forEach((line, i) => {
-      const delay = (i * 2.6) + 's';
-      line.style.transitionDelay = delay;
+      line.style.transitionDelay = (i * 2.6) + 's';
       line.classList.add('placed');
-      const inner = line.querySelector('.line-inner');
-      if (inner) inner.style.animationDelay = delay;
     });
     heroSection.classList.add('revealed');
   }
@@ -31,11 +27,16 @@ if (heroSection) {
 // --- Work section: raindrop fall + ripple reveal, scroll-triggered, center-anchored hover preview ---
 // 4 projects currently, arranged in an X (angles 45deg apart from cardinal).
 // To add another, just add one object here — position/animation are computed from this list.
+// radiusX/radiusY (not a single shared radius) since the stage is now a wide/short landscape
+// panel rather than a square -- an even circular spread would either overflow the card's short
+// height or leave the wide axis under-used. Tuned so the widest hook label still clears the
+// card edge with padding to spare down to the smallest desktop width the stage's own min()
+// sizing allows.
 const projects = [
-  { key:'nitefind', name:'Nitefind', hook:'too many options, not enough certainty', href:'case-studies/nitefind.html', angle:-45, radius:260, img:'img/previews/nitefind-preview.jpg' },
-  { key:'smiteforge', name:'SmiteForge', hook:'one brand, two very different platforms', href:'case-studies/smiteforge.html', angle:45, radius:260, img:'img/previews/smiteforge-preview.jpg' },
-  { key:'zentra', name:'Zentra', hook:'saving money without losing motivation', href:'case-studies/zentra.html', angle:135, radius:260, img:'img/previews/zentra-preview.jpg' },
-  { key:'amun', name:'Amun', hook:'still being built', href:'case-studies/amun.html', angle:225, radius:260, img:'img/previews/amun-preview.jpg', isPlaceholder:true },
+  { key:'nitefind', name:'Nitefind', hook:'too many options, not enough certainty', href:'case-studies/nitefind.html', angle:-45, radiusX:440, radiusY:240, img:'img/previews/nitefind-preview.jpg' },
+  { key:'smiteforge', name:'SmiteForge', hook:'one brand, two very different platforms', href:'case-studies/smiteforge.html', angle:45, radiusX:440, radiusY:240, img:'img/previews/smiteforge-preview.jpg' },
+  { key:'zentra', name:'Zentra', hook:'saving money without losing motivation', href:'case-studies/zentra.html', angle:135, radiusX:440, radiusY:240, img:'img/previews/zentra-preview.jpg' },
+  { key:'amun', name:'Amun', hook:'still being built', href:'case-studies/amun.html', angle:225, radiusX:440, radiusY:240, img:'img/previews/amun-preview.jpg', isPlaceholder:true },
 ];
 
 // Shared drop-fall + ripple mechanic, used by both the desktop stage and the
@@ -121,24 +122,39 @@ if (stage) {
     stage.appendChild(el);
     p.el = el;
 
-    const preview = document.createElement('div');
-    preview.className = 'preview ' + p.key + (p.isPlaceholder ? ' is-placeholder' : '');
-    preview.innerHTML = `<img src="${p.img}" alt="${p.isPlaceholder ? '' : p.name + ' preview'}" loading="lazy"><span class="preview-tag">${p.name}</span>`;
-    stage.appendChild(preview);
-    p.preview = preview;
+    // .preview-wrap carries position/size/the active toggle; .preview inside it is just the
+    // clipped image box. Split this way so the ring + corner brackets (siblings of .preview,
+    // not children) can extend past the image's own rounded corners instead of being clipped
+    // by the overflow:hidden that the image itself needs. See style.css for the visual detail.
+    const previewWrap = document.createElement('div');
+    previewWrap.className = 'preview-wrap ' + p.key + (p.isPlaceholder ? ' is-placeholder' : '');
+    previewWrap.innerHTML = `
+      <div class="preview-ring"></div>
+      <span class="preview-corner tl"></span>
+      <span class="preview-corner tr"></span>
+      <span class="preview-corner bl"></span>
+      <span class="preview-corner br"></span>
+      <div class="preview">
+        <img src="${p.img}" alt="${p.isPlaceholder ? '' : p.name + ' preview'}" loading="lazy">
+        <span class="preview-shimmer"></span>
+        <span class="preview-tag">${p.name}</span>
+      </div>
+    `;
+    stage.appendChild(previewWrap);
+    p.preview = previewWrap;
 
-    const on = () => { stage.classList.add('hovering'); preview.classList.add('active'); };
-    const off = () => { stage.classList.remove('hovering'); preview.classList.remove('active'); };
+    const on = () => { stage.classList.add('hovering'); previewWrap.classList.add('active'); };
+    const off = () => { stage.classList.remove('hovering'); previewWrap.classList.remove('active'); };
     el.addEventListener('mouseenter', on);
     el.addEventListener('mouseleave', off);
     el.addEventListener('focus', on);
     el.addEventListener('blur', off);
   });
 
-  function targetTransform(angle, radius) {
+  function targetTransform(angle, radiusX, radiusY) {
     const rad = angle * Math.PI / 180;
-    const x = radius * Math.cos(rad);
-    const y = radius * Math.sin(rad);
+    const x = radiusX * Math.cos(rad);
+    const y = radiusY * Math.sin(rad);
     return `translate(${x}px, ${y}px)`;
   }
 
@@ -184,7 +200,7 @@ if (stage) {
         if (card) card.classList.add('active');
         projects.forEach((p, i) => {
           timers.push(setTimeout(() => {
-            p.el.style.transform = `translate(-50%,-50%) ${targetTransform(p.angle, p.radius)} scale(1)`;
+            p.el.style.transform = `translate(-50%,-50%) ${targetTransform(p.angle, p.radiusX, p.radiusY)} scale(1)`;
             p.el.classList.add('placed');
           }, i * 90));
         });
