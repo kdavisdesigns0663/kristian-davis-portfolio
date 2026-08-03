@@ -567,7 +567,13 @@ a{ color:inherit; text-decoration:none; }
    for the cases where the frame's own aspect ratio is short enough that it crops top/bottom
    instead. */
 .about-photo{ width:100%; height:100%; object-fit:cover; object-position:68% 34%; filter:grayscale(1) contrast(1.15) brightness(0.95); display:block; }
-.about-photo-frame::after{ content:""; position:absolute; inset:0; background:linear-gradient(160deg, rgba(var(--accent-rgb),0.28), rgba(5,5,5,0.4) 70%); mix-blend-mode:multiply; }
+/* Duotone tint, shared by every breakpoint (this rule isn't overridden in the media queries
+   below, so desktop and mobile always get the identical treatment). Alpha values dialed down
+   from an earlier 0.28/0.4 -- measured against actual pixels, that version darkened the face by
+   ~25% with a visible blue-violet cast and the torso by ~35%, which read as a color filter over
+   the person rather than the intended "ties into the palette" subtlety. 0.14/0.18 keeps the same
+   gradient geometry (still darker toward the lower-right) but roughly halves the visible shift. */
+.about-photo-frame::after{ content:""; position:absolute; inset:0; background:linear-gradient(160deg, rgba(var(--accent-rgb),0.14), rgba(5,5,5,0.18) 70%); mix-blend-mode:multiply; }
 
 /* Tablet/phone: stacked, photo above text (order:-1 flips it without reordering the actual
    markup — the photo stays after the bio copy in the DOM/reading order for screen readers,
@@ -579,26 +585,29 @@ a{ color:inherit; text-decoration:none; }
      first element in the section, sitting directly over the "BIO" ghost word underneath it
      and blocking it out completely. This margin gives the ghost room to peek above the frame
      the way it does in every other section instead of being fully covered by an opaque image. */
-  .about-photo-frame{ order:-1; width:100%; aspect-ratio:2/1; margin-top:64px; }
-  /* This frame's 2:1 ratio is short/wide relative to the source photo's portrait shape, so
-     object-fit:cover always crops top/bottom here and shows the FULL width regardless of the
-     X value -- only Y does anything at this breakpoint. This is also exactly where the
-     <picture> source in index.html swaps to the dedicated mobile crop (kristian-about-mobile.jpg,
-     already tighter/more centered on him than the desktop photo), so this Y value is tuned for
-     THAT image specifically, not the desktop one: 11% keeps the crop window up near the top of
-     the source -- headroom above his hair down through his shoulders/collar -- rather than
-     cutting through the middle of his face or his crossed arms lower in the frame. */
-  .about-photo{ object-position:50% 11%; }
+  /* This is also exactly where the <picture> source in index.html swaps to the dedicated
+     mobile crop (kristian-about-mobile.jpg, 2174x2436 native). aspect-ratio is set to that
+     image's own pixel ratio -- not an arbitrary 2:1 -- specifically so object-fit:cover has
+     nothing left to crop: frame and image proportions now match almost exactly, so the whole
+     photo (head down through the crossed arms) shows instead of a tight head-and-shoulders
+     crop. If a different mobile photo is ever swapped in, recompute this against ITS actual
+     dimensions -- it's tied to this specific file, not a general mobile ratio. */
+  .about-photo-frame{ order:-1; width:100%; aspect-ratio:2174/2436; margin-top:64px; }
+  /* Centered, not top-biased -- with the frame ratio now matching the source image, cover has
+     essentially nothing to crop, so there's no need to shift the window toward the top like the
+     old mismatched-ratio frame required. */
+  .about-photo{ object-position:50% 50%; }
 }
 @media (max-width:600px){
-  /* Aspect ratio inherited from the 900px breakpoint (2/1) rather than going full-square here
-     — a 1:1 crop at full viewport width was costing ~375px of a ~812px-tall phone viewport on
-     its own, a big part of why About ran to more than double the viewport height on mobile. */
+  /* Aspect ratio inherited from the 900px breakpoint (the mobile image's own 2174:2436 ratio)
+     rather than going full-square here — a 1:1 crop at full viewport width was costing ~375px
+     of a ~812px-tall phone viewport on its own, a big part of why About ran to more than double
+     the viewport height on mobile. */
   .about-photo-frame{
     border-radius:0;
     width:100vw; margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw);
   }
-  .about-photo{ object-position:50% 11%; }
+  .about-photo{ object-position:50% 50%; }
 }
 
 /* About / Contact now sit inside full-viewport snap sections, centered. min-height:100dvh for
