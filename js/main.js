@@ -2,7 +2,7 @@
 // values — softened and slowed from an earlier version that reused .ripple-stage .node's
 // timing exactly, which read as words slamming in rather than a calm ripple at headline
 // scale). Staggered in reading order via inline transition-delay/animation-delay set here,
-// computed from each line's position among its siblings. The 1.8s gap is deliberate — enough
+// computed from each line's position among its siblings. The 2.6s gap is deliberate — enough
 // to actually read line one before line two starts materializing, not just a beat between them.
 // Fires once via IntersectionObserver (hero is the first section, so this effectively means
 // "on load") and never resets — this is not a scroll-repeat effect like the work-section ripple.
@@ -14,7 +14,7 @@ if (heroSection) {
     if (heroPlayed) return;
     heroPlayed = true;
     heroLines.forEach((line, i) => {
-      const delay = (i * 1.8) + 's';
+      const delay = (i * 2.6) + 's';
       line.style.transitionDelay = delay;
       line.classList.add('placed');
       const inner = line.querySelector('.line-inner');
@@ -32,10 +32,10 @@ if (heroSection) {
 // 4 projects currently, arranged in an X (angles 45deg apart from cardinal).
 // To add another, just add one object here — position/animation are computed from this list.
 const projects = [
-  { key:'nitefind', name:'Nitefind', hook:'too many options, not enough certainty', href:'case-studies/nitefind.html', angle:-45, radius:220, img:'img/previews/nitefind-preview.jpg' },
-  { key:'smiteforge', name:'SmiteForge', hook:'one brand, two very different platforms', href:'case-studies/smiteforge.html', angle:45, radius:220, img:'img/previews/smiteforge-preview.jpg' },
-  { key:'zentra', name:'Zentra', hook:'saving money without losing motivation', href:'case-studies/zentra.html', angle:135, radius:220, img:'img/previews/zentra-preview.jpg' },
-  { key:'amun', name:'Amun', hook:'still being built', href:'case-studies/amun.html', angle:225, radius:220, img:'img/previews/amun-preview.jpg', isPlaceholder:true },
+  { key:'nitefind', name:'Nitefind', hook:'too many options, not enough certainty', href:'case-studies/nitefind.html', angle:-45, radius:260, img:'img/previews/nitefind-preview.jpg' },
+  { key:'smiteforge', name:'SmiteForge', hook:'one brand, two very different platforms', href:'case-studies/smiteforge.html', angle:45, radius:260, img:'img/previews/smiteforge-preview.jpg' },
+  { key:'zentra', name:'Zentra', hook:'saving money without losing motivation', href:'case-studies/zentra.html', angle:135, radius:260, img:'img/previews/zentra-preview.jpg' },
+  { key:'amun', name:'Amun', hook:'still being built', href:'case-studies/amun.html', angle:225, radius:260, img:'img/previews/amun-preview.jpg', isPlaceholder:true },
 ];
 
 // Shared drop-fall + ripple mechanic, used by both the desktop stage and the
@@ -231,6 +231,49 @@ if (accordion) {
   // switching items quickly could let an earlier restore re-enable scroll-snap mid-scroll on
   // the second item, yanking the page into the wrong section.
   let snapRestoreTimer = null;
+  let recenterTimer = null;
+
+  // .work-section is display:flex + justify-content:center on mobile (see style.css), which
+  // vertically centers whatever the accordion's CURRENT total height is. That's what centers
+  // the collapsed list at rest -- but it also means the moment a panel starts growing, the
+  // slack that justify-content was distributing above the accordion starts collapsing, and the
+  // header's true document position drifts throughout the whole .75s expand. Measuring
+  // getBoundingClientRect() synchronously at click time (the earlier approach) only ever
+  // captured the PRE-drift position, so the computed scroll target was already stale by the
+  // time the transition finished settling -- consistently short by however much slack
+  // collapsed, which is what made switching between projects "scroll up and down weird" even
+  // after the panel-height math itself was fixed. Waiting for the transition to actually
+  // finish (RECENTER_DELAY matches .work-item-panel's .75s max-height transition) before
+  // reading positions sidesteps the drift entirely instead of trying to predict it. As a
+  // bonus, `item` (header + panel together, see the .work-item wrapper below) is what should
+  // be centered either way: with a panel open, its rect is the full block; collapsed, it's
+  // just the header -- so opening and closing can share one code path.
+  const RECENTER_DELAY = 780;
+  function recenterOnSettledLayout(item) {
+    clearTimeout(recenterTimer);
+    recenterTimer = setTimeout(() => {
+      const rect = item.getBoundingClientRect();
+      const targetScroll = Math.max(0, window.scrollY + rect.top + rect.height / 2 - window.innerHeight / 2);
+
+      // scroll-snap-type:mandatory on <html> blocks smooth scroll animations that leave a
+      // section entirely, and can otherwise fight a mid-section nudge like this one — same
+      // suspend/restore pattern used by the wheel-driven section controller further down
+      // this file, scoped to this tap instead of a section transition.
+      const html = document.documentElement;
+      html.style.scrollSnapType = 'none';
+      let restored = false;
+      function restoreSnap() {
+        if (restored) return;
+        restored = true;
+        html.style.scrollSnapType = '';
+      }
+      window.addEventListener('scrollend', restoreSnap, { once: true });
+      clearTimeout(snapRestoreTimer);
+      snapRestoreTimer = setTimeout(restoreSnap, 1200);
+
+      window.scrollTo({ top: targetScroll, behavior: 'smooth' });
+    }, RECENTER_DELAY);
+  }
 
   // Single reusable expanding-ring element, kept separate from playRaindrop's
   // multi-ring impact sequence since this always fires from a fixed point
@@ -325,6 +368,7 @@ if (accordion) {
     panel.id = panelId;
     panel.innerHTML = `
       <div class="work-item-preview-stage">
+        <div class="work-item-preview-card"></div>
         <div class="preview ${p.key} work-item-preview-bloom${p.isPlaceholder ? ' is-placeholder' : ''}"><img src="${p.img}" alt="${p.isPlaceholder ? '' : p.name + ' preview'}" loading="lazy"><span class="preview-tag">${p.name}</span></div>
       </div>
       <a class="work-item-btn mono" href="${p.href}">view project</a>
@@ -332,7 +376,6 @@ if (accordion) {
 
     header.addEventListener('click', () => {
       const isOpen = item.classList.contains('open');
-      const previouslyOpen = accordion.querySelector('.work-item.open');
       accordion.querySelectorAll('.work-item.open').forEach(other => {
         other.classList.remove('open');
         other.querySelector('.work-item-header').setAttribute('aria-expanded', 'false');
@@ -348,47 +391,11 @@ if (accordion) {
         if (!prefersReducedMotion) {
           spawnTapRipple(tapRipple);
         }
-
-        // Keep the tapped project centered in the viewport as it opens (and any previously
-        // open project collapses around it), rather than the old "nudge into view only if
-        // below the fold". The old version computed the scroll amount from the header's
-        // position AT CLICK TIME plus a hardcoded panel-height constant — both wrong the
-        // moment a second item was tapped while a first was still open: the header had
-        // already moved (collapse + expand run together) and the constant had drifted out
-        // of sync with the real panel height, which is what caused the scroll to overshoot
-        // or undershoot ("scrolls up and down weird") when switching between projects.
-        // panel.scrollHeight gives the panel's real content height even while it's still
-        // visually clipped by max-height:0, so the final (post-transition) position can be
-        // computed exactly up front instead of guessed.
-        const headerRect = header.getBoundingClientRect();
-        const headerDocTop = window.scrollY + headerRect.top;
-        const closingIsAbove = previouslyOpen && previouslyOpen !== item &&
-          !!(previouslyOpen.compareDocumentPosition(item) & Node.DOCUMENT_POSITION_FOLLOWING);
-        const closingHeight = closingIsAbove
-          ? previouslyOpen.querySelector('.work-item-panel').scrollHeight
-          : 0;
-        const finalHeaderTop = headerDocTop - closingHeight;
-        const blockHeight = headerRect.height + panel.scrollHeight;
-        const targetScroll = Math.max(0, finalHeaderTop + blockHeight / 2 - window.innerHeight / 2);
-
-        // scroll-snap-type:mandatory on <html> blocks smooth scroll animations that leave a
-        // section entirely, and can otherwise fight a mid-section nudge like this one — same
-        // suspend/restore pattern used by the wheel-driven section controller further down
-        // this file, scoped to this tap instead of a section transition.
-        const html = document.documentElement;
-        html.style.scrollSnapType = 'none';
-        let restored = false;
-        function restoreSnap() {
-          if (restored) return;
-          restored = true;
-          html.style.scrollSnapType = '';
-        }
-        window.addEventListener('scrollend', restoreSnap, { once: true });
-        clearTimeout(snapRestoreTimer);
-        snapRestoreTimer = setTimeout(restoreSnap, 1200);
-
-        window.scrollTo({ top: targetScroll, behavior: 'smooth' });
       }
+      // Recenter on this item either way -- opening it (grown to its full panel height) or
+      // closing it back down to just its header. See recenterOnSettledLayout() below for why
+      // this can't just read positions synchronously here.
+      recenterOnSettledLayout(item);
     });
 
     item.appendChild(header);
@@ -421,9 +428,7 @@ document.querySelectorAll('a[href^="#"]').forEach(function(link){
 // already gets a clean single-gesture snap from the native CSS scroll-snap-type above. This
 // doesn't touch that — it only ever intervenes on an actual `wheel` event.
 (function () {
-  var stops = Array.prototype.slice.call(
-    document.querySelectorAll('.snap-section, .site-nav, .site-footer')
-  );
+  var stops = Array.prototype.slice.call(document.querySelectorAll('.snap-section'));
   if (stops.length < 2) return;
 
   var THRESHOLD = 70;    // accumulated wheel delta (px) needed to commit to moving one stop —
@@ -480,10 +485,7 @@ document.querySelectorAll('a[href^="#"]').forEach(function(link){
     window.addEventListener('scrollend', restoreSnap, { once: true });
     setTimeout(restoreSnap, LOCK_MS);
 
-    target.scrollIntoView({
-      behavior: 'smooth',
-      block: target === document.querySelector('.site-footer') ? 'end' : 'start',
-    });
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   window.addEventListener('wheel', function (e) {

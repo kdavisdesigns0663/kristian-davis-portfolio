@@ -19,14 +19,12 @@
    bled-off content even though body claimed to hide it. */
 html{ scroll-snap-type:y mandatory; overflow-x:hidden; }
 .snap-section{ min-height:100vh; scroll-snap-align:start; scroll-snap-stop:always; }
-/* Nav and the footer live outside the .snap-section flow (above hero, below contact), so
-   with only 4 snap points, scrolling toward either one landed in the gap between a real snap
-   point and the edge of the page — mandatory has nowhere valid to rest there, so it kept
-   yanking the scroll back into hero/contact. Making nav/footer snap targets themselves (start
-   for nav so its top settles at the viewport top, end for the footer so its bottom settles at
-   the viewport bottom) gives mandatory somewhere legitimate to land at both ends. */
-.site-nav{ scroll-snap-align:start; }
-.site-footer{ scroll-snap-align:end; }
+/* Nav and the footer used to live outside the .snap-section flow (above hero, below contact)
+   and were themselves given scroll-snap-align, which fixed an edge-landing bug but introduced
+   a new one: they read as their own separate section, requiring an extra scroll step to get
+   past them into hero/contact. Now they're DOM children of hero/contact respectively (see
+   index.html) and just overlaid at the section's own top/bottom edge -- one snap stop each,
+   nav/footer along for the ride instead of stops of their own. */
 
 *{ margin:0; padding:0; box-sizing:border-box; }
 
@@ -56,8 +54,13 @@ a{ color:inherit; text-decoration:none; }
 
 @media (max-width:720px){ .wrap{ padding:0 24px; } }
 
-/* Nav */
+/* Nav — lives inside #hero now (see index.html) so it scrolls as part of the hero snap stop
+   instead of being one itself. Absolutely positioned at hero's own top edge rather than sitting
+   in normal flow, so it doesn't push the eyebrow/headline down — hero's existing top
+   padding + the eyebrow's own 260px padding-top already leaves far more clearance than nav's
+   height needs. */
 .site-nav{
+  position:absolute; top:0; left:0; right:0; z-index:10;
   display:flex; align-items:center; justify-content:space-between;
   padding:32px 64px; border-bottom:1px solid var(--line);
 }
@@ -96,39 +99,34 @@ a{ color:inherit; text-decoration:none; }
    this scale (huge display type vs. a small node label) the same 0.3->1 scale jump with an
    overshoot curve read as words slamming onto the screen, not a calm ripple. Softened to a
    much smaller scale delta (0.94->1, barely perceptible as "growth") on a smooth decelerate
-   curve with no overshoot, slowed down further, and given real reading time between lines
-   (see the per-line stagger in playHeroReveal() in main.js — long enough to actually read
-   line one before line two begins). Still reuses the textRipple keyframe (defined further
-   down, referenced by name here) on an inner wrapper for the settle wobble, just at the same
-   slower pace as everything else now. */
-.hero .headline > div{ opacity:0; transform:scale(0.94); filter:blur(8px); transition:opacity 2.2s ease, transform 3.2s cubic-bezier(.16,1,.3,1), filter 2.6s ease-out; }
-.hero .headline > div.placed{ opacity:1; transform:scale(1); filter:blur(0); }
+   curve with no overshoot, slowed down further still (still read as too fast at the previous
+   timing), and given real reading time between lines (see the per-line stagger in
+   playHeroReveal() in main.js — long enough to actually read line one before line two begins).
+   Still reuses the textRipple keyframe (defined further down, referenced by name here) on an
+   inner wrapper for the settle wobble.
+
+   --reveal drives a left-to-right sweep on top of the opacity/blur fade -- a soft-edged mask
+   band that travels across the line as it fades in, so the text visibly materializes from left
+   to right rather than fading up uniformly all at once. Needs @property below to animate the
+   percentage smoothly; browsers without @property support just skip the sweep and fall back to
+   a plain fade (opacity/transform/filter still animate normally either way). */
+.hero .headline > div{
+  --reveal:0%;
+  opacity:0; transform:scale(0.94); filter:blur(8px);
+  -webkit-mask-image:linear-gradient(90deg, #000 0%, #000 var(--reveal), transparent calc(var(--reveal) + 22%), transparent 100%);
+  mask-image:linear-gradient(90deg, #000 0%, #000 var(--reveal), transparent calc(var(--reveal) + 22%), transparent 100%);
+  transition:opacity 4.2s ease, transform 4.6s cubic-bezier(.16,1,.3,1), filter 3.8s ease-out, --reveal 4.4s cubic-bezier(.45,0,.2,1);
+}
+.hero .headline > div.placed{ opacity:1; transform:scale(1); filter:blur(0); --reveal:100%; }
 .hero .headline .line-inner{ display:block; }
 .hero .headline > div.placed .line-inner{ animation:textRipple 1.8s cubic-bezier(.22,1,.36,1) both; }
+@property --reveal{ syntax:'<percentage>'; inherits:false; initial-value:0%; }
 
 /* Ghost word gets a deliberately quieter treatment than the headline lines -- a plain slow
    fade up to its normal resting opacity, no blur/bounce/wobble -- so it reads as a backdrop
    settling in behind the text, not part of the same liquid-reveal sequence. */
 .hero .ghost{ opacity:0; transition:opacity 2.8s ease; }
 .hero.revealed .ghost{ opacity:0.35; }
-
-/* Violet drop, idle in the hero, hinting at the fall that plays out once the work section
-   comes into view -- part of the same experimental color-inversion pass as the work section
-   itself (violet here, flips to black once it's inside the violet-washed work section). Fades
-   in with the rest of the hero reveal rather than being there instantly, and gently bobs in
-   place instead of sitting static. Desktop only -- mobile's own work-section drop is untouched. */
-.hero-drop-hint{ position:absolute; left:50%; bottom:64px; z-index:2; opacity:0; transition:opacity 1.8s ease 1.6s; pointer-events:none; }
-.hero.revealed .hero-drop-hint{ opacity:0.85; }
-.hero-drop-hint .hero-drop-shape{
-  width:12px; height:12px; background:var(--accent); box-shadow:0 0 14px 3px rgba(var(--accent-rgb),0.55);
-  border-radius:50% 50% 50% 0; transform:translateX(-50%) rotate(135deg);
-  animation:heroDropIdle 2.6s ease-in-out infinite;
-}
-@keyframes heroDropIdle{
-  0%, 100%{ transform:translateX(-50%) rotate(135deg) translateY(0); }
-  50%{ transform:translateX(-50%) rotate(135deg) translateY(8px); }
-}
-@media (max-width:700px){ .hero-drop-hint{ display:none; } }
 
 /* Section heading */
 .section-head{ padding:80px 0 0; }
@@ -161,7 +159,12 @@ a{ color:inherit; text-decoration:none; }
    violet-on-violet stroke nearly disappears, and the black tried here first failed WCAG contrast
    entirely. White clears AA's 3:1 large-text minimum with room to spare. */
 .work-section .ghost{ -webkit-text-stroke:1px #fff; opacity:0.45; }
-.ripple-stage{ position:relative; z-index:2; width:600px; height:600px; max-width:90vw; max-height:90vw; }
+/* Viewport-driven instead of a fixed 600px box, so the stage (and the card inside it, at 108%
+   of this) reads as a majority of the viewport's width rather than a fairly small fixed island
+   in the middle of it. Capped by vh as well as vw since this is a square shape inside a
+   full-viewport-height section -- vw alone would let it overflow vertically on narrower/taller
+   windows. */
+.ripple-stage{ position:relative; z-index:2; width:min(78vw, 88vh, 960px); height:min(78vw, 88vh, 960px); }
 
 /* Wrapper handles vertical fall + squash/stretch in true screen-space. Shape handles rotation only.
    These are deliberately separate elements -- combining stretch and rotation on one element
@@ -204,6 +207,9 @@ a{ color:inherit; text-decoration:none; }
   transition:width .8s cubic-bezier(.19,1,.22,1), height .8s cubic-bezier(.19,1,.22,1), opacity .6s ease;
 }
 .ripple-stage .stage-card.active{ width:108%; height:108%; opacity:1; }
+/* Subtle spotlight cue while a preview is open -- the card dims a touch further behind the
+   glowing preview, reinforcing the "stage" read the enlarged preview is going for. */
+.ripple-stage.hovering .stage-card{ filter:brightness(0.75); transition:filter .5s ease; }
 
 .ripple-stage .node{ position:absolute; top:50%; left:50%; opacity:0; color:var(--text); font-family:'Space Grotesk',sans-serif; font-size:20px; font-weight:700; white-space:nowrap; text-align:center; cursor:pointer; z-index:2; transform:translate(-50%,-50%) scale(0.3); filter:blur(8px); transition:opacity 1.4s ease, transform 2s cubic-bezier(.22,1.44,.36,1), filter 1.7s ease-out; }
 .ripple-stage .node .hook{ font-family:'Inter',sans-serif; font-size:11px; color:var(--text-mute); font-weight:400; margin-top:4px; }
@@ -242,8 +248,8 @@ a{ color:inherit; text-decoration:none; }
     width .5s cubic-bezier(.2,.8,.2,1), height .5s cubic-bezier(.2,.8,.2,1), box-shadow .5s ease;
 }
 .ripple-stage .preview.active{
-  opacity:1; transform:translate(-50%,-50%) scale(1); width:170px; height:368px;
-  box-shadow:0 0 60px 8px rgba(var(--proj-rgb),0.35);
+  opacity:1; transform:translate(-50%,-50%) scale(1); width:200px; height:433px;
+  box-shadow:0 0 90px 14px rgba(var(--proj-rgb),0.4);
 }
 .ripple-stage .preview img{ position:relative; z-index:1; width:100%; height:100%; object-fit:cover; object-position:top; display:block; }
 .ripple-stage .preview::before{
@@ -351,11 +357,29 @@ a{ color:inherit; text-decoration:none; }
 }
 
 .work-item-panel{ max-height:0; overflow:hidden; transition:max-height .75s ease; }
-.work-item.open .work-item-panel{ max-height:440px; }
+/* 580 (not the old 440) -- the preview stage's top margin grew from 4px to 48px to stop the
+   glow being clipped (see the comment on .work-item-preview-stage below), so the panel needs
+   the matching extra headroom or that same margin change would just clip the button instead. */
+.work-item.open .work-item-panel{ max-height:580px; }
 
 /* Fixed portrait width (9:19.5, matching the screenshot crops) centered in the panel, rather
-   than the old full-width landscape strip — a wide box no longer suits a phone-shaped image. */
-.work-item-preview-stage{ position:relative; width:150px; height:325px; margin:4px auto 20px; }
+   than the old full-width landscape strip — a wide box no longer suits a phone-shaped image.
+   Top margin was 4px, which cut the image's box-shadow glow (0 0 50px 6px, needs ~56px to fully
+   fade) down to a hard 4px edge against the panel's overflow:hidden -- it read as the glow
+   getting cut off rather than blending into the section background. 48px gives it real room. */
+.work-item-preview-stage{ position:relative; width:150px; height:325px; margin:48px auto 20px; }
+/* Card behind the image, matching the desktop stage-card treatment (dark, rounded, its own
+   depth shadow) -- sits behind .work-item-preview-bloom via DOM order (inserted before it in
+   the JS template), not z-index, since neither needs a stacking context otherwise. Grows in
+   sync with the image reveal so it reads as one materialization, not two. */
+.work-item-preview-card{
+  position:absolute; left:50%; top:50%; width:0; height:0;
+  transform:translate(-50%,-50%); opacity:0;
+  background:#0a0a0a; border-radius:20px;
+  box-shadow:0 24px 60px -16px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.05);
+  transition:width .9s cubic-bezier(.19,1,.22,1) .1s, height .9s cubic-bezier(.19,1,.22,1) .1s, opacity .6s ease .1s;
+}
+.work-item.open .work-item-preview-card{ width:calc(100% + 40px); height:calc(100% + 40px); opacity:1; }
 /* Preview materializes the same way the dropdown does — a clip-path circle expanding from the
    top-center of its own box (i.e. from where the tapped header sits just above it), not a
    fade. The transition is only declared once, on the base (closed) rule, so it runs
@@ -440,7 +464,15 @@ a{ color:inherit; text-decoration:none; }
   position:relative; z-index:1; order:2; flex:0 0 34%; max-width:420px; min-width:280px;
   border-radius:4px; overflow:hidden;
 }
-.about-photo{ width:100%; height:100%; object-fit:cover; object-position:50% 12%; filter:grayscale(1) contrast(1.15) brightness(0.95); display:block; }
+/* object-position shifted from the old 50% 12% (centered, near the very top) -- the source
+   photo has the subject off to the right side of frame with his face/neck/chest well below the
+   top, so a centered/top-anchored crop was showing mostly empty background wall with just a
+   sliver of hair at the bottom edge. This desktop frame is usually narrower relative to its
+   own height than the source photo is, so object-fit:cover crops the SIDES here (not the
+   top/bottom) -- 68% shifts the visible window toward the subject's side; 34% is a fallback
+   for the cases where the frame's own aspect ratio is short enough that it crops top/bottom
+   instead. */
+.about-photo{ width:100%; height:100%; object-fit:cover; object-position:68% 34%; filter:grayscale(1) contrast(1.15) brightness(0.95); display:block; }
 .about-photo-frame::after{ content:""; position:absolute; inset:0; background:linear-gradient(160deg, rgba(var(--accent-rgb),0.28), rgba(5,5,5,0.4) 70%); mix-blend-mode:multiply; }
 
 /* Tablet/phone: stacked, photo above text (order:-1 flips it without reordering the actual
@@ -449,8 +481,17 @@ a{ color:inherit; text-decoration:none; }
    no text column height to match once it's not sitting beside one. */
 @media (max-width:900px){
   .about-layout{ flex-direction:column; gap:32px; }
-  .about-photo-frame{ order:-1; width:100%; aspect-ratio:2/1; }
-  .about-photo{ object-position:50% 8%; }
+  /* Pushed down from flush-top (margin was 0) -- at this stacked layout the photo is the
+     first element in the section, sitting directly over the "BIO" ghost word underneath it
+     and blocking it out completely. This margin gives the ghost room to peek above the frame
+     the way it does in every other section instead of being fully covered by an opaque image. */
+  .about-photo-frame{ order:-1; width:100%; aspect-ratio:2/1; margin-top:64px; }
+  /* This frame's 2:1 ratio is short/wide relative to the source photo's tall portrait shape,
+     so object-fit:cover always crops top/bottom here and shows the FULL width regardless of
+     the X value -- only the Y value (48%, down from 8%) actually does anything at this
+     breakpoint. 8% was cropped almost entirely above the subject's face; 48% centers the
+     visible band on his neck/chest/face instead. */
+  .about-photo{ object-position:50% 48%; }
 }
 @media (max-width:600px){
   /* Aspect ratio inherited from the 900px breakpoint (2/1) rather than going full-square here
@@ -460,7 +501,7 @@ a{ color:inherit; text-decoration:none; }
     border-radius:0;
     width:100vw; margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw);
   }
-  .about-photo{ object-position:50% 10%; }
+  .about-photo{ object-position:50% 48%; }
 }
 
 /* About / Contact now sit inside full-viewport snap sections, centered */
@@ -563,8 +604,15 @@ a{ color:inherit; text-decoration:none; }
   .contact-social a{ color:var(--accent); border-color:var(--accent); }
 }
 
-/* Footer */
-.site-footer{ padding:32px 64px; border-top:1px solid var(--line); font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-mute); display:flex; justify-content:space-between; }
+/* Footer — lives inside #contact now (see index.html) so it scrolls as part of the contact
+   snap stop instead of being one itself. Absolutely positioned at contact's own bottom edge;
+   contact's 120px bottom padding already leaves clearance so it doesn't collide with the
+   centered .wrap content above it. */
+.site-footer{
+  position:absolute; bottom:0; left:0; right:0; z-index:10;
+  padding:32px 64px; border-top:1px solid var(--line); font-family:'JetBrains Mono',monospace;
+  font-size:12px; color:var(--text-mute); display:flex; justify-content:space-between;
+}
 @media (max-width:720px){ .site-footer{ padding:24px; flex-direction:column; gap:8px; } }
 
 /* Case study page */
