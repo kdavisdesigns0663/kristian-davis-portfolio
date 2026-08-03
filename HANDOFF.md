@@ -1006,3 +1006,48 @@ two knobs, both plain constants at the top of the hero block in `main.js`.
 Don't reintroduce a per-line delay/gap value instead of a per-word one --
 that's the specific approach that was tried twice and rejected as too slow
 both times.
+
+## MAJOR UPDATE 12 — hero reveal corrected: word-by-word structure was right, speed/style were wrong, 2026-08-03
+
+MAJOR UPDATE 11 (immediately above) fixed the SEQUENCING (word-by-word,
+sentence-2 flowing with no gap at its line break) but overcorrected on
+speed and dropped the wrong visual effect. Owner feedback: the *word-by-word
+timing structure* was correct, but the result "appear[ed] way too fast," and
+it needed to go back to being "a slow fluid wipe to kind of match our ripple
+liquid animations" -- a fast opacity/blur/translateY fade (what UPDATE 11
+shipped) reads as snappy, out of step with every other animation on this
+site (raindrop fall, ripple rings, section bloom) which all run several
+seconds and use a mask/clip-path-style expanding reveal, not a quick fade.
+
+**What changed, on top of UPDATE 11's structure (unchanged: still per-word,
+still no pause at the sentence-2 line break, still one real pause between
+sentence 1 and 2)**:
+- `.hero .headline .word` in `style.css` is back to the ORIGINAL --reveal
+  mask-sweep technique (the one the very first version of this effect used
+  at the LINE level) -- `-webkit-mask-image`/`mask-image` with a
+  `linear-gradient` driven by an animatable `--reveal` custom property
+  (needs its `@property` registration back too) -- instead of the
+  opacity+translateY+blur fade UPDATE 11 used. This is a literal left-to-
+  right WIPE per word now, not a fade. Also back to ONE effect only (just
+  the wipe) -- no transform/blur layered on top, matching this codebase's
+  established "combining effects reads as busy" preference.
+- Both the per-word transition duration AND the stagger between words got
+  much slower: transition `opacity 1.2s` / `--reveal 1.4s` (was `.35s`/
+  n/a), `WORD_STAGGER` `0.06s -> 0.3s`, `SENTENCE_PAUSE` `0.5s -> 0.9s`.
+  Total reveal time end to end is now ~4.7s (last word delay 3.3s + its own
+  1.4s wipe) -- deliberately in the same multi-second range as the site's
+  other liquid animations, not the ~1.4s UPDATE 11 landed on.
+
+Verified via the same method as UPDATE 11 (actual `transitionDelay` values
+read off each word span, plus screenshots at several points through the
+sequence) that sentence 1 wipes in over roughly 0-2.6s, holds through the
+0.9s pause, then sentence 2 wipes in continuously from ~2.4s to ~4.7s with
+no visible break at its own internal line wrap.
+
+If tuning this again: the two speed knobs are the SAME `WORD_STAGGER`/
+`SENTENCE_PAUSE` constants UPDATE 11 introduced (still true, just different
+values now) plus the `.word` transition durations in `style.css`. Don't
+drop back to opacity/blur/transform for the reveal effect itself without a
+specific reason to -- the mask wipe is what reads as "liquid" and matching
+the rest of the site; that was the actual point of this update, not just a
+timing tweak.
