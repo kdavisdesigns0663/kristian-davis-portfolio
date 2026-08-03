@@ -8,16 +8,20 @@
 // uninterrupted sweep across the wrap point despite being two separate DOM elements, so line 2's
 // delay is set to start EXACTLY when line 1's own wipe finishes (delay + duration, zero gap)
 // instead of getting its own independent delay. Each line's transition-duration is computed from
-// its own word count (REVEAL_RATE seconds/word) rather than one flat duration for every line, so
-// the WIPE SPEED stays visually consistent across lines of different lengths instead of a short
-// line dragging or a long one feeling rushed. Fires once via IntersectionObserver (hero is the
-// first section, so this effectively means "on load") and never resets — this is not a
-// scroll-repeat effect like the work-section ripple.
+// its own word count (rate seconds/word) rather than one flat duration for every line, so the
+// WIPE SPEED stays visually consistent within a sentence instead of a short line dragging or a
+// long one feeling rushed. Sentence 1 deliberately gets its OWN, slower rate than sentence 2
+// (SENTENCE1_RATE > SENTENCE2_RATE) -- an explicit request to give the opening line more weight
+// while sentence 2 stays comparatively quick and starts sooner after it (SENTENCE_PAUSE
+// shortened) so the two read as cohesive rather than two separate, evenly-paced beats. Fires
+// once via IntersectionObserver (hero is the first section, so this effectively means "on load")
+// and never resets — this is not a scroll-repeat effect like the work-section ripple.
 const heroSection = document.getElementById('hero');
 if (heroSection) {
   const heroLines = heroSection.querySelectorAll('.headline > div');
-  const REVEAL_RATE = 0.8;
-  const SENTENCE_PAUSE = 0.7;
+  const SENTENCE1_RATE = 1.2;
+  const SENTENCE2_RATE = 0.8;
+  const SENTENCE_PAUSE = 0.4;
 
   let heroPlayed = false;
   function playHeroReveal() {
@@ -26,7 +30,8 @@ if (heroSection) {
     let delay = 0;
     heroLines.forEach((line, i) => {
       const wordCount = line.textContent.trim().split(/\s+/).length;
-      const duration = wordCount * REVEAL_RATE;
+      const rate = i === 0 ? SENTENCE1_RATE : SENTENCE2_RATE;
+      const duration = wordCount * rate;
       if (i === 1) delay += SENTENCE_PAUSE; // the only real sentence boundary
       line.style.transitionDelay = delay + 's';
       line.style.transitionDuration = duration + 's';

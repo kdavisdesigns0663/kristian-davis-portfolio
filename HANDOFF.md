@@ -1112,5 +1112,21 @@ word (line 0's wipe is now 4.0s, "They experience"/"your decisions." are
 1.6s each), per explicit owner request to slow down the per-line wipe
 speed specifically. `SENTENCE_PAUSE` (0.7s, the gap between the two
 phrases) was explicitly NOT touched -- only the in-line sweep speed
-changed. If asked to slow this further, `REVEAL_RATE` is the only value
-that should move; leave `SENTENCE_PAUSE` alone unless told otherwise.
+changed.
+
+**Second same-day follow-up**: the single shared `REVEAL_RATE` is gone,
+split into `SENTENCE1_RATE` (1.2s/word) and `SENTENCE2_RATE` (0.8s/word,
+unchanged from the prior tuning) -- explicit request to slow down sentence
+1 specifically (its wipe is now 6.0s, up from 4.0s) while sentence 2 keeps
+its existing pace. `SENTENCE_PAUSE` DID move this time, `0.7s -> 0.4s`,
+because the request was for sentence 2 to start "a little sooner" and for
+the two sentences to "feel cohesive" -- shortening the gap between them
+is what that meant here, despite the earlier note above saying not to
+touch it. Current full timeline: line 0 at 0s/6.0s, line 1 at 6.4s/1.6s,
+line 2 at 8.0s/1.6s (chained with zero gap to line 1, as always). Total
+reveal is now ~9.6s.
+If tuning again: three knobs now, `SENTENCE1_RATE`, `SENTENCE2_RATE`,
+`SENTENCE_PAUSE`. There's no longer a rule against moving `SENTENCE_PAUSE`
+-- both it and the two rates are fair game depending on what's actually
+being asked for. Read the request rather than assuming a prior "don't
+touch X" note still applies.
