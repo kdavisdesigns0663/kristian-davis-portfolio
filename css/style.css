@@ -138,11 +138,11 @@ a{ color:inherit; text-decoration:none; }
 .philosophy .step h3{ font-family:'Space Grotesk',sans-serif; font-weight:500; font-size:18px; margin-bottom:8px; }
 .philosophy .step p{ font-size:14px; color:var(--text-dim); }
 
-/* Work section — ripple reveal. EXPERIMENTAL color-inversion pass (violet-washed work section,
-   projects sit on a black card) — kept isolated to its own commit specifically so it's a clean
-   single revert if it doesn't land well. See reference/raindrop-v4.html for the original tested
-   source. Drop itself stays violet (matches the hero hint and the mobile version) -- only the
-   section wash, ghost word, and card are part of the inversion. */
+/* Work section — ripple reveal. Background starts pure black (matching the rest of the site)
+   and animates to a violet wash via .section-bloom (below), triggered the instant the drop
+   impacts -- same moment as the ripple rings, same origin point -- instead of sitting
+   permanently tinted from load. See reference/raindrop-v4.html for the original tested source
+   this evolved from. Drop itself stays violet (matches the hero hint and the mobile version). */
 /* padding-top clears the "WORK" ghost word so the stage sits below it instead of centering
    through the section's full height and running straight through the ghost. 300px is exactly
    the ghost's own rendered bottom edge (20px top offset + 280px font-size/line-height:1), with
@@ -150,14 +150,35 @@ a{ color:inherit; text-decoration:none; }
    below it evenly above/below the card, which is what makes the gap above the card (from the
    ghost) end up equal to the gap below the card (to the section's bottom edge). Padding any
    larger than the ghost's actual height would break that symmetry by adding space that only
-   counts on the top side. */
+   counts on the top side. padding-bottom is intentionally unset (0) -- confirmed via
+   getBoundingClientRect measurement at three viewport sizes (1440x900, 1920x1080, 1280x800) that
+   gap-above and gap-below land exactly equal as-is; don't add a padding-bottom without
+   re-deriving that symmetry. */
 .work-section{
   position:relative; display:flex; align-items:center; justify-content:center;
   padding-top:300px;
-  background:rgba(var(--accent-rgb),0.14);
 }
-/* White instead of the sitewide violet stroke -- against this section's dark violet wash, a
-   violet-on-violet stroke nearly disappears, and the black tried here first failed WCAG contrast
+/* Background bloom -- a black-to-violet wash that expands from a point via clip-path circle,
+   shared by the work section (desktop stage + mobile pills) and Contact (tied to the listening
+   pulse). A real element (not a ::before) specifically so JS can set --bloom-x/--bloom-y and
+   toggle .bloomed directly -- see triggerSectionBloom()/resetSectionBloom() in main.js.
+   Transition is declared ONLY on the .bloomed rule, not the base one below -- same trick used by
+   .drop-wrap's .falling/.impact classes elsewhere in this file: adding the class animates over
+   3s, but removing it snaps back to 0% instantly (base rule has no transition, so its 0s default
+   duration applies), matching the sitewide "reset is instant, only the reveal animates" pattern
+   already used for the rings/drop/mobile reveal. z-index:-1 keeps it behind literally everything
+   else in the section (ghost is 0, ripple-stage is 2) without needing DOM-order tricks. */
+.section-bloom{
+  position:absolute; inset:0; z-index:-1; pointer-events:none;
+  background:rgba(var(--accent-rgb), 0.14);
+  clip-path:circle(0% at var(--bloom-x, 50%) var(--bloom-y, 50%));
+}
+.section-bloom.bloomed{
+  clip-path:circle(150% at var(--bloom-x, 50%) var(--bloom-y, 50%));
+  transition:clip-path 3s cubic-bezier(.19,1,.22,1);
+}
+/* White instead of the sitewide violet stroke -- against this section's violet wash once it
+   blooms in, a violet-on-violet stroke nearly disappears, and black fails WCAG contrast
    entirely. White clears AA's 3:1 large-text minimum with room to spare. */
 .work-section .ghost{ -webkit-text-stroke:1px #fff; opacity:0.45; }
 /* Wide, not square -- width and height are sized independently (was one min() shared by both)
@@ -324,47 +345,48 @@ a{ color:inherit; text-decoration:none; }
 /* --proj-rgb drives the tint, the ring, the corners, the glow, and (via .preview-tag being
    plain white above) is the one thing that changes per project — same treatment otherwise.
    Colors match each project's actual screenshot; Amun stays neutral gray since it has no real
-   screen yet. Both .preview-wrap.KEY (desktop hover preview, above) and .mobile-preview-wrap.KEY
-   (the mobile accordion's single shared preview, set via JS in setMobilePreview()) need this
-   same rule -- they don't share a common class to hang it on. */
-.preview-wrap.nitefind, .mobile-preview-wrap.nitefind{ --proj-rgb:176,74,214; }
-.preview-wrap.smiteforge, .mobile-preview-wrap.smiteforge{ --proj-rgb:224,184,74; }
-.preview-wrap.zentra, .mobile-preview-wrap.zentra{ --proj-rgb:79,191,130; }
-.preview-wrap.amun, .mobile-preview-wrap.amun{ --proj-rgb:143,143,143; }
+   screen yet. .preview-wrap.KEY (desktop hover preview), .mobile-preview-wrap.KEY (mobile's
+   single shared preview, set via JS in setMobilePreview()), and .work-pill.KEY (mobile pill
+   selector's active state, below) all need this same rule -- none of the three share a common
+   class to hang it on instead. */
+.preview-wrap.nitefind, .mobile-preview-wrap.nitefind, .work-pill.nitefind{ --proj-rgb:176,74,214; }
+.preview-wrap.smiteforge, .mobile-preview-wrap.smiteforge, .work-pill.smiteforge{ --proj-rgb:224,184,74; }
+.preview-wrap.zentra, .mobile-preview-wrap.zentra, .work-pill.zentra{ --proj-rgb:79,191,130; }
+.preview-wrap.amun, .mobile-preview-wrap.amun, .work-pill.amun{ --proj-rgb:143,143,143; }
 
 /* Work section — mobile fallback. The X-layout raindrop animation assumes a desktop-sized
-   canvas and doesn't translate below ~700px (nodes overflow the viewport), so under that
-   width it's replaced entirely by a tap-to-expand accordion. Reuses the same .preview.KEY
-   color rules above for the reveal image, just laid out inline instead of absolutely.
+   canvas and doesn't translate below ~700px (nodes overflow the viewport), so under that width
+   it's replaced by a row of pills below the fixed preview instead. Tapping a pill swaps which
+   project's image/label/color show in #mobilePreviewWrap -- the preview container itself never
+   moves or resizes. (An earlier version used a tap-to-expand accordion; that had persistent
+   scroll-recentering bugs stemming from its own height changing on every tap. Pills have no
+   collapse/expand state, so there's no height change and nothing to recenter -- that whole class
+   of bug is gone, not just patched.)
 
    Unlike the desktop stage, mobile does NOT replay a drop on every tap. There is exactly one
-   drop per visit (.work-mobile-stage, driven by playMobileEntrance() in main.js), and every
-   reveal after that — the dropdown, then each project preview — is a clip-path circle-reveal
-   anchored at whatever caused it (the drop's impact point for the dropdown, the tapped header
-   for a preview), not a fade. That's what makes the reveal read as "emerging from the ripple"
-   instead of just materializing independently of it. */
-.work-accordion{ position:relative; z-index:2; display:none; }
+   drop per visit (.work-mobile-stage, driven by playMobileEntrance() in main.js); every reveal
+   after that -- the pills row, then the default first-project preview -- is a clip-path
+   circle-reveal triggered by that same impact, not a fade, so it reads as caused by the drop
+   instead of materializing independently of it. */
+.work-pills-wrap{ display:none; }
 .work-mobile-stage{ display:none; }
 @media (max-width:700px){
   .ripple-stage{ display:none; }
-  /* flex + justify-content:center vertically centers the accordion (the only in-flow content —
-     the ghost word is absolutely positioned) within the full-viewport section, so the collapsed
-     accordion's own center lands at the same point the drop falls to below. */
-  .work-section{ display:flex; flex-direction:column; justify-content:center; padding:120px 0; }
-  .work-accordion{
-    display:block; width:100%;
+  .work-pills-wrap{
+    display:flex; flex-direction:column; align-items:center; gap:16px;
+    position:absolute; left:0; right:0; bottom:56px; z-index:4;
+    padding:0 24px; text-align:center;
     clip-path:circle(0% at 50% 50%); filter:blur(6px); transform:scaleY(0.97);
     transition:clip-path 1s cubic-bezier(.19,1,.22,1), filter .6s ease, transform .7s cubic-bezier(.22,1,.36,1);
   }
-  .work-accordion.revealed{ clip-path:circle(150% at 50% 50%); filter:blur(0); transform:scaleY(1); }
+  .work-pills-wrap.revealed{ clip-path:circle(150% at 50% 50%); filter:blur(0); transform:scaleY(1); }
 
-  /* Entrance stage: a zero-size anchor centered on the section itself (not an in-flow marker
-     above the accordion) so the drop falls to the true center of the screen rather than to
-     wherever the accordion happens to start. The drop's own -90vh -> 0 fall is unchanged;
-     only the anchor it falls relative to has moved. Same mechanics as the desktop/old per-item
-     drops otherwise (reflow-before-transition, falling removed before impact is added), just a
-     single play, never reset. Timings are intentionally slow and spaced out so each stage —
-     fall, impact, ripple, reveal — reads as its own unhurried beat. */
+  /* Entrance stage: a zero-size anchor centered on the section itself, so the drop falls to the
+     true center of the screen regardless of where any in-flow content happens to sit. The drop's
+     own -90vh -> 0 fall is unchanged; only the anchor it falls relative to has moved. Same
+     mechanics as the desktop stage otherwise (reflow-before-transition, falling removed before
+     impact is added), just a single play, never reset. Timings are intentionally slow and
+     spaced out so each stage — fall, impact, ripple, reveal — reads as its own unhurried beat. */
   .work-mobile-stage{ position:absolute; top:50%; left:50%; width:0; height:0; overflow:visible; display:block; z-index:3; pointer-events:none; }
   .work-mobile-stage .drop-wrap{ position:absolute; left:50%; top:-90vh; transform:translateX(-50%) scaleY(1); opacity:0; z-index:5; }
   .work-mobile-stage .drop-wrap.falling{ opacity:1; transition:top 1.6s cubic-bezier(.36,.06,.29,.99), transform 1.6s cubic-bezier(.36,.06,.29,.99); top:0; transform:translateX(-50%) scaleY(1.35); }
@@ -375,79 +397,50 @@ a{ color:inherit; text-decoration:none; }
   .work-mobile-stage .impact-glow{ position:absolute; left:50%; top:0; width:0; height:0; border-radius:50%; background:radial-gradient(circle, rgba(var(--accent-rgb),0.4), transparent 70%); transform:translate(-50%,-50%); opacity:0; filter:blur(2px); z-index:3; }
   .work-mobile-stage .ring{ position:absolute; left:50%; top:0; width:0; height:0; border:2px solid var(--accent); border-radius:50%; transform:translate(-50%,-50%); opacity:0; }
 }
-.work-item{ border-bottom:1px solid var(--line); position:relative; }
-.work-item:first-child{ border-top:1px solid var(--line); }
-.work-item-header{
-  position:relative;
-  display:flex; align-items:center; justify-content:space-between; gap:16px;
-  width:100%; padding:24px 4px; background:none; border:none; cursor:pointer;
-  font-family:inherit; text-align:left; color:var(--text);
-  transition:color .3s ease, transform .35s cubic-bezier(.22,1,.36,1);
+.work-pills{ display:flex; flex-wrap:wrap; justify-content:center; gap:10px; }
+.work-pill{
+  padding:9px 18px; border:1px solid var(--line-strong); border-radius:999px;
+  background:none; font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-dim);
+  cursor:pointer; opacity:0; transform:scale(0.85);
+  transition:opacity .7s ease, transform .8s cubic-bezier(.22,1,.36,1),
+    color .3s ease, border-color .3s ease, background .3s ease, box-shadow .3s ease;
 }
-/* The tap-triggered ripple (spawnTapRipple in main.js) — sits behind the header's own text
-   (negative z-index, header is its containing block via position:relative above) so it reads
-   as light passing under the label rather than a shape drawn on top of it. */
-.work-item-header .tap-ripple{
-  position:absolute; left:50%; top:50%; width:0; height:0;
-  border:1px solid var(--accent); border-radius:50%;
-  transform:translate(-50%,-50%); opacity:0; pointer-events:none; z-index:-1;
+.work-pill.placed{ opacity:1; transform:scale(1); }
+/* Active state keyed off the same --proj-rgb each project's preview ring/glow already uses
+   (set below, alongside .preview-wrap.KEY/.mobile-preview-wrap.KEY) rather than the generic
+   sitewide accent -- same colored-border/glow language as the desktop hover preview, just
+   applied to the control that triggers it instead of the preview itself. */
+.work-pill.active{
+  color:var(--text);
+  border-color:rgba(var(--proj-rgb),0.9);
+  background:rgba(var(--proj-rgb),0.14);
+  box-shadow:0 0 20px -4px rgba(var(--proj-rgb),0.55);
 }
-/* Project names liquid-reveal the same way the hero headline and desktop work-section nodes
-   do — opacity/transform-scale/filter transition on the outer wrapper, textRipple wobble
-   (same keyframe, referenced not redefined) on an inner one so the two don't fight over
-   `transform`. Values match the calmer hero tuning (small scale delta, no overshoot) rather
-   than the original .node values, which read as slamming in at this text size. Staggered per
-   item via inline transition-delay/animation-delay set in playMobileEntrance() in main.js,
-   starting once the accordion bloom is underway rather than fighting it for attention. */
-.work-item-header .header-text{ display:inline-block; opacity:0; transform:scale(0.94); filter:blur(6px); transition:opacity 1.6s ease, transform 2.2s cubic-bezier(.16,1,.3,1), filter 2s ease-out; }
-.work-item-header .header-text.placed{ opacity:1; transform:scale(1); filter:blur(0); }
-.work-item-header .header-text-inner{ display:block; }
-.work-item-header .header-text.placed .header-text-inner{ animation:textRipple 1.6s cubic-bezier(.22,1,.36,1) both; }
-.work-item-header .name{ position:relative; display:inline-block; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:22px; }
-.work-item-header .hook{ display:block; font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-mute); font-weight:400; margin-top:4px; }
-.work-item-header .chevron{ font-family:'JetBrains Mono',monospace; font-size:14px; color:var(--text-mute); flex-shrink:0; transition:transform .3s ease; }
-/* Item "sinks" slightly on selection rather than sitting static — active state is carried by
-   color + this restrained underline + the sink, not by animation alone. */
-.work-item.open .work-item-header{ color:var(--accent); transform:translateY(4px); }
-.work-item.open .work-item-header .chevron{ transform:rotate(180deg); }
-.work-item.open .work-item-header .name::after{
-  content:""; position:absolute; left:0; right:0; bottom:-4px; height:1px;
-  background:var(--accent); opacity:0.7;
-}
-
-.work-item-panel{ max-height:0; overflow:hidden; transition:max-height .75s ease; }
-/* Just the "view project" button now -- the preview used to live inside every panel (see the
-   restructure note above .mobile-preview-wrap below), which needed 580px of headroom. A button
-   alone needs much less. */
-.work-item.open .work-item-panel{ max-height:110px; }
-.work-item-btn{
-  display:inline-block; margin:16px 0 24px; padding:12px 24px; border:1px solid var(--line-strong);
+/* The "view project" link lives inside .work-pills-wrap now (see index.html) instead of inside
+   a per-item collapsible panel, so it's always visible once the wrap reveals -- no separate
+   opacity-gated open state needed. */
+.work-pills-wrap .work-item-btn{
+  display:inline-block; padding:12px 24px; border:1px solid var(--line-strong);
   font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--text);
-  opacity:0; transition:border-color .3s ease, color .3s ease, opacity .5s ease 1s;
+  transition:border-color .3s ease, color .3s ease;
 }
-.work-item-btn:hover, .work-item-btn:focus-visible{ border-color:var(--accent); color:var(--accent); }
-.work-item.open .work-item-btn{ opacity:1; }
+.work-pills-wrap .work-item-btn:hover, .work-pills-wrap .work-item-btn:focus-visible{ border-color:var(--accent); color:var(--accent); }
 
-/* Preview — restructured from one embedded per-item (each .work-item-panel had its own copy)
-   to a single shared element, #mobilePreviewWrap in index.html, positioned independently of the
-   accordion list and never moving. The old per-item version was the actual cause of "the
-   preview screen keeps shifting": each tap opened a DIFFERENT DOM element living inside that
-   particular item's own panel, and since panels above/below it were simultaneously
-   collapsing/expanding, the whole thing visibly relocated between taps even though nothing
-   about a single preview's own position ever changed. Now setMobilePreview()/hideMobilePreview()
-   in main.js just update this one element's content and toggle .active -- its position never
-   changes regardless of what the accordion list around it is doing.
+/* Preview — a single shared element, #mobilePreviewWrap in index.html, positioned independently
+   of the pills row and never moving. (An earlier accordion version embedded one copy of this
+   per item, which was the actual cause of "the preview screen keeps shifting": each tap opened a
+   DIFFERENT DOM element living inside that particular item's own panel, and since panels above/
+   below it were simultaneously collapsing/expanding, the whole thing visibly relocated between
+   taps even though nothing about a single preview's own position ever changed.) setMobilePreview()
+   in main.js just updates this one element's content and toggles .active -- its position never
+   changes regardless of which pill is active.
 
-   position:fixed (viewport-centered), not absolute (section-centered) -- tapping a project also
-   triggers recenterOnSettledLayout(), which scrolls so THAT item's header sits at viewport
-   center, and which header that is (and so how far it is from the section's own midpoint)
-   differs per item. A section-relative preview stayed put in the DOCUMENT but visibly drifted
-   away from the header on screen once the recenter scroll landed somewhere that didn't happen
-   to put the section's center at the viewport's center too (confirmed by testing the first vs.
-   the last item in the list -- the last one left the preview floating well above the tapped
-   header instead of centered on it). Fixed positioning ties it to the viewport instead, which
-   is exactly where the recenter scroll always lands. pointer-events:none so it never blocks
-   taps on the header list underneath/around it. */
+   position:fixed (viewport-centered), not absolute (section-centered) -- simplest way to keep it
+   dead-center on screen without depending on exactly how tall .work-section ends up (it's a
+   snap-section, min-height:100vh, so the two are equivalent in practice, but fixed doesn't need
+   that to stay true). Tapping a pill never scrolls the page, so there's no drift to account for
+   the way an earlier per-item-accordion version had to. pointer-events:none so it never blocks
+   taps on the pills underneath/around it. */
 .mobile-preview-wrap{ display:none; }
 @media (max-width:700px){
   .mobile-preview-wrap{
@@ -516,20 +509,20 @@ a{ color:inherit; text-decoration:none; }
 }
 
 @media (prefers-reduced-motion: reduce){
-  .work-accordion{
+  .section-bloom{
+    clip-path:none !important; opacity:0; transition:opacity .3s ease !important;
+  }
+  .section-bloom.bloomed{ opacity:1; }
+  .work-pills-wrap{
     clip-path:none !important; filter:none !important; transform:none !important;
     opacity:0; transition:opacity .3s ease !important;
   }
-  .work-accordion.revealed{ opacity:1; }
-  .work-item-header{ transition:color .3s ease !important; }
-  .work-item.open .work-item-header{ transform:none !important; }
-  .work-item-header .tap-ripple{ display:none !important; }
-  .work-item-header .header-text{
-    filter:none !important; transform:none !important;
-    opacity:0; transition:opacity .3s ease !important;
+  .work-pills-wrap.revealed{ opacity:1; }
+  .work-pill{
+    transform:none !important;
+    transition:opacity .3s ease !important, color .3s ease, border-color .3s ease, background .3s ease, box-shadow .3s ease;
   }
-  .work-item-header .header-text.placed{ opacity:1; }
-  .work-item-header .header-text.placed .header-text-inner{ animation:none !important; }
+  .work-pill.placed{ opacity:1; }
   .work-item-preview-bloom{
     clip-path:none !important; filter:none !important; transform:none !important;
     opacity:0; transition:opacity .3s ease !important;

@@ -715,3 +715,80 @@ confusing false "this fix isn't working" results. Serving the folder over a
 real local HTTP server (e.g. `python3 -m http.server`) and hard-reloading
 (or cache-busting the URL/stylesheet link) resolved it reliably. Worth
 doing from the start rather than re-discovering this.
+
+## MAJOR UPDATE 8 — background bloom + mobile pill selector, 2026-08-03. Supersedes MAJOR UPDATE 7's "Work section (mobile)" and background-wash claims above.
+
+- **Background bloom (Work + Contact)**: `.work-section` no longer sits
+  permanently violet-tinted (`background:rgba(var(--accent-rgb),0.14)` is
+  gone). Both Work and Contact now start pure black and animate to that same
+  0.14 wash via a new shared `.section-bloom` element (a real div, one per
+  section — `#workBloom`, `#contactBloom` — not a `::before`, specifically so
+  JS can set custom properties and toggle a class on it directly). It's a
+  `clip-path:circle()` expanding from 0% to 150%, centered on
+  `--bloom-x`/`--bloom-y` custom properties that `triggerSectionBloom()` in
+  `main.js` computes from the real on-screen position of whatever caused it
+  (the ripple-stage's center for Work, the listening-pulse's position for
+  Contact) — so it works whether the origin is dead-center (Work) or off to
+  one side (Contact's pulse sits left of the CTA button, not centered). Fires
+  at the exact moment the ripple rings do (same `onImpact` callback) for
+  Work, and off the exact same `IntersectionObserver`/threshold as the pulse
+  itself for Contact (added to that observer's callback, the pulse's own
+  logic wasn't touched). Resets to black instantly on scroll-out and
+  re-blooms on re-entry — the CSS transition is declared only on the
+  `.bloomed` end-state, not the base rule, which is the same trick
+  `.drop-wrap`'s `.falling`/`.impact` classes already used elsewhere in this
+  file: forward animates, removing the class snaps back with no transition.
+  Hero and About are untouched, still plain `var(--bg)`.
+  Verified via direct pixel/DOM measurement (not just eyeballing) that the
+  project-preview cards stay pure black throughout (bloom is `z-index:-1`,
+  behind everything) and that scroll-out really does reset to black before
+  re-blooming on scroll-back-in.
+
+- **Mobile work section: pills, not an accordion**: The tap-to-expand
+  accordion described in MAJOR UPDATE 7 is gone — replaced by a row of
+  compact pills (`.work-pills` inside `#workPillsWrap`, one `.work-pill` per
+  project) sitting near the bottom of the section, below the same fixed
+  `#mobilePreviewWrap` preview container from before (unchanged: still
+  `position:fixed`, still viewport-centered, still updated in place by
+  `setMobilePreview()`). Tapping a pill just swaps the preview's image/
+  label/color/link — the preview container itself never moves or resizes,
+  and neither does the pills row, so the entire class of scroll-recentering
+  bug MAJOR UPDATE 7 documented (`recenterOnSettledLayout()`, the 780ms
+  delay, the fixed-vs-absolute preview positioning fight) is gone from the
+  codebase, not just fixed — there's nothing left that changes height or
+  needs the page to scroll. A persistent "view project" link
+  (`#workPreviewLink`, styled with the same `.work-item-btn` look the old
+  per-item panel used) sits under the pills and its `href` updates to match
+  whichever project is active.
+  The one-time entrance drop/ripple (`.work-mobile-stage`,
+  `playMobileEntrance()`) is unchanged — still exactly one drop per visit,
+  never replayed on tap. What used to happen on impact (the accordion's
+  `clip-path` reveal + staggered header-text reveal) now happens to the pills
+  wrap instead (same `clip-path:circle()` reveal pattern, self-centered
+  rather than anchored to the drop's impact point since the pills sit well
+  below it), immediately followed by auto-selecting the FIRST project once
+  the last pill's stagger-in finishes — with no hover on a touch device, an
+  empty fixed preview box would otherwise sit there unpopulated until the
+  first tap, which read as broken rather than intentional.
+  Active-pill color reuses each project's own `--proj-rgb` (the same custom
+  property already driving the preview's ring/corner/glow color) rather than
+  the generic sitewide accent — `.work-pill.KEY` was added alongside the
+  existing `.preview-wrap.KEY`/`.mobile-preview-wrap.KEY` selector list, same
+  four colors, same place they're defined.
+  Reduced-motion: `.section-bloom` and `.work-pills-wrap` both got the same
+  `clip-path:none !important` + plain-opacity-fade override the rest of this
+  file already uses for other `clip-path` reveals: verified via a Playwright
+  run with `reducedMotion:'reduce'` that this fires no console errors and
+  still lands on exactly one active pill (the JS fallback path skips
+  `playRaindrop` entirely and calls the same reveal/select functions
+  directly, rather than being a separate code path with its own logic).
+
+- **Desktop spacing symmetry (`.work-section` padding-top:300px)**: audited,
+  not changed. Measured `getBoundingClientRect()` gaps (ghost-bottom-to-
+  card-top vs. card-bottom-to-section-end) directly at three viewport sizes
+  (1440x900, 1920x1080, 1280x800) — they land exactly equal at every size
+  (e.g. 27.84px vs 27.84px at 1440x900), confirming the existing comment's
+  claim about `padding-top:300px` + no `padding-bottom` + `align-items:center`
+  already being correct. No CSS change was needed here; a comment was added
+  noting the specific measurement so a future pass doesn't have to re-derive
+  it from scratch.

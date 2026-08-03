@@ -5,8 +5,9 @@ GitHub Pages at `https://kdavisdesigns0663.github.io/kristian-davis-portfolio/`.
 Repo: `github.com/kdavisdesigns0663/kristian-davis-portfolio`.
 
 **Before doing anything else, read `HANDOFF.md`** — specifically the last
-section ("MAJOR UPDATE 7 — current state snapshot"), which is a current,
-accurate summary of what's built and how it works. Earlier sections in that
+section ("MAJOR UPDATE 8 — background bloom + mobile pill selector"), which
+is a current, accurate summary of what's built and how it works. Earlier
+sections in that
 file are historical (rejected directions, locked copy decisions, rationale)
 and still worth knowing, but their *technical* descriptions of what's built
 are stale — trust the last section and the live files over anything earlier
@@ -29,8 +30,9 @@ index.html         all page markup (single page + nav/footer now live inside
                     #hero/#contact, not as separate top-level elements)
 css/style.css       full design system, heavily commented with WHY not just WHAT
 js/main.js          all interaction logic: hero reveal, work-section raindrop/
-                    ripple (desktop) + accordion (mobile), contact pulse,
-                    wheel-driven scroll resistance
+                    ripple (desktop) + pill selector (mobile), section
+                    background bloom, contact pulse, wheel-driven scroll
+                    resistance
 case-studies/       nitefind.html + zentra.html only — smiteforge/freya-sews/amun
                     case study pages don't exist yet
 reference/          old dev-time mockups (hero-pattern.html, raindrop-v4.html) —

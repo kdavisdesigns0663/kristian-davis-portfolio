@@ -40,7 +40,7 @@ const projects = [
 ];
 
 // Shared drop-fall + ripple mechanic, used by both the desktop stage and the
-// mobile accordion (just at different scale/timing). `container` must have a
+// mobile entrance (just at different scale/timing). `container` must have a
 // .drop-wrap > .drop-shape, an .impact-flash, and is where .ring elements get
 // inserted. Correctness notes carried over from getting this working:
 // - falling must be REMOVED before impact is added — leaving both classes on
@@ -110,6 +110,28 @@ function playRaindrop(opts) {
   }, holdBeforeImpact));
 }
 
+// --- Section background bloom: shared by the work section (desktop + mobile) and Contact ---
+// A black-to-violet wash that expands (clip-path circle, see .section-bloom in style.css) from
+// the exact point that triggered it -- the raindrop's impact for Work, the listening-pulse's
+// position for Contact -- so the section's own background reads as caused by whatever's already
+// animating there, not a separate effect layered on top. sectionEl gets --bloom-x/--bloom-y
+// custom properties (inherited down to bloomEl) computed from originEl's real on-screen
+// position, so this works whether the origin sits dead-center (the work-section raindrop) or
+// off to one side (Contact's pulse, which sits left of the CTA button).
+function triggerSectionBloom(sectionEl, bloomEl, originEl) {
+  if (!sectionEl || !bloomEl || !originEl) return;
+  const secRect = sectionEl.getBoundingClientRect();
+  const oRect = originEl.getBoundingClientRect();
+  const xPct = ((oRect.left + oRect.width / 2 - secRect.left) / secRect.width) * 100;
+  const yPct = ((oRect.top + oRect.height / 2 - secRect.top) / secRect.height) * 100;
+  sectionEl.style.setProperty('--bloom-x', xPct + '%');
+  sectionEl.style.setProperty('--bloom-y', yPct + '%');
+  bloomEl.classList.add('bloomed');
+}
+function resetSectionBloom(bloomEl) {
+  if (bloomEl) bloomEl.classList.remove('bloomed');
+}
+
 const stage = document.getElementById('rippleStage');
 
 if (stage) {
@@ -177,6 +199,7 @@ if (stage) {
       p.el.classList.remove('placed');
       p.el.style.transform = 'translate(-50%,-50%) scale(0.3)';
     });
+    resetSectionBloom(workBloomEl);
   }
 
   function playSequence() {
@@ -196,6 +219,7 @@ if (stage) {
       glowMaxSize: 260,
       registerTimer: (id) => timers.push(id),
       onImpact: () => {
+        triggerSectionBloom(workSection, workBloomEl, stage);
         const card = stage.querySelector('.stage-card');
         if (card) card.classList.add('active');
         projects.forEach((p, i) => {
@@ -216,6 +240,7 @@ if (stage) {
   // triggers the drop, but still above the section's small natural peek at rest (hero is
   // a hair shorter than the viewport) so it doesn't fire before any scrolling happens.
   const workSection = document.getElementById('work');
+  const workBloomEl = document.getElementById('workBloom');
   const rippleObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) playSequence();
@@ -225,37 +250,27 @@ if (stage) {
   if (workSection) rippleObserver.observe(workSection);
 }
 
-// --- Work section: mobile accordion (below ~700px, see style.css) ---
-// Same `projects` array as the desktop raindrop layout, rendered as a
-// tap-to-expand list. The whole thing is one causal chain rather than
-// independent animations: drop falls -> impact -> ripple expands -> the
-// dropdown materializes out of that same ripple (clip-path circle-reveal
-// anchored at the impact point, not a blur/fade). Tapping a project doesn't
-// spawn another falling drop — instead a small ripple opens from the center
-// of the tapped header (spawnTapRipple) and the preview materializes the
-// same way the dropdown did, just faster and anchored at the tap instead of
-// the drop.
-const accordion = document.getElementById('workAccordion');
+// --- Work section: mobile pill selector (below ~700px, see style.css) ---
+// Same `projects` array as the desktop raindrop layout, rendered as a row of pills next to one
+// fixed preview container (#mobilePreviewWrap). Tapping a pill just swaps that container's
+// image/label/color/href -- the container itself never moves or resizes. An earlier version used
+// a tap-to-expand accordion with its own per-tap scroll-recentering logic; that logic is gone
+// entirely here, not just disabled, because pills never change any element's height or the
+// page's scroll position, so there's nothing left needing recentering.
+const pillsWrap = document.getElementById('workPillsWrap');
+const pillsContainer = document.getElementById('workPills');
+const previewLink = document.getElementById('workPreviewLink');
 const mobileStage = document.getElementById('workMobileStage');
-if (accordion) {
+if (pillsWrap && pillsContainer) {
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  // Filled in as each work-item is built below; playMobileEntrance() reads this once the
-  // entrance actually fires, by which point the forEach loop has already run.
-  const headerTexts = [];
-  // Shared (not per-header) so opening a second item before the first one's restore fires
-  // cancels and reschedules a single timer instead of racing it — with a per-header timer,
-  // switching items quickly could let an earlier restore re-enable scroll-snap mid-scroll on
-  // the second item, yanking the page into the wrong section.
-  let snapRestoreTimer = null;
-  let recenterTimer = null;
 
-  // Single shared preview (see the CSS comment above .mobile-preview-wrap for why this isn't
-  // one-per-item anymore) -- setMobilePreview()/hideMobilePreview() just update this one
-  // element's content and toggle .active, never its position.
+  // Single shared preview -- setMobilePreview() just updates this one element's content and
+  // toggles .active, never its position (see the CSS comment above .mobile-preview-wrap).
   const mobilePreviewWrap = document.getElementById('mobilePreviewWrap');
   const mobilePreviewImg = document.getElementById('mobilePreviewImg');
   const mobilePreviewTag = document.getElementById('mobilePreviewTag');
   let mobilePreviewSwapTimer = null;
+  let activePill = null;
 
   function setMobilePreview(p, isFreshOpen) {
     clearTimeout(mobilePreviewSwapTimer);
@@ -273,8 +288,7 @@ if (accordion) {
       // retract-then-rebloom clip-path cycle here would either swap the image while still
       // partially visible (looks broken) or force an ~1.1s wait before anything happens
       // (feels sluggish) -- instead, cross-fade just the image/label in place while the
-      // bloom shape/card/ring stay fully expanded throughout, which is closer to how the old
-      // per-item version actually read (two elements animating concurrently) than a hard cut.
+      // bloom shape/card/ring stay fully expanded throughout.
       mobilePreviewImg.style.transition = 'opacity .18s ease';
       mobilePreviewImg.style.opacity = '0';
       mobilePreviewSwapTimer = setTimeout(() => {
@@ -284,78 +298,54 @@ if (accordion) {
     }
   }
 
-  function hideMobilePreview() {
-    clearTimeout(mobilePreviewSwapTimer);
-    mobilePreviewWrap.classList.remove('active');
+  function selectProject(p, pillEl, isFreshOpen) {
+    if (activePill === pillEl) return;
+    if (activePill) {
+      activePill.classList.remove('active');
+      activePill.setAttribute('aria-pressed', 'false');
+    }
+    pillEl.classList.add('active');
+    pillEl.setAttribute('aria-pressed', 'true');
+    activePill = pillEl;
+    if (previewLink) previewLink.href = p.href;
+    setMobilePreview(p, isFreshOpen);
   }
 
-  // .work-section is display:flex + justify-content:center on mobile (see style.css), which
-  // vertically centers whatever the accordion's CURRENT total height is. That's what centers
-  // the collapsed list at rest -- but it also means the moment a panel starts growing, the
-  // slack that justify-content was distributing above the accordion starts collapsing, and the
-  // header's true document position drifts throughout the whole .75s expand. Measuring
-  // getBoundingClientRect() synchronously at click time (the earlier approach) only ever
-  // captured the PRE-drift position, so the computed scroll target was already stale by the
-  // time the transition finished settling -- consistently short by however much slack
-  // collapsed, which is what made switching between projects "scroll up and down weird" even
-  // after the panel-height math itself was fixed. Waiting for the transition to actually
-  // finish (RECENTER_DELAY matches .work-item-panel's .75s max-height transition) before
-  // reading positions sidesteps the drift entirely instead of trying to predict it. Centers
-  // on the HEADER specifically (not the header+panel block) -- the shared #mobilePreviewWrap
-  // (see style.css) is fixed at the exact viewport center, so centering the tapped header
-  // there too is what keeps the two visually aligned; centering the taller block instead would
-  // leave the header sitting above the preview by roughly half the panel's height.
-  const RECENTER_DELAY = 780;
-  function recenterOnSettledLayout(el) {
-    clearTimeout(recenterTimer);
-    recenterTimer = setTimeout(() => {
-      const rect = el.getBoundingClientRect();
-      const targetScroll = Math.max(0, window.scrollY + rect.top + rect.height / 2 - window.innerHeight / 2);
-
-      // scroll-snap-type:mandatory on <html> blocks smooth scroll animations that leave a
-      // section entirely, and can otherwise fight a mid-section nudge like this one — same
-      // suspend/restore pattern used by the wheel-driven section controller further down
-      // this file, scoped to this tap instead of a section transition.
-      const html = document.documentElement;
-      html.style.scrollSnapType = 'none';
-      let restored = false;
-      function restoreSnap() {
-        if (restored) return;
-        restored = true;
-        html.style.scrollSnapType = '';
-      }
-      window.addEventListener('scrollend', restoreSnap, { once: true });
-      clearTimeout(snapRestoreTimer);
-      snapRestoreTimer = setTimeout(restoreSnap, 1200);
-
-      window.scrollTo({ top: targetScroll, behavior: 'smooth' });
-    }, RECENTER_DELAY);
-  }
-
-  // Single reusable expanding-ring element, kept separate from playRaindrop's
-  // multi-ring impact sequence since this always fires from a fixed point
-  // (the tapped header) rather than a falling drop. Same reflow-before-
-  // transition requirement as the rings in playRaindrop applies here too.
-  function spawnTapRipple(ripple, { maxSize = 130, duration = 0.9 } = {}) {
-    ripple.style.transition = 'none';
-    ripple.style.width = ripple.style.height = '0px';
-    ripple.style.opacity = '0';
-    ripple.offsetHeight;
-    ripple.style.transition = `width ${duration}s cubic-bezier(.19,1,.22,1), height ${duration}s cubic-bezier(.19,1,.22,1), opacity ${duration}s ease`;
-    ripple.style.opacity = '0.5';
-    ripple.offsetHeight;
-    ripple.style.width = ripple.style.height = maxSize + 'px';
-    ripple.style.opacity = '0';
-  }
+  projects.forEach(p => {
+    const pill = document.createElement('button');
+    pill.type = 'button';
+    pill.className = 'work-pill ' + p.key;
+    pill.textContent = p.name;
+    pill.setAttribute('aria-pressed', 'false');
+    pill.addEventListener('click', () => {
+      selectProject(p, pill, !mobilePreviewWrap.classList.contains('active'));
+    });
+    pillsContainer.appendChild(pill);
+    p.pillEl = pill;
+  });
 
   let mobileEntrancePlayed = false;
   function playMobileEntrance() {
     if (mobileEntrancePlayed) return;
     mobileEntrancePlayed = true;
 
+    const revealPills = () => {
+      pillsWrap.classList.add('revealed');
+      // Ripples through the pills one at a time rather than all appearing together the
+      // instant the wrap's own clip-path finishes expanding.
+      projects.forEach((p, i) => {
+        setTimeout(() => p.pillEl.classList.add('placed'), 120 + i * 90);
+      });
+      // First project previews automatically -- with no hover on touch, an empty fixed preview
+      // box would just look broken until the first tap. Delay matches the last pill's own
+      // stagger so this reads as the sequence settling into a default, not racing it.
+      setTimeout(() => {
+        selectProject(projects[0], projects[0].pillEl, true);
+      }, 120 + projects.length * 90 + 200);
+    };
+
     if (prefersReducedMotion || !mobileStage) {
-      accordion.classList.add('revealed');
-      headerTexts.forEach(t => t.classList.add('placed'));
+      revealPills();
       return;
     }
 
@@ -371,104 +361,50 @@ if (accordion) {
       glowDuration: 0.85,
       glowMaxSize: 230,
       onImpact: () => {
-        accordion.classList.add('revealed');
-        // Starts once the bloom is already underway (0.3s in) rather than racing it, then
-        // ripples through the project names one at a time instead of them all appearing
-        // together the instant the clip-path finishes expanding.
-        headerTexts.forEach((t, i) => {
-          const delay = (0.3 + i * 0.22) + 's';
-          t.style.transitionDelay = delay;
-          t.classList.add('placed');
-          const inner = t.querySelector('.header-text-inner');
-          if (inner) inner.style.animationDelay = delay;
-        });
+        triggerSectionBloom(document.getElementById('work'), document.getElementById('workBloom'), mobileStage);
+        revealPills();
       },
     });
   }
 
-  // Watching #work (not the accordion itself) means this observer still
-  // fires on desktop, where the accordion is display:none — the visibility
-  // check below is what actually gates the entrance to mobile. threshold
-  // 0.5 plus the one-shot `mobileEntrancePlayed` flag (never reset) is what
-  // keeps small scroll jitters near the section boundary from re-triggering
-  // it, unlike desktop's ripple which deliberately resets on scroll-out.
+  // Watching #work (not the pills wrap itself) means this observer still fires on desktop,
+  // where the pills wrap is display:none — the visibility check below is what actually gates
+  // the entrance to mobile. threshold 0.5 plus the one-shot `mobileEntrancePlayed` flag (never
+  // reset) is what keeps small scroll jitters near the section boundary from re-triggering it,
+  // unlike desktop's ripple which deliberately resets on scroll-out.
   const workSectionEl = document.getElementById('work');
   if (workSectionEl) {
     const entranceObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
-        if (entry.isIntersecting && getComputedStyle(accordion).display !== 'none') {
+        if (entry.isIntersecting && getComputedStyle(pillsWrap).display !== 'none') {
           playMobileEntrance();
         }
       });
     }, { threshold: 0.5 });
     entranceObserver.observe(workSectionEl);
   }
-
-  projects.forEach(p => {
-    const item = document.createElement('div');
-    item.className = 'work-item';
-    const panelId = 'work-panel-' + p.key;
-
-    const header = document.createElement('button');
-    header.className = 'work-item-header';
-    header.type = 'button';
-    header.setAttribute('aria-expanded', 'false');
-    header.setAttribute('aria-controls', panelId);
-    header.innerHTML = `<span class="header-text"><span class="header-text-inner"><span class="name">${p.name}</span><span class="hook">${p.hook}</span></span></span><span class="chevron">v</span>`;
-    headerTexts.push(header.querySelector('.header-text'));
-    const tapRipple = document.createElement('span');
-    tapRipple.className = 'tap-ripple';
-    header.appendChild(tapRipple);
-
-    const panel = document.createElement('div');
-    panel.className = 'work-item-panel';
-    panel.id = panelId;
-    panel.innerHTML = `<a class="work-item-btn mono" href="${p.href}">view project</a>`;
-
-    header.addEventListener('click', () => {
-      const isOpen = item.classList.contains('open');
-      const wasPreviewActive = mobilePreviewWrap.classList.contains('active');
-      accordion.querySelectorAll('.work-item.open').forEach(other => {
-        other.classList.remove('open');
-        other.querySelector('.work-item-header').setAttribute('aria-expanded', 'false');
-      });
-      if (!isOpen) {
-        item.classList.add('open');
-        header.setAttribute('aria-expanded', 'true');
-
-        // The preview materializes on its own (pure CSS, driven by .active on the shared
-        // #mobilePreviewWrap) — this ripple is purely the visible "cause": it establishes
-        // that the tap is what's generating the reveal, same relationship the falling drop
-        // has to the dropdown's entrance.
-        if (!prefersReducedMotion) {
-          spawnTapRipple(tapRipple);
-        }
-        setMobilePreview(p, !wasPreviewActive);
-      } else {
-        hideMobilePreview();
-      }
-      // Recenter on the header either way -- see recenterOnSettledLayout() above for why this
-      // can't just read positions synchronously here, and why it's the header specifically.
-      recenterOnSettledLayout(header);
-    });
-
-    item.appendChild(header);
-    item.appendChild(panel);
-    accordion.appendChild(item);
-  });
 }
 
-// --- Contact: listening-pulse visibility ---
+// --- Contact: listening-pulse visibility + background bloom ---
 // The pulse animation itself is a plain CSS infinite loop (see .listen-ring in style.css) since
 // it never triggers/resets like the hero or work-section ripples do -- the only thing JS needs
 // to do here is fade it in/out with the section, so it isn't burning cycles (and isn't visible
-// mid-fade into the section) while scrolled away.
+// mid-fade into the section) while scrolled away. The background bloom (see triggerSectionBloom
+// above) rides the exact same observer/threshold as the pulse itself -- tied to its trigger
+// timing, not a separate one -- and originates from the pulse's own on-screen position, computed
+// fresh each time in case the CTA row has reflowed (e.g. a viewport resize) since the last entry.
 const listenPulse = document.getElementById('listenPulse');
 const contactSection = document.getElementById('contact');
+const contactBloomEl = document.getElementById('contactBloom');
 if (listenPulse && contactSection) {
   const listenObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       listenPulse.classList.toggle('in-view', entry.isIntersecting);
+      if (entry.isIntersecting) {
+        triggerSectionBloom(contactSection, contactBloomEl, listenPulse);
+      } else {
+        resetSectionBloom(contactBloomEl);
+      }
     });
   }, { threshold: 0.2 });
   listenObserver.observe(contactSection);
