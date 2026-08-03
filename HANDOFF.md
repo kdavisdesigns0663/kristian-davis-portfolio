@@ -971,3 +971,38 @@ doing from the start rather than re-discovering this.
     (`.about .section-head{ padding-top:0; }`) and a redundant inline
     `style="padding-top:0;"` already on the element in `index.html`.
     Harmless (same value from both), just duplicated.
+
+## MAJOR UPDATE 11 — hero headline reveal rebuilt as word-by-word, not line-by-line, 2026-08-03
+
+The line-level mask-wipe reveal from MAJOR UPDATE 10 (and every version
+before it) is gone. Owner feedback, twice in a row, was that the headline
+still felt too slow to read as "one thought forming" -- first the per-line
+delays were shortened, then the underlying per-line wipe duration itself was
+still the bottleneck: a single short line taking 4.4s to wipe in left-to-
+right is slow regardless of how the delays between lines are tuned, since
+each individual line's OWN reveal takes that long no matter what.
+
+**What changed**: `playHeroReveal()` in `main.js` now splits each line's
+text into individual `<span class="word">` elements (built once, up front,
+from the existing plain-text content -- not hardcoded into `index.html`),
+and reveals them with a fast, uniform per-word stagger
+(`WORD_STAGGER = 0.06s`) instead of one slow wipe per line. The `--reveal`
+custom property, its `@property` registration, and the mask-image gradient
+are all gone from `style.css` -- replaced by a simple `.word` opacity/
+transform/filter transition (`.35s`/`.45s`/`.3s`, all fast).
+
+**The one deliberate pause** is `SENTENCE_PAUSE = 0.5s`, applied ONLY
+between line 0 ("People don't experience your design.") and line 1 ("They
+experience") -- that's a real sentence boundary. There is NO extra pause
+between line 1 and line 2 ("your decisions.") beyond the same 0.06s word
+stagger everything else uses -- they're one sentence split across two lines
+purely for layout, and the whole point of this rebuild was making that
+boundary invisible in the timing. Total reveal time end-to-end is now
+roughly 1.4s (verified: last word's `transitionDelay` is 0.98s + its own
+~0.45s transition), down from over 7s in the original per-line version.
+
+If asked to tune this further: `WORD_STAGGER` and `SENTENCE_PAUSE` are the
+two knobs, both plain constants at the top of the hero block in `main.js`.
+Don't reintroduce a per-line delay/gap value instead of a per-word one --
+that's the specific approach that was tried twice and rejected as too slow
+both times.

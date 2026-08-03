@@ -106,23 +106,25 @@ a{ color:inherit; text-decoration:none; }
   .hero .sub{ margin-left:0; margin-top:40px; }
 }
 
-/* Hero headline lines: one effect only, a left-to-right fade/wipe per line -- no scale, blur,
-   or settle-wobble (an earlier version combined all of those and it read as messy/busy rather
-   than clean). --reveal drives a soft-edged mask band that travels across the line as it fades
-   in, so the text visibly materializes from left to right instead of fading up uniformly all at
-   once. Needs @property below to animate the percentage smoothly; browsers without @property
-   support just skip the sweep and fall back to a plain opacity fade. Staggered per line via
-   inline transition-delay set in playHeroReveal() in main.js. */
-.hero .headline > div{
-  --reveal:0%;
-  opacity:0;
-  -webkit-mask-image:linear-gradient(90deg, #000 0%, #000 var(--reveal), transparent calc(var(--reveal) + 22%), transparent 100%);
-  mask-image:linear-gradient(90deg, #000 0%, #000 var(--reveal), transparent calc(var(--reveal) + 22%), transparent 100%);
-  transition:opacity 4.2s ease, --reveal 4.4s cubic-bezier(.45,0,.2,1);
-}
-.hero .headline > div.placed{ opacity:1; --reveal:100%; }
+/* Hero headline: reveals word by word, not line by line -- an earlier version wiped each LINE
+   in as a whole via an animated mask over 4.4s, which read as slow for a single short line and
+   put an unavoidable multi-second gap between "They experience" and "your decisions." even
+   though they're one sentence split across two lines purely for layout. Per-word spans (built in
+   playHeroReveal() in main.js from each line's plain text) with a fast, uniform stagger between
+   them read as one thought forming quickly instead -- see main.js for the actual delay values,
+   including why the stagger is deliberately uniform ACROSS the line 2/3 boundary (no pause there
+   at all) but not across the line 0/1 boundary (a real pause -- that one's a different sentence).
+   Lines themselves no longer animate anything -- opacity/mask lived on the line before, now both
+   are on .word instead. */
 .hero .headline .line-inner{ display:block; }
-@property --reveal{ syntax:'<percentage>'; inherits:false; initial-value:0%; }
+.hero .headline .word{
+  display:inline-block;
+  opacity:0;
+  transform:translateY(0.15em);
+  filter:blur(3px);
+  transition:opacity .35s ease, transform .45s cubic-bezier(.22,1,.36,1), filter .3s ease;
+}
+.hero .headline .word.placed{ opacity:1; transform:translateY(0); filter:blur(0); }
 
 /* Ghost word gets a deliberately quieter treatment than the headline lines -- a plain slow
    fade up to its normal resting opacity, no blur/bounce/wobble -- so it reads as a backdrop

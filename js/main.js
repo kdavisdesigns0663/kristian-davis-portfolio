@@ -1,30 +1,54 @@
-// --- Hero: headline lines fade/wipe in left-to-right on load (see style.css for the
-// opacity/--reveal transition values). Staggered in reading order via inline transition-delay
-// set here, computed from each line's position among its siblings. Markup is 3 lines forming 2
-// SENTENCES: "People don't experience your design." (line 0, its own sentence) then "They
-// experience" / "your decisions." (lines 1-2, one sentence split across two lines purely for the
-// staggered visual reveal). The 2.6s gap belongs BETWEEN sentences -- enough to actually read the
-// first one before the second starts materializing -- but applying that same 2.6s uniformly to
-// every line also put it between lines 1 and 2, which are one thought and read as two
-// disconnected fragments with a full beat between them instead of one sentence forming. Only the
-// first line gets the full 2.6s pause; every line after it is a short 0.35s ripple off the
-// previous one instead, close enough to feel like one continuous materialization while still
-// reading as sequential, not instant. Fires once via IntersectionObserver (hero is the first
-// section, so this effectively means "on load") and never resets — this is not a scroll-repeat
-// effect like the work-section ripple.
+// --- Hero: headline reveals word by word on load (see style.css for the .word opacity/
+// transform/filter transition). Markup is 3 lines forming 2 SENTENCES: "People don't experience
+// your design." (line 0, its own sentence) then "They experience" / "your decisions." (lines 1-2,
+// one sentence split across two lines purely for layout, not meaning). Each line's plain text is
+// split into individual <span class="word"> elements here, then revealed with a fast, uniform
+// per-word stagger (WORD_STAGGER) so a whole sentence flies by quickly enough to read as one
+// thought forming rather than a slow per-line wipe -- an earlier version of this effect animated
+// each LINE as a whole over 4.4s, which was too slow for a single short line on its own, and an
+// even earlier fix that tried to solve "lines 1-2 feel disconnected" with a shorter (but still
+// separate) 0.35s per-LINE gap was still too slow for the same reason: it was one gap for an
+// entire line's worth of words, not a per-word stagger. The stagger is deliberately UNIFORM
+// across the line-1/line-2 boundary (no extra pause there at all -- "They experience" flows
+// straight into "your decisions." at the same word-to-word speed) but there IS a real pause
+// (SENTENCE_PAUSE) between line 0 and line 1, since that boundary is an actual sentence break,
+// not just a layout line-break. Fires once via IntersectionObserver (hero is the first section,
+// so this effectively means "on load") and never resets — this is not a scroll-repeat effect
+// like the work-section ripple.
 const heroSection = document.getElementById('hero');
 if (heroSection) {
   const heroLines = heroSection.querySelectorAll('.headline > div');
-  const SENTENCE_PAUSE = 2.6;
-  const SAME_SENTENCE_GAP = 0.35;
+  const WORD_STAGGER = 0.06;
+  const SENTENCE_PAUSE = 0.5;
+
+  // Build the word spans once up front (not inside playHeroReveal) -- the DOM structure doesn't
+  // need to wait for the reveal to actually fire, only the .placed/delay assignment does.
+  const lineWords = Array.prototype.map.call(heroLines, line => {
+    const inner = line.querySelector('.line-inner');
+    const words = inner.textContent.trim().split(/\s+/);
+    inner.textContent = '';
+    return words.map((word, i) => {
+      const span = document.createElement('span');
+      span.className = 'word';
+      span.textContent = word;
+      inner.appendChild(span);
+      if (i < words.length - 1) inner.appendChild(document.createTextNode(' '));
+      return span;
+    });
+  });
+
   let heroPlayed = false;
   function playHeroReveal() {
     if (heroPlayed) return;
     heroPlayed = true;
-    heroLines.forEach((line, i) => {
-      const delay = i === 0 ? 0 : i === 1 ? SENTENCE_PAUSE : SENTENCE_PAUSE + (i - 1) * SAME_SENTENCE_GAP;
-      line.style.transitionDelay = delay + 's';
-      line.classList.add('placed');
+    let delay = 0;
+    lineWords.forEach((words, lineIndex) => {
+      if (lineIndex === 1) delay += SENTENCE_PAUSE; // the only real sentence boundary
+      words.forEach(word => {
+        word.style.transitionDelay = delay + 's';
+        word.classList.add('placed');
+        delay += WORD_STAGGER;
+      });
     });
     heroSection.classList.add('revealed');
   }
