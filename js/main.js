@@ -274,6 +274,14 @@ if (pillsWrap && pillsContainer) {
   const mobilePreviewWrap = document.getElementById('mobilePreviewWrap');
   const mobilePreviewImg = document.getElementById('mobilePreviewImg');
   const mobilePreviewTag = document.getElementById('mobilePreviewTag');
+  // Description block sits below the preview (see .mobile-preview-copy in style.css), toggled
+  // and cross-faded in lockstep with the image/tag above rather than as a separate update --
+  // same isFreshOpen/swap-timer logic, just one more piece of content. Reuses each project's
+  // existing `hook` copy (already short, already project-specific, not shown anywhere else on
+  // mobile) as a placeholder description -- swap in dedicated copy per project once it's
+  // written, this just needs `desc` (or however it ends up named) added to the `projects` array.
+  const mobilePreviewCopy = document.getElementById('mobilePreviewCopy');
+  const mobilePreviewDesc = document.getElementById('mobilePreviewDesc');
   let mobilePreviewSwapTimer = null;
   let activePill = null;
 
@@ -284,6 +292,8 @@ if (pillsWrap && pillsContainer) {
       mobilePreviewImg.alt = p.isPlaceholder ? '' : p.name + ' preview';
       mobilePreviewTag.textContent = p.name;
       mobilePreviewWrap.className = 'mobile-preview-wrap active ' + p.key + (p.isPlaceholder ? ' is-placeholder' : '');
+      if (mobilePreviewDesc) mobilePreviewDesc.textContent = p.desc || p.hook;
+      if (mobilePreviewCopy) mobilePreviewCopy.classList.add('active');
     };
     if (isFreshOpen) {
       // Nothing was showing -- play the full bloom-in from scratch.
@@ -292,13 +302,15 @@ if (pillsWrap && pillsContainer) {
       // Already open, switching directly to a different project. Replaying the whole
       // retract-then-rebloom clip-path cycle here would either swap the image while still
       // partially visible (looks broken) or force an ~1.1s wait before anything happens
-      // (feels sluggish) -- instead, cross-fade just the image/label in place while the
-      // bloom shape/card/ring stay fully expanded throughout.
+      // (feels sluggish) -- instead, cross-fade just the image/label/description in place while
+      // the bloom shape/card/ring stay fully expanded throughout.
       mobilePreviewImg.style.transition = 'opacity .18s ease';
       mobilePreviewImg.style.opacity = '0';
+      if (mobilePreviewDesc) mobilePreviewDesc.style.opacity = '0';
       mobilePreviewSwapTimer = setTimeout(() => {
         applyContent();
         mobilePreviewImg.style.opacity = '1';
+        if (mobilePreviewDesc) mobilePreviewDesc.style.opacity = '1';
       }, 180);
     }
   }
@@ -389,15 +401,45 @@ if (pillsWrap && pillsContainer) {
       });
     }, { threshold: 0.5 });
     entranceObserver.observe(workSectionEl);
+
+    // #mobilePreviewWrap and #mobilePreviewCopy are both position:fixed (see style.css)
+    // specifically so they stay put on screen regardless of what the pills around them are
+    // doing -- but "stays put on screen" also means they don't automatically leave with the
+    // rest of the section once you scroll past it, unlike everything else in #work. This hides
+    // both the moment #work leaves the viewport and reshows them once you're back, without
+    // replaying the one-shot entrance or re-picking a project -- setMobilePreview() already left
+    // the right image/label/description in place, this just toggles the same .active classes
+    // that reveal them.
+    // rootMargin:-2px (not the default 0) -- with scroll-snap landing sections exactly
+    // edge-to-edge, #work's bottom can end up sitting at EXACTLY 0px from the viewport top with
+    // zero true overlap, which is an ambiguous boundary case for threshold:0 (observed reporting
+    // isIntersecting:true with zero visible pixels). Shrinking the effective root by 2px removes
+    // that ambiguity -- an exact touch no longer counts as an intersection.
+    const previewVisibilityObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) {
+          mobilePreviewWrap.classList.remove('active');
+          if (mobilePreviewCopy) mobilePreviewCopy.classList.remove('active');
+        } else if (activePill) {
+          mobilePreviewWrap.classList.add('active');
+          if (mobilePreviewCopy) mobilePreviewCopy.classList.add('active');
+        }
+      });
+    }, { threshold: 0, rootMargin: '-2px' });
+    previewVisibilityObserver.observe(workSectionEl);
   }
 }
 
-// --- Contact: listening-pulse visibility ---
+// --- Contact: listening-pulse visibility + background bloom ---
 // The pulse animation itself is a plain CSS infinite loop (see .listen-ring in style.css) since
 // it never triggers/resets like the hero or work-section ripples do -- the only thing JS needs
 // to do here is fade it in/out with the section, so it isn't burning cycles (and isn't visible
-// mid-fade into the section) while scrolled away. Independent of the raindrop/bloom sequence
-// below -- different trigger, different element, left alone on purpose.
+// mid-fade into the section) while scrolled away. The background bloom (see triggerSectionBloom
+// above) rides the exact same observer/threshold as the pulse itself -- tied to its trigger
+// timing, not a separate one -- and originates from the pulse's own on-screen position, computed
+// fresh each time in case the CTA row has reflowed (e.g. a viewport resize) since the last entry.
+// (Contact briefly had its own raindrop stage instead of this -- reverted; the pulse-driven
+// bloom is the intended treatment here, not a stand-in for one.)
 const listenPulse = document.getElementById('listenPulse');
 const contactSection = document.getElementById('contact');
 const contactBloomEl = document.getElementById('contactBloom');
@@ -405,72 +447,14 @@ if (listenPulse && contactSection) {
   const listenObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       listenPulse.classList.toggle('in-view', entry.isIntersecting);
+      if (entry.isIntersecting) {
+        triggerSectionBloom(contactSection, contactBloomEl, listenPulse);
+      } else {
+        resetSectionBloom(contactBloomEl);
+      }
     });
   }, { threshold: 0.2 });
   listenObserver.observe(contactSection);
-}
-
-// --- Contact: raindrop + ripple + background bloom ---
-// Same drop-fall + ripple mechanic as the work section (playRaindrop, shared above), landing at
-// the section's own center via a zero-size anchor (.contact-stage, see style.css) rather than
-// tied to the listening-pulse's position -- the pulse keeps its own independent fade-in/out
-// above; this is a separate sequence entirely. Resets on scroll-out and replays on every
-// re-entry, same pattern as the desktop work-section ripple (not the mobile work entrance's
-// play-once), since there's no one-shot reveal here that a replay would need to guard against
-// re-triggering.
-const contactStage = document.getElementById('contactStage');
-if (contactStage && contactSection) {
-  const contactPrefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let contactPlayed = false;
-  let contactTimers = [];
-  function clearContactTimers() { contactTimers.forEach(t => clearTimeout(t)); contactTimers = []; }
-
-  function resetContactSequence() {
-    contactPlayed = false;
-    clearContactTimers();
-    const dropWrap = contactStage.querySelector('.drop-wrap');
-    const flash = contactStage.querySelector('.impact-flash');
-    dropWrap.classList.remove('falling', 'impact');
-    dropWrap.style.opacity = '0';
-    flash.classList.remove('flash');
-    contactStage.querySelectorAll('.ring').forEach(r => r.remove());
-    resetSectionBloom(contactBloomEl);
-  }
-
-  function playContactSequence() {
-    if (contactPlayed) return;
-    contactPlayed = true;
-
-    if (contactPrefersReducedMotion) {
-      triggerSectionBloom(contactSection, contactBloomEl, contactStage);
-      return;
-    }
-
-    // Same timings as the desktop work-section ripple (3.2s fall, 3.4s/720ms rings) -- one
-    // signature pace for the raindrop mechanic sitewide rather than a third distinct tuning.
-    playRaindrop({
-      container: contactStage,
-      holdBeforeImpact: 3200,
-      ringCount: 4,
-      ringStagger: 720,
-      ringDuration: 3.4,
-      ringMaxSize: 420,
-      glowDuration: 1.6,
-      glowMaxSize: 260,
-      registerTimer: (id) => contactTimers.push(id),
-      onImpact: () => {
-        triggerSectionBloom(contactSection, contactBloomEl, contactStage);
-      },
-    });
-  }
-
-  const contactRippleObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) playContactSequence();
-      else resetContactSequence();
-    });
-  }, { threshold: 0.15 });
-  contactRippleObserver.observe(contactSection);
 }
 
 // Smooth scroll for in-page nav links

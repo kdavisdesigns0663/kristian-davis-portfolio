@@ -824,3 +824,67 @@ doing from the start rather than re-discovering this.
   already being correct. No CSS change was needed here; a comment was added
   noting the specific measurement so a future pass doesn't have to re-derive
   it from scratch.
+
+## MAJOR UPDATE 9 — splat impact, Contact raindrop reverted, mobile preview/scroll fixes, pills moved above the preview, 2026-08-03
+
+- **Raindrop impact now reads as a splat, not a shrink-fade**: `.drop-wrap.impact`
+  (both `.ripple-stage` and `.work-mobile-stage`) used to just scale down on
+  the Y axis and fade opacity -- looked like the drop was shrinking away, not
+  hitting anything. It now widens (scaleX up) while flattening (scaleY way
+  down) -- `scale(2.6, 0.1)` desktop, `scale(2.2, 0.1)` mobile -- and holds
+  briefly before fading with a growing blur (`filter:blur()`, delayed via
+  transition-delay) rather than cutting straight to transparent, so it reads
+  as spreading flat and melting into the surface. Base `.drop-wrap` needed an
+  explicit `filter:blur(0px)` added so that transition has a real starting
+  value to animate from.
+- **Contact's raindrop (added in UPDATE 8) is reverted.** Contact does not
+  get its own falling drop -- `#contactStage` and all its CSS/JS are gone.
+  Contact's background bloom is back to being tied to the listening-pulse's
+  own `IntersectionObserver`/position, exactly as it was before UPDATE 8
+  first added the raindrop. This was a deliberate change of direction, not a
+  bug fix -- don't re-add a Contact raindrop without being asked again.
+- **Mobile preview no longer gets left on screen after scrolling past Work.**
+  `#mobilePreviewWrap`/`#mobilePreviewCopy` are `position:fixed`, so they
+  don't automatically leave with the rest of `#work` the way in-flow content
+  does. A new `IntersectionObserver` on `#work` (threshold 0, `rootMargin:
+  '-2px'`) toggles their `.active` class off the moment `#work` leaves the
+  viewport and back on when it returns -- without replaying the one-shot
+  entrance or re-selecting a project, since `setMobilePreview()` already left
+  the right content in place. The `-2px` rootMargin isn't decorative: with
+  scroll-snap landing sections exactly edge-to-edge, `#work`'s bottom can sit
+  at EXACTLY 0px from the viewport top with zero true overlap, and that's an
+  ambiguous boundary case for `threshold:0` -- observed actually firing
+  `isIntersecting:true` with nothing visible. Shrinking the effective root by
+  2px removes the ambiguity. If this regresses, check this rootMargin first.
+- **Mobile scroll-snap softened.** `scroll-snap-type:y mandatory` +
+  `scroll-snap-stop:always` (both still true on desktop) forced a full stop
+  at literally every section on mobile regardless of swipe speed, which read
+  as the page fighting the gesture rather than assisting it -- explicit
+  owner feedback: scrolling should "guide," not "control." Below 700px,
+  `html` now gets `scroll-snap-type:y proximity` and `.snap-section` gets
+  `scroll-snap-stop:normal` -- snapping only pulls you in once you're
+  already close to a section edge; a hard swipe can sail past a section
+  entirely instead of being physically stopped there. Desktop's wheel-
+  resistance controller (bottom of `main.js`) is unaffected either way --
+  it's wheel-only by design and was never touching mobile's touch-scroll.
+  **This is a judgment call, not a definitively "solved" problem** -- the
+  owner flagged it as an ongoing issue they weren't sure of the fix for; if
+  it still feels off, `proximity` vs `mandatory` and the exact snap-stop
+  value are the first things to revisit, not the wheel controller.
+- **Mobile pills moved above the preview; new per-project description added
+  below it.** Previously pills sat near the bottom of the section with a
+  static "view project" link inside them. Now: `.work-pills-wrap` sits above
+  the fixed preview (`bottom:calc(50% + 187px)` -- 187px is the preview's own
+  half-height, 162.5px, plus a ~24px gap), and a new fixed sibling element,
+  `.mobile-preview-copy` (`#mobilePreviewCopy` in index.html, containing
+  `#mobilePreviewDesc` + the "view project" link, which moved here from
+  inside the pills), sits below it at the mirrored offset,
+  `top:calc(50% + 187px)`. Both offsets share that one constant on purpose --
+  if the preview's fixed 150x325 size ever changes, recompute both together,
+  not just one. The description text cross-fades in sync with the image swap
+  in `setMobilePreview()` (same isFreshOpen/180ms-swap-timer logic, one more
+  piece of content going through it) and currently just reuses each
+  project's existing `hook` copy (`p.desc || p.hook` -- add a dedicated
+  `desc` field per project once real "what this project is about" copy is
+  written; the owner was explicit that the copy itself isn't finalized yet,
+  only the mechanism).
