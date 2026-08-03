@@ -1,19 +1,29 @@
 // --- Hero: headline lines fade/wipe in left-to-right on load (see style.css for the
 // opacity/--reveal transition values). Staggered in reading order via inline transition-delay
-// set here, computed from each line's position among its siblings. The 2.6s gap is deliberate —
-// enough to actually read line one before line two starts materializing, not just a beat
-// between them. Fires once via IntersectionObserver (hero is the first section, so this
-// effectively means "on load") and never resets — this is not a scroll-repeat effect like the
-// work-section ripple.
+// set here, computed from each line's position among its siblings. Markup is 3 lines forming 2
+// SENTENCES: "People don't experience your design." (line 0, its own sentence) then "They
+// experience" / "your decisions." (lines 1-2, one sentence split across two lines purely for the
+// staggered visual reveal). The 2.6s gap belongs BETWEEN sentences -- enough to actually read the
+// first one before the second starts materializing -- but applying that same 2.6s uniformly to
+// every line also put it between lines 1 and 2, which are one thought and read as two
+// disconnected fragments with a full beat between them instead of one sentence forming. Only the
+// first line gets the full 2.6s pause; every line after it is a short 0.35s ripple off the
+// previous one instead, close enough to feel like one continuous materialization while still
+// reading as sequential, not instant. Fires once via IntersectionObserver (hero is the first
+// section, so this effectively means "on load") and never resets — this is not a scroll-repeat
+// effect like the work-section ripple.
 const heroSection = document.getElementById('hero');
 if (heroSection) {
   const heroLines = heroSection.querySelectorAll('.headline > div');
+  const SENTENCE_PAUSE = 2.6;
+  const SAME_SENTENCE_GAP = 0.35;
   let heroPlayed = false;
   function playHeroReveal() {
     if (heroPlayed) return;
     heroPlayed = true;
     heroLines.forEach((line, i) => {
-      line.style.transitionDelay = (i * 2.6) + 's';
+      const delay = i === 0 ? 0 : i === 1 ? SENTENCE_PAUSE : SENTENCE_PAUSE + (i - 1) * SAME_SENTENCE_GAP;
+      line.style.transitionDelay = delay + 's';
       line.classList.add('placed');
     });
     heroSection.classList.add('revealed');
@@ -50,7 +60,7 @@ const projects = [
 //   reflow (ring.offsetHeight) between setting the transition and setting the
 //   target size, or the browser won't animate the change at all.
 function playRaindrop(opts) {
-  const { container, holdBeforeImpact, ringCount, ringStagger, ringDuration, ringMaxSize, glowDuration, glowMaxSize, onImpact, registerTimer } = opts;
+  const { container, holdBeforeImpact, ringCount, ringStagger, ringDuration, ringMaxSize, glowDuration, glowMaxSize, glowFadeDelay, onImpact, registerTimer } = opts;
   const reg = registerTimer || function(id){ return id; };
 
   const dropWrap = container.querySelector('.drop-wrap');
@@ -73,11 +83,19 @@ function playRaindrop(opts) {
     // Soft diffuse splash right at the landing point, distinct from the crisp
     // rings tracing outward — reads as the "liquid" reacting to the drop.
     if (glow) {
+      const fadeDelay = glowFadeDelay || 0;
       glow.style.transition = 'none';
       glow.style.width = glow.style.height = '0px';
       glow.style.opacity = '0';
       glow.offsetHeight;
-      glow.style.transition = `width ${glowDuration}s cubic-bezier(.16,1,.3,1), height ${glowDuration}s cubic-bezier(.16,1,.3,1), opacity ${glowDuration}s ease-out`;
+      // Width/height start expanding immediately (no delay) so the glow visibly swells right
+      // away, but opacity's fade is held at its peak (0.4) for glowFadeDelay before it starts
+      // dropping toward 0 -- tuned per call site so that hold roughly spans how long the drop
+      // itself takes to fully fade after impact (see .drop-wrap.impact in style.css), so the
+      // glow is still near-peak-bright at the moment the drop disappears rather than already
+      // most of the way faded. That's what's supposed to sell "something absorbed it" instead
+      // of the drop just vanishing on its own.
+      glow.style.transition = `width ${glowDuration}s cubic-bezier(.16,1,.3,1), height ${glowDuration}s cubic-bezier(.16,1,.3,1), opacity ${glowDuration}s ease-out ${fadeDelay}s`;
       glow.style.opacity = '0.4';
       glow.offsetHeight;
       glow.style.width = glow.style.height = glowMaxSize + 'px';
@@ -222,6 +240,9 @@ if (stage) {
       ringMaxSize: 420,
       glowDuration: 1.6,
       glowMaxSize: 260,
+      // Matches roughly how long .drop-wrap.impact takes to fully fade (0.22s delay + 0.5s
+      // fade = 0.72s) -- see the glowFadeDelay comment in playRaindrop() above.
+      glowFadeDelay: 0.3,
       registerTimer: (id) => timers.push(id),
       onImpact: () => {
         triggerSectionBloom(workSection, workBloomEl, stage);
@@ -379,6 +400,9 @@ if (pillsWrap && pillsContainer) {
       ringMaxSize: 300,
       glowDuration: 1.3,
       glowMaxSize: 230,
+      // Matches roughly how long .drop-wrap.impact takes to fully fade (0.2s delay + 0.55s
+      // fade = 0.75s) -- see the glowFadeDelay comment in playRaindrop() above.
+      glowFadeDelay: 0.3,
       onImpact: () => {
         triggerSectionBloom(document.getElementById('work'), document.getElementById('workBloom'), mobileStage);
         revealPills();

@@ -888,3 +888,86 @@ doing from the start rather than re-discovering this.
   `desc` field per project once real "what this project is about" copy is
   written; the owner was explicit that the copy itself isn't finalized yet,
   only the mechanism).
+
+## MAJOR UPDATE 10 — index.html/CSS/JS sync fix, Contact CTA restored, hero sentence timing, raindrop sink-in refinement, 2026-08-03
+
+- **`#workBloom`/`#contactBloom` sync gap, confirmed and fixed.** Verified
+  directly against the deployed GitHub Pages site (not just local files) --
+  `#workBloom` was already present (fixed in a prior session), but
+  `#contactBloom` genuinely did not exist in either the live or local
+  `index.html`, meaning Contact's background bloom (`triggerSectionBloom()`
+  in main.js) was silently a no-op there. Added `<div class="section-bloom"
+  id="contactBloom">` as the first child of `#contact`, matching `#work`'s
+  pattern exactly.
+- **Contact's `<a class="cta mono">` had no `.cta-row` wrapper**, so the
+  matching CSS rule (`.contact .cta-row{ margin-top:40px; ... }`) was dead --
+  the button sat directly after the paragraph with zero intentional top
+  spacing. Restored the `.cta-row` wrapper (which also restores the
+  `#listenPulse` markup inside it -- see next bullet) rather than deleting
+  the CSS rule and moving the margin onto `.cta` directly, since a real
+  layout wrapper was needed anyway to hold the pulse and button side by
+  side; moving the margin onto `.cta` alone would have pushed the button
+  down relative to the pulse dot instead of moving both together.
+- **`#listenPulse` (the dot + 3 rings) was also missing from `index.html`**,
+  independent of the bloom/cta-row issue -- restored as part of the
+  `.cta-row` fix above. Its own JS/CSS (fade-in-with-section, the 3.6s
+  breathing animation) were never touched and just started working again
+  once the markup existed.
+- **Contact's mobile treatment changed on purpose: bloom off, pulse
+  bigger.** `.contact .section-bloom{ display:none; }` under
+  `max-width:720px` -- Contact gets NO background wash on mobile now
+  (desktop keeps it, still tied to the pulse's own trigger in main.js,
+  untouched). In its place, the pulse itself is scaled up at that same
+  breakpoint: dot 10px->16px, ring keyframe max size 34px->64px, peak
+  opacity 0.5->0.75. The 3.6s cycle, 70%-opacity fade point, and 1.2s
+  ring-stagger are all UNCHANGED -- only size/opacity moved, not cadence.
+- **Hero headline timing: lines 2-3 now read as one sentence.** The hero
+  markup is 3 `<div>`s across 2 sentences ("People don't experience your
+  design." / "They experience" + "your decisions." split across two lines
+  for the reveal). `playHeroReveal()` in main.js used to apply a flat
+  `i * 2.6s` delay to every line, which put a full 2.6s beat between lines 2
+  and 3 even though they're one thought -- read as two disconnected
+  fragments. Now: line 0 gets 0s, line 1 gets the full 2.6s sentence pause,
+  every line after that gets only +0.35s off the previous one
+  (`SENTENCE_PAUSE`/`SAME_SENTENCE_GAP` constants in main.js). Verified via
+  the actual computed `transitionDelay` values: 0s / 2.6s / 2.95s.
+- **Raindrop impact changed from a "splat" to a "sink in."** The previous
+  `scale(2.6, 0.1)` (desktop) / `scale(2.2, 0.1)` (mobile) pancaked wide
+  enough to read as hitting something solid. Now `scale(1.4, 0.15)` /
+  `scale(1.3, 0.15)` -- still narrows/flattens but far less extreme -- PLUS
+  a `translateY(10px)` / `translateY(8px)` added to the same transform so
+  the drop keeps drifting down while it fades instead of stopping dead and
+  squashing in place. `playRaindrop()` in main.js also gained an optional
+  `glowFadeDelay` param: `.impact-glow`'s width/height still start
+  expanding immediately, but its opacity now holds near peak (0.4) for
+  ~0.3s before fading, timed to roughly match how long the drop itself
+  takes to fully disappear (0.22s/0.2s delay + 0.5s/0.55s fade) -- so the
+  glow is still bright when the drop vanishes rather than already faded,
+  meant to read as "something absorbed it."
+- **Spacing/alignment audit (item 9 of that session's request): no bugs
+  found and fixed, three things flagged instead of guessed at.** Full pass
+  across every section's CSS plus direct-viewport (NOT full-page --
+  Playwright/Chromium's full-page screenshot mode renders `position:fixed`
+  elements at the wrong place entirely, which nearly produced a false
+  "leftover mobile preview" bug report here; always verify fixed-position
+  elements with a real-viewport screenshot at the actual scroll position,
+  not `fullPage:true`) screenshots at desktop and mobile for hero/work/
+  about/contact. Nothing found that looked like an accidental
+  inconsistency worth changing. Three things ARE worth knowing about
+  though:
+  - `.contact-group:first-of-type{ margin-top:36px; }` vs sibling
+    `.contact-group{ margin-top:32px; }` -- a 4px difference with no
+    comment explaining it. Could be deliberate (compensating for the
+    `.cta-row`'s own 40px margin-top above it) or could be a stray
+    leftover value. Not changed -- flagging per instruction not to guess.
+  - `.hero .headline .l2` (style.css) and the entire `.philosophy{...}`
+    block target classes/a section that no longer exist anywhere in
+    `index.html` (headline is `.l1`+`.l3`+`.l3` now; the Philosophy
+    section was removed back in MAJOR UPDATE 2). Both are dead CSS --
+    harmless, no visual effect, just clutter. Not removed this pass since
+    it wasn't part of the ask, but safe to delete whenever someone's
+    already in that area of the file.
+  - `.about .section-head` gets `padding-top:0` from BOTH a CSS rule
+    (`.about .section-head{ padding-top:0; }`) and a redundant inline
+    `style="padding-top:0;"` already on the element in `index.html`.
+    Harmless (same value from both), just duplicated.
