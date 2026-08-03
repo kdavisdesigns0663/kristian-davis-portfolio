@@ -721,28 +721,60 @@ doing from the start rather than re-discovering this.
 - **Background bloom (Work + Contact)**: `.work-section` no longer sits
   permanently violet-tinted (`background:rgba(var(--accent-rgb),0.14)` is
   gone). Both Work and Contact now start pure black and animate to that same
-  0.14 wash via a new shared `.section-bloom` element (a real div, one per
+  0.14 wash via a shared `.section-bloom` element (a real div, one per
   section — `#workBloom`, `#contactBloom` — not a `::before`, specifically so
   JS can set custom properties and toggle a class on it directly). It's a
-  `clip-path:circle()` expanding from 0% to 150%, centered on
+  `clip-path:circle()` expanding from 0% to 150% over 4.5s (slowed from an
+  initial 3s, see the "raindrop timing" note below), centered on
   `--bloom-x`/`--bloom-y` custom properties that `triggerSectionBloom()` in
-  `main.js` computes from the real on-screen position of whatever caused it
-  (the ripple-stage's center for Work, the listening-pulse's position for
-  Contact) — so it works whether the origin is dead-center (Work) or off to
-  one side (Contact's pulse sits left of the CTA button, not centered). Fires
-  at the exact moment the ripple rings do (same `onImpact` callback) for
-  Work, and off the exact same `IntersectionObserver`/threshold as the pulse
-  itself for Contact (added to that observer's callback, the pulse's own
-  logic wasn't touched). Resets to black instantly on scroll-out and
-  re-blooms on re-entry — the CSS transition is declared only on the
-  `.bloomed` end-state, not the base rule, which is the same trick
-  `.drop-wrap`'s `.falling`/`.impact` classes already used elsewhere in this
-  file: forward animates, removing the class snaps back with no transition.
-  Hero and About are untouched, still plain `var(--bg)`.
+  `main.js` computes from the real on-screen position of whatever caused it —
+  the ripple-stage's center for Work, **`#contactStage`'s center for
+  Contact** (see next bullet; this was originally tied to the listening-
+  pulse's position instead, changed same day once an actual visible raindrop
+  was added to Contact too — the pulse never drove the bloom for long).
+  Resets to black instantly on scroll-out and re-blooms on re-entry — the CSS
+  transition is declared only on the `.bloomed` end-state, not the base rule,
+  which is the same trick `.drop-wrap`'s `.falling`/`.impact` classes already
+  used elsewhere in this file: forward animates, removing the class snaps
+  back with no transition. Hero and About are untouched, still plain
+  `var(--bg)`.
   Verified via direct pixel/DOM measurement (not just eyeballing) that the
   project-preview cards stay pure black throughout (bloom is `z-index:-1`,
   behind everything) and that scroll-out really does reset to black before
   re-blooming on scroll-back-in.
+
+- **Contact also gets a real raindrop now, not just a bloom**: `#contactStage`
+  (a zero-size anchor at the section's own center, same pattern as
+  `.work-mobile-stage`) plays the same `playRaindrop()` drop-fall + ripple
+  sequence the work section uses, landing dead-center of the section
+  regardless of where the text content sits — on wide viewports that's empty
+  space to the right of the (left-aligned, max-width-capped) copy; on narrow
+  ones it can land near/behind the copy, which is fine because
+  `.contact-stage` is `z-index:1`, BELOW `.contact .wrap`'s content
+  (`z-index:2`) — the drop/rings/glow read as passing behind the text, not
+  obscuring it. Independent of the listening-pulse's own fade-in/out (that
+  logic in `main.js` was reverted back to exactly what it was before this
+  update — the pulse doesn't drive anything else anymore). Resets/replays on
+  every scroll in/out via its own `IntersectionObserver` (threshold 0.15,
+  same as Work's desktop ripple) rather than playing once — there's no
+  one-shot UI state here (unlike the mobile work entrance) that a replay
+  would risk re-triggering incorrectly.
+
+- **Raindrop timing, sitewide**: the whole drop/ring/glow/bloom sequence was
+  slowed and re-eased for a more fluid/liquid feel, on request, across all
+  three instances (desktop work, mobile work, Contact) rather than just one.
+  Desktop fall 2.2s → 3.2s, ring duration 2.3s → 3.4s, ring stagger 580ms →
+  720ms, glow 1s → 1.6s, node-placement cascade 90ms → 130ms per node; mobile
+  fall 1.6s → 2.2s, ring duration 0.95s → 1.5s, stagger 380ms → 480ms, glow
+  0.85s → 1.3s, pill-placement cascade 90ms → 120ms per pill. Contact's new
+  raindrop reuses the desktop timings exactly (one signature pace, not a
+  third distinct tuning). The ring/glow expansion easing inside `playRaindrop()`
+  itself changed from plain `ease-out` to `cubic-bezier(.16,1,.3,1)` (the same
+  curve already used for the hero/header-text liquid reveals elsewhere in
+  this file) — reads as dissipating into the surface rather than mechanically
+  shrinking to nothing. `holdBeforeImpact` in every `playRaindrop()` call
+  still has to match its container's `.falling` CSS transition duration
+  exactly, same constraint as always — if you retune one, retune the other.
 
 - **Mobile work section: pills, not an accordion**: The tap-to-expand
   accordion described in MAJOR UPDATE 7 is gone — replaced by a row of

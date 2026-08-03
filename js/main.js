@@ -77,7 +77,7 @@ function playRaindrop(opts) {
       glow.style.width = glow.style.height = '0px';
       glow.style.opacity = '0';
       glow.offsetHeight;
-      glow.style.transition = `width ${glowDuration}s ease-out, height ${glowDuration}s ease-out, opacity ${glowDuration}s ease-out`;
+      glow.style.transition = `width ${glowDuration}s cubic-bezier(.16,1,.3,1), height ${glowDuration}s cubic-bezier(.16,1,.3,1), opacity ${glowDuration}s ease-out`;
       glow.style.opacity = '0.4';
       glow.offsetHeight;
       glow.style.width = glow.style.height = glowMaxSize + 'px';
@@ -92,7 +92,11 @@ function playRaindrop(opts) {
       ring.style.borderRadius = `${jitter()}% ${jitter()}% ${jitter()}% ${jitter()}%`;
       container.insertBefore(ring, container.firstChild);
       reg(setTimeout(() => {
-        ring.style.transition = `width ${ringDuration}s ease-out, height ${ringDuration}s ease-out, opacity ${ringDuration}s ease-out, filter ${ringDuration}s ease-out, border-width ${ringDuration}s ease-out`;
+        // cubic-bezier(.16,1,.3,1) -- a slow, decelerating "expo out" curve reused from the
+        // hero/header-text liquid-reveal transitions elsewhere in this file -- reads as the
+        // ring dissipating into the surface rather than mechanically shrinking to nothing,
+        // which plain ease-out did.
+        ring.style.transition = `width ${ringDuration}s cubic-bezier(.16,1,.3,1), height ${ringDuration}s cubic-bezier(.16,1,.3,1), opacity ${ringDuration}s ease-out, filter ${ringDuration}s ease-out, border-width ${ringDuration}s ease-out`;
         ring.style.opacity = '0.55';
         ring.offsetHeight;
         const size = ringMaxSize + Math.random() * ringMaxSize * 0.15;
@@ -205,17 +209,18 @@ if (stage) {
   function playSequence() {
     if (played) return;
     played = true;
-    // holdBeforeImpact matches the .falling transition duration in CSS (2.2s, unchanged) --
-    // the fix for "nothing happens" was starting the sequence earlier (see the observer's
-    // rootMargin below), not making the fall itself faster.
+    // holdBeforeImpact matches the .falling transition duration in CSS (3.2s) -- slowed from an
+    // earlier 2.2s/2.3s/580ms/1s (fall/ring/stagger/glow) across the board for a more fluid,
+    // liquid feel; the fix for "nothing happens" was starting the sequence earlier (see the
+    // observer's rootMargin below), not making the fall itself faster, so that stays untouched.
     playRaindrop({
       container: stage,
-      holdBeforeImpact: 2200,
+      holdBeforeImpact: 3200,
       ringCount: 4,
-      ringStagger: 580,
-      ringDuration: 2.3,
+      ringStagger: 720,
+      ringDuration: 3.4,
       ringMaxSize: 420,
-      glowDuration: 1,
+      glowDuration: 1.6,
       glowMaxSize: 260,
       registerTimer: (id) => timers.push(id),
       onImpact: () => {
@@ -226,7 +231,7 @@ if (stage) {
           timers.push(setTimeout(() => {
             p.el.style.transform = `translate(-50%,-50%) ${targetTransform(p.angle, p.radiusX, p.radiusY)} scale(1)`;
             p.el.classList.add('placed');
-          }, i * 90));
+          }, i * 130));
         });
       },
     });
@@ -334,14 +339,14 @@ if (pillsWrap && pillsContainer) {
       // Ripples through the pills one at a time rather than all appearing together the
       // instant the wrap's own clip-path finishes expanding.
       projects.forEach((p, i) => {
-        setTimeout(() => p.pillEl.classList.add('placed'), 120 + i * 90);
+        setTimeout(() => p.pillEl.classList.add('placed'), 160 + i * 120);
       });
       // First project previews automatically -- with no hover on touch, an empty fixed preview
       // box would just look broken until the first tap. Delay matches the last pill's own
       // stagger so this reads as the sequence settling into a default, not racing it.
       setTimeout(() => {
         selectProject(projects[0], projects[0].pillEl, true);
-      }, 120 + projects.length * 90 + 200);
+      }, 160 + projects.length * 120 + 250);
     };
 
     if (prefersReducedMotion || !mobileStage) {
@@ -349,16 +354,18 @@ if (pillsWrap && pillsContainer) {
       return;
     }
 
-    // holdBeforeImpact must match the .falling transition duration in CSS
-    // (1.6s) so impact/ripple/reveal all trigger the instant the drop lands.
+    // holdBeforeImpact must match the .falling transition duration in CSS (2.2s) so
+    // impact/ripple/reveal all trigger the instant the drop lands -- slowed from an earlier
+    // 1.6s/0.95s/380ms/0.85s (fall/ring/stagger/glow) alongside the desktop stage, for the same
+    // more fluid, liquid feel.
     playRaindrop({
       container: mobileStage,
-      holdBeforeImpact: 1600,
+      holdBeforeImpact: 2200,
       ringCount: 2,
-      ringStagger: 380,
-      ringDuration: 0.95,
+      ringStagger: 480,
+      ringDuration: 1.5,
       ringMaxSize: 300,
-      glowDuration: 0.85,
+      glowDuration: 1.3,
       glowMaxSize: 230,
       onImpact: () => {
         triggerSectionBloom(document.getElementById('work'), document.getElementById('workBloom'), mobileStage);
@@ -385,14 +392,12 @@ if (pillsWrap && pillsContainer) {
   }
 }
 
-// --- Contact: listening-pulse visibility + background bloom ---
+// --- Contact: listening-pulse visibility ---
 // The pulse animation itself is a plain CSS infinite loop (see .listen-ring in style.css) since
 // it never triggers/resets like the hero or work-section ripples do -- the only thing JS needs
 // to do here is fade it in/out with the section, so it isn't burning cycles (and isn't visible
-// mid-fade into the section) while scrolled away. The background bloom (see triggerSectionBloom
-// above) rides the exact same observer/threshold as the pulse itself -- tied to its trigger
-// timing, not a separate one -- and originates from the pulse's own on-screen position, computed
-// fresh each time in case the CTA row has reflowed (e.g. a viewport resize) since the last entry.
+// mid-fade into the section) while scrolled away. Independent of the raindrop/bloom sequence
+// below -- different trigger, different element, left alone on purpose.
 const listenPulse = document.getElementById('listenPulse');
 const contactSection = document.getElementById('contact');
 const contactBloomEl = document.getElementById('contactBloom');
@@ -400,14 +405,72 @@ if (listenPulse && contactSection) {
   const listenObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       listenPulse.classList.toggle('in-view', entry.isIntersecting);
-      if (entry.isIntersecting) {
-        triggerSectionBloom(contactSection, contactBloomEl, listenPulse);
-      } else {
-        resetSectionBloom(contactBloomEl);
-      }
     });
   }, { threshold: 0.2 });
   listenObserver.observe(contactSection);
+}
+
+// --- Contact: raindrop + ripple + background bloom ---
+// Same drop-fall + ripple mechanic as the work section (playRaindrop, shared above), landing at
+// the section's own center via a zero-size anchor (.contact-stage, see style.css) rather than
+// tied to the listening-pulse's position -- the pulse keeps its own independent fade-in/out
+// above; this is a separate sequence entirely. Resets on scroll-out and replays on every
+// re-entry, same pattern as the desktop work-section ripple (not the mobile work entrance's
+// play-once), since there's no one-shot reveal here that a replay would need to guard against
+// re-triggering.
+const contactStage = document.getElementById('contactStage');
+if (contactStage && contactSection) {
+  const contactPrefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let contactPlayed = false;
+  let contactTimers = [];
+  function clearContactTimers() { contactTimers.forEach(t => clearTimeout(t)); contactTimers = []; }
+
+  function resetContactSequence() {
+    contactPlayed = false;
+    clearContactTimers();
+    const dropWrap = contactStage.querySelector('.drop-wrap');
+    const flash = contactStage.querySelector('.impact-flash');
+    dropWrap.classList.remove('falling', 'impact');
+    dropWrap.style.opacity = '0';
+    flash.classList.remove('flash');
+    contactStage.querySelectorAll('.ring').forEach(r => r.remove());
+    resetSectionBloom(contactBloomEl);
+  }
+
+  function playContactSequence() {
+    if (contactPlayed) return;
+    contactPlayed = true;
+
+    if (contactPrefersReducedMotion) {
+      triggerSectionBloom(contactSection, contactBloomEl, contactStage);
+      return;
+    }
+
+    // Same timings as the desktop work-section ripple (3.2s fall, 3.4s/720ms rings) -- one
+    // signature pace for the raindrop mechanic sitewide rather than a third distinct tuning.
+    playRaindrop({
+      container: contactStage,
+      holdBeforeImpact: 3200,
+      ringCount: 4,
+      ringStagger: 720,
+      ringDuration: 3.4,
+      ringMaxSize: 420,
+      glowDuration: 1.6,
+      glowMaxSize: 260,
+      registerTimer: (id) => contactTimers.push(id),
+      onImpact: () => {
+        triggerSectionBloom(contactSection, contactBloomEl, contactStage);
+      },
+    });
+  }
+
+  const contactRippleObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) playContactSequence();
+      else resetContactSequence();
+    });
+  }, { threshold: 0.15 });
+  contactRippleObserver.observe(contactSection);
 }
 
 // Smooth scroll for in-page nav links

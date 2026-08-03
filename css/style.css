@@ -159,15 +159,17 @@ a{ color:inherit; text-decoration:none; }
   padding-top:300px;
 }
 /* Background bloom -- a black-to-violet wash that expands from a point via clip-path circle,
-   shared by the work section (desktop stage + mobile pills) and Contact (tied to the listening
-   pulse). A real element (not a ::before) specifically so JS can set --bloom-x/--bloom-y and
-   toggle .bloomed directly -- see triggerSectionBloom()/resetSectionBloom() in main.js.
-   Transition is declared ONLY on the .bloomed rule, not the base one below -- same trick used by
-   .drop-wrap's .falling/.impact classes elsewhere in this file: adding the class animates over
-   3s, but removing it snaps back to 0% instantly (base rule has no transition, so its 0s default
-   duration applies), matching the sitewide "reset is instant, only the reveal animates" pattern
-   already used for the rings/drop/mobile reveal. z-index:-1 keeps it behind literally everything
-   else in the section (ghost is 0, ripple-stage is 2) without needing DOM-order tricks. */
+   shared by the work section (desktop stage + mobile pills) and Contact (its own raindrop stage,
+   .contact-stage below -- same mechanic, not tied to the listening pulse). A real element (not a
+   ::before) specifically so JS can set --bloom-x/--bloom-y and toggle .bloomed directly -- see
+   triggerSectionBloom()/resetSectionBloom() in main.js. Transition is declared ONLY on the
+   .bloomed rule, not the base one below -- same trick used by .drop-wrap's .falling/.impact
+   classes elsewhere in this file: adding the class animates over 4.5s (slowed from an earlier 3s
+   for a more fluid feel, matching the slower raindrop/ripple timings), but removing it snaps back
+   to 0% instantly (base rule has no transition, so its 0s default duration applies), matching the
+   sitewide "reset is instant, only the reveal animates" pattern already used for the rings/drop/
+   mobile reveal. z-index:-1 keeps it behind literally everything else in the section (ghost is 0,
+   ripple-stage is 2) without needing DOM-order tricks. */
 .section-bloom{
   position:absolute; inset:0; z-index:-1; pointer-events:none;
   background:rgba(var(--accent-rgb), 0.14);
@@ -175,7 +177,7 @@ a{ color:inherit; text-decoration:none; }
 }
 .section-bloom.bloomed{
   clip-path:circle(150% at var(--bloom-x, 50%) var(--bloom-y, 50%));
-  transition:clip-path 3s cubic-bezier(.19,1,.22,1);
+  transition:clip-path 4.5s cubic-bezier(.19,1,.22,1);
 }
 /* White instead of the sitewide violet stroke -- against this section's violet wash once it
    blooms in, a violet-on-violet stroke nearly disappears, and black fails WCAG contrast
@@ -196,12 +198,13 @@ a{ color:inherit; text-decoration:none; }
    These are deliberately separate elements -- combining stretch and rotation on one element
    causes the stretch to skew diagonally instead of falling straight down. Start point is
    -90vh (well above the viewport, not just above the stage) so it visibly falls INTO view
-   instead of materializing a few dozen pixels above the text. Fall duration is unchanged from
-   the original (2.2s) -- what actually needed fixing was how late the fall STARTED, not its
-   speed; see the IntersectionObserver rootMargin in main.js. */
+   instead of materializing a few dozen pixels above the text. Fall duration is 3.2s (slowed from
+   an original 2.2s for a more fluid/liquid feel) -- the earlier fix for "nothing happens" was
+   starting the sequence sooner (see the IntersectionObserver threshold in main.js), not making
+   the fall itself faster, and that's still true at this slower speed too. */
 .ripple-stage .drop-wrap{ position:absolute; left:50%; top:-90vh; transform:translateX(-50%) scaleY(1); z-index:5; opacity:0; }
-.ripple-stage .drop-wrap.falling{ opacity:1; transition:top 2.2s cubic-bezier(.36,.06,.29,.99), transform 2.2s cubic-bezier(.36,.06,.29,.99); top:50%; transform:translateX(-50%) scaleY(1.4); }
-.ripple-stage .drop-wrap.impact{ top:50%; transition:transform 0.32s ease-out, opacity 0.4s ease-out 0.08s; transform:translateX(-50%) scaleY(0.4); opacity:0; }
+.ripple-stage .drop-wrap.falling{ opacity:1; transition:top 3.2s cubic-bezier(.36,.06,.29,.99), transform 3.2s cubic-bezier(.36,.06,.29,.99); top:50%; transform:translateX(-50%) scaleY(1.4); }
+.ripple-stage .drop-wrap.impact{ top:50%; transition:transform 0.5s ease-out, opacity 0.6s ease-out 0.08s; transform:translateX(-50%) scaleY(0.4); opacity:0; }
 .ripple-stage .drop-shape{ width:12px; height:12px; background:var(--accent); box-shadow:0 0 14px 3px rgba(var(--accent-rgb),0.55); border-radius:50% 50% 50% 0; transform:rotate(135deg); }
 
 .ripple-stage .impact-flash{ position:absolute; top:50%; left:50%; width:6px; height:6px; border-radius:50%; background:#fff; transform:translate(-50%,-50%) scale(1); opacity:0; z-index:4; }
@@ -237,7 +240,7 @@ a{ color:inherit; text-decoration:none; }
    glowing preview, reinforcing the "stage" read the enlarged preview is going for. */
 .ripple-stage.hovering .stage-card{ filter:brightness(0.75); transition:filter .5s ease; }
 
-.ripple-stage .node{ position:absolute; top:50%; left:50%; opacity:0; color:var(--text); font-family:'Space Grotesk',sans-serif; font-size:20px; font-weight:700; white-space:nowrap; text-align:center; cursor:pointer; z-index:2; transform:translate(-50%,-50%) scale(0.3); filter:blur(8px); transition:opacity 1.4s ease, transform 2s cubic-bezier(.22,1.44,.36,1), filter 1.7s ease-out; }
+.ripple-stage .node{ position:absolute; top:50%; left:50%; opacity:0; color:var(--text); font-family:'Space Grotesk',sans-serif; font-size:20px; font-weight:700; white-space:nowrap; text-align:center; cursor:pointer; z-index:2; transform:translate(-50%,-50%) scale(0.3); filter:blur(8px); transition:opacity 1.9s ease, transform 2.6s cubic-bezier(.22,1.44,.36,1), filter 2.2s ease-out; }
 .ripple-stage .node .hook{ font-family:'Inter',sans-serif; font-size:11px; color:var(--text-mute); font-weight:400; margin-top:4px; }
 .ripple-stage .node:hover, .ripple-stage .node:focus{ color:var(--accent); }
 .ripple-stage .node.placed{ opacity:1; filter:blur(0px); }
@@ -377,7 +380,7 @@ a{ color:inherit; text-decoration:none; }
     position:absolute; left:0; right:0; bottom:56px; z-index:4;
     padding:0 24px; text-align:center;
     clip-path:circle(0% at 50% 50%); filter:blur(6px); transform:scaleY(0.97);
-    transition:clip-path 1s cubic-bezier(.19,1,.22,1), filter .6s ease, transform .7s cubic-bezier(.22,1,.36,1);
+    transition:clip-path 1.6s cubic-bezier(.19,1,.22,1), filter .9s ease, transform 1s cubic-bezier(.22,1,.36,1);
   }
   .work-pills-wrap.revealed{ clip-path:circle(150% at 50% 50%); filter:blur(0); transform:scaleY(1); }
 
@@ -389,8 +392,8 @@ a{ color:inherit; text-decoration:none; }
      spaced out so each stage — fall, impact, ripple, reveal — reads as its own unhurried beat. */
   .work-mobile-stage{ position:absolute; top:50%; left:50%; width:0; height:0; overflow:visible; display:block; z-index:3; pointer-events:none; }
   .work-mobile-stage .drop-wrap{ position:absolute; left:50%; top:-90vh; transform:translateX(-50%) scaleY(1); opacity:0; z-index:5; }
-  .work-mobile-stage .drop-wrap.falling{ opacity:1; transition:top 1.6s cubic-bezier(.36,.06,.29,.99), transform 1.6s cubic-bezier(.36,.06,.29,.99); top:0; transform:translateX(-50%) scaleY(1.35); }
-  .work-mobile-stage .drop-wrap.impact{ top:0; transition:transform .4s ease-out, opacity .48s ease-out .08s; transform:translateX(-50%) scaleY(0.4); opacity:0; }
+  .work-mobile-stage .drop-wrap.falling{ opacity:1; transition:top 2.2s cubic-bezier(.36,.06,.29,.99), transform 2.2s cubic-bezier(.36,.06,.29,.99); top:0; transform:translateX(-50%) scaleY(1.35); }
+  .work-mobile-stage .drop-wrap.impact{ top:0; transition:transform .6s ease-out, opacity .7s ease-out .08s; transform:translateX(-50%) scaleY(0.4); opacity:0; }
   .work-mobile-stage .drop-shape{ width:10px; height:10px; background:var(--accent); box-shadow:0 0 12px 3px rgba(var(--accent-rgb),0.55); border-radius:50% 50% 50% 0; transform:rotate(135deg); }
   .work-mobile-stage .impact-flash{ position:absolute; left:50%; top:0; width:5px; height:5px; border-radius:50%; background:#fff; transform:translate(-50%,-50%) scale(1); opacity:0; z-index:4; }
   .work-mobile-stage .impact-flash.flash{ transition:transform .65s ease-out, opacity .65s ease-out; transform:translate(-50%,-50%) scale(9); opacity:0; }
@@ -660,6 +663,27 @@ a{ color:inherit; text-decoration:none; }
 
 /* Contact */
 .contact{ padding:100px 0 120px; border-top:1px solid var(--line); }
+
+/* Contact raindrop -- same drop-fall + ripple + background-bloom mechanic as the work section's
+   entrance (playRaindrop()/triggerSectionBloom() in main.js), landing at the section's own
+   center rather than tied to any particular piece of content. A zero-size anchor (like
+   .work-mobile-stage), not an in-flow element, so the fall's -90vh -> 0 travel and the
+   rings/glow/bloom all originate from the exact same point regardless of how tall the section's
+   text content is or how it wraps at a given width. z-index sits BELOW .contact .wrap's content
+   (2) so the drop/rings/glow read as passing behind the text rather than obscuring it -- unlike
+   the work section, there's no node/pill/preview here that needs to react to the impact, so
+   nothing here needs to sit above the content. Same timings as the desktop work-section ripple
+   (see main.js) -- one signature raindrop pace sitewide. */
+.contact-stage{ position:absolute; top:50%; left:50%; width:0; height:0; overflow:visible; z-index:1; pointer-events:none; }
+.contact-stage .drop-wrap{ position:absolute; left:50%; top:-90vh; transform:translateX(-50%) scaleY(1); opacity:0; z-index:5; }
+.contact-stage .drop-wrap.falling{ opacity:1; transition:top 3.2s cubic-bezier(.36,.06,.29,.99), transform 3.2s cubic-bezier(.36,.06,.29,.99); top:0; transform:translateX(-50%) scaleY(1.4); }
+.contact-stage .drop-wrap.impact{ top:0; transition:transform 0.5s ease-out, opacity 0.6s ease-out 0.08s; transform:translateX(-50%) scaleY(0.4); opacity:0; }
+.contact-stage .drop-shape{ width:12px; height:12px; background:var(--accent); box-shadow:0 0 14px 3px rgba(var(--accent-rgb),0.55); border-radius:50% 50% 50% 0; transform:rotate(135deg); }
+.contact-stage .impact-flash{ position:absolute; left:50%; top:0; width:6px; height:6px; border-radius:50%; background:#fff; transform:translate(-50%,-50%) scale(1); opacity:0; z-index:4; }
+.contact-stage .impact-flash.flash{ transition:transform 0.7s ease-out, opacity 0.7s ease-out; transform:translate(-50%,-50%) scale(7); opacity:0; }
+.contact-stage .impact-glow{ position:absolute; left:50%; top:0; width:0; height:0; border-radius:50%; background:radial-gradient(circle, rgba(var(--accent-rgb),0.4), transparent 70%); transform:translate(-50%,-50%); opacity:0; filter:blur(2px); z-index:3; }
+.contact-stage .ring{ position:absolute; left:50%; top:0; width:0; height:0; border:3px solid var(--accent); border-radius:50%; transform:translate(-50%,-50%); opacity:0; z-index:2; }
+
 .contact h2{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:44px; max-width:640px; }
 .contact p{ margin-top:20px; font-size:17px; color:var(--text-dim); max-width:480px; }
 .contact .cta-row{ display:inline-flex; align-items:center; gap:22px; margin-top:40px; }
