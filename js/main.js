@@ -1,54 +1,38 @@
-// --- Hero: headline reveals word by word on load, via a slow left-to-right mask wipe per word
-// (see style.css for the .word/--reveal transition). Markup is 3 lines forming 2 SENTENCES:
-// "People don't experience your design." (line 0, its own sentence) then "They experience" /
-// "your decisions." (lines 1-2, one sentence split across two lines purely for layout, not
-// meaning). Each line's plain text is split into individual <span class="word"> elements here,
-// then revealed with a SLOW, uniform per-word stagger (WORD_STAGGER) -- slow and fluid on
-// purpose, to match the rest of the site's multi-second raindrop/ripple language, not a quick
-// pop. Went through a fast per-word version first (60ms stagger, ~0.35s fade) that fixed the
-// "lines 1-2 feel disconnected" problem but read as snappy instead of liquid -- this keeps the
-// per-word structure (still no gap at the line 1/2 boundary) but stretches both the stagger and
-// each word's own wipe duration out considerably. The stagger is deliberately UNIFORM across the
-// line-1/line-2 boundary (no extra pause there at all -- "They experience" flows straight into
-// "your decisions." at the same word-to-word speed) but there IS a real pause (SENTENCE_PAUSE)
-// between line 0 and line 1, since that boundary is an actual sentence break, not just a layout
-// line-break. Fires once via IntersectionObserver (hero is the first section, so this
-// effectively means "on load") and never resets — this is not a scroll-repeat effect like the
-// work-section ripple.
+// --- Hero: headline reveals as one continuous left-to-right wipe per SENTENCE, not per word.
+// Tried a per-word staggered wipe first -- reads as separate discrete reveals starting at
+// different times rather than one continuous motion, which is explicitly the wrong feel here.
+// Markup is 3 lines forming 2 SENTENCES: "People don't experience your design." (line 0, its own
+// sentence) then "They experience" / "your decisions." (lines 1-2, one sentence split across two
+// lines purely for layout, not meaning). Each LINE gets one --reveal mask sweep (see style.css),
+// same as the very first version of this effect -- but sentence 2's two lines need to read as ONE
+// uninterrupted sweep across the wrap point despite being two separate DOM elements, so line 2's
+// delay is set to start EXACTLY when line 1's own wipe finishes (delay + duration, zero gap)
+// instead of getting its own independent delay. Each line's transition-duration is computed from
+// its own word count (REVEAL_RATE seconds/word) rather than one flat duration for every line, so
+// the WIPE SPEED stays visually consistent across lines of different lengths instead of a short
+// line dragging or a long one feeling rushed. Fires once via IntersectionObserver (hero is the
+// first section, so this effectively means "on load") and never resets — this is not a
+// scroll-repeat effect like the work-section ripple.
 const heroSection = document.getElementById('hero');
 if (heroSection) {
   const heroLines = heroSection.querySelectorAll('.headline > div');
-  const WORD_STAGGER = 0.3;
-  const SENTENCE_PAUSE = 0.9;
-
-  // Build the word spans once up front (not inside playHeroReveal) -- the DOM structure doesn't
-  // need to wait for the reveal to actually fire, only the .placed/delay assignment does.
-  const lineWords = Array.prototype.map.call(heroLines, line => {
-    const inner = line.querySelector('.line-inner');
-    const words = inner.textContent.trim().split(/\s+/);
-    inner.textContent = '';
-    return words.map((word, i) => {
-      const span = document.createElement('span');
-      span.className = 'word';
-      span.textContent = word;
-      inner.appendChild(span);
-      if (i < words.length - 1) inner.appendChild(document.createTextNode(' '));
-      return span;
-    });
-  });
+  const REVEAL_RATE = 0.4;
+  const SENTENCE_PAUSE = 0.7;
 
   let heroPlayed = false;
   function playHeroReveal() {
     if (heroPlayed) return;
     heroPlayed = true;
     let delay = 0;
-    lineWords.forEach((words, lineIndex) => {
-      if (lineIndex === 1) delay += SENTENCE_PAUSE; // the only real sentence boundary
-      words.forEach(word => {
-        word.style.transitionDelay = delay + 's';
-        word.classList.add('placed');
-        delay += WORD_STAGGER;
-      });
+    heroLines.forEach((line, i) => {
+      const wordCount = line.textContent.trim().split(/\s+/).length;
+      const duration = wordCount * REVEAL_RATE;
+      if (i === 1) delay += SENTENCE_PAUSE; // the only real sentence boundary
+      line.style.transitionDelay = delay + 's';
+      line.style.transitionDuration = duration + 's';
+      line.classList.add('placed');
+      delay += duration; // a line continuing the SAME sentence starts exactly when this one
+                          // finishes -- zero gap, reads as one continuous sweep across the wrap
     });
     heroSection.classList.add('revealed');
   }

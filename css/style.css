@@ -106,29 +106,28 @@ a{ color:inherit; text-decoration:none; }
   .hero .sub{ margin-left:0; margin-top:40px; }
 }
 
-/* Hero headline: reveals word by word, not line by line, via the same left-to-right mask WIPE
-   the very first version of this effect used -- not a fade. Went through a few iterations to
-   land here: a whole-LINE wipe over 4.4s (too slow for a single short line, and put an
-   unavoidable multi-second gap between "They experience" and "your decisions."), then a fast
-   per-word opacity/blur FADE (fixed the sentence-cohesion problem but lost the slow, liquid wipe
-   feel entirely -- read as snappy instead, out of step with the site's other raindrop/ripple
-   animations, which are all multi-second and fluid). This is per-word (keeps sentence 2 flowing
-   as one thought, no gap at the line-break) AND a slow wipe (matches the liquid language
-   elsewhere) AND one effect only -- no blur/transform layered on top of the mask, same "don't
-   combine effects, it reads as busy" principle the original version was built on. Needs
-   @property below to animate --reveal smoothly; browsers without @property support just skip
-   the sweep and fall back to a plain (still slow) opacity fade. See main.js for the actual
-   per-word stagger/pause values. */
+/* Hero headline: each LINE wipes in as ONE continuous left-to-right sweep -- not word by word.
+   A per-word version of this was tried and rejected: staggering many small independent reveal
+   starts across a line reads as separate discrete reveals, not one continuous motion, which is
+   explicitly the wrong feel here. --reveal drives the same soft-edged mask band the very first
+   version of this effect used, animated per LINE. Sentence 2 ("They experience" / "your
+   decisions.") is two separate line elements that still need to read as ONE uninterrupted sweep
+   across the wrap point -- that's handled in main.js (line 2's delay starts exactly when line 1's
+   own wipe finishes, zero gap) rather than here; this rule doesn't know or care how many lines
+   make up a sentence. transition-duration is intentionally NOT fixed in this rule -- main.js sets
+   it per line (word count * a fixed rate) so a short line doesn't drag and a long one doesn't
+   feel rushed; the value below is only the fallback if that inline override is somehow absent.
+   Needs @property below to animate --reveal smoothly; browsers without @property support just
+   skip the sweep and fall back to a plain (still per-line-timed) opacity fade. */
 .hero .headline .line-inner{ display:block; }
-.hero .headline .word{
-  display:inline-block;
+.hero .headline > div{
   --reveal:0%;
   opacity:0;
-  -webkit-mask-image:linear-gradient(90deg, #000 0%, #000 var(--reveal), transparent calc(var(--reveal) + 25%), transparent 100%);
-  mask-image:linear-gradient(90deg, #000 0%, #000 var(--reveal), transparent calc(var(--reveal) + 25%), transparent 100%);
-  transition:opacity 1.2s ease, --reveal 1.4s cubic-bezier(.45,0,.2,1);
+  -webkit-mask-image:linear-gradient(90deg, #000 0%, #000 var(--reveal), transparent calc(var(--reveal) + 22%), transparent 100%);
+  mask-image:linear-gradient(90deg, #000 0%, #000 var(--reveal), transparent calc(var(--reveal) + 22%), transparent 100%);
+  transition:opacity 2s ease, --reveal 2s cubic-bezier(.45,0,.2,1);
 }
-.hero .headline .word.placed{ opacity:1; --reveal:100%; }
+.hero .headline > div.placed{ opacity:1; --reveal:100%; }
 @property --reveal{ syntax:'<percentage>'; inherits:false; initial-value:0%; }
 
 /* Ghost word gets a deliberately quieter treatment than the headline lines -- a plain slow

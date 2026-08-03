@@ -1051,3 +1051,58 @@ drop back to opacity/blur/transform for the reveal effect itself without a
 specific reason to -- the mask wipe is what reads as "liquid" and matching
 the rest of the site; that was the actual point of this update, not just a
 timing tweak.
+
+## MAJOR UPDATE 13 — hero reveal is per-LINE again, not per-word: word-by-word was never the ask, one continuous sweep is, 2026-08-03
+
+UPDATE 11 and 12 (immediately above) both operated on a per-WORD reveal --
+splitting each line into `<span class="word">` elements and animating each
+one's own `--reveal`/opacity independently, staggered. Owner feedback made
+clear this was the wrong structure the whole time, not just wrong speed:
+"one long string of reveal, not separate words starting the reveal at
+different times." Per-word was never asked for -- it was this agent's own
+interpretation of "appearing one word after the other" a few turns back,
+and it should have been read as describing the VISUAL RESULT of a
+continuous wipe (words becoming visible in sequence as a sweep passes over
+them), not literally "give each word its own independent reveal
+animation."
+
+**What changed**: the word-splitting is gone entirely from `main.js` (no
+more `<span class="word">`, no more building/storing a `lineWords` array).
+`playHeroReveal()` is back to animating each of the 3 `.headline > div`
+LINES directly, one `--reveal` mask sweep per line -- structurally very
+close to where this started (MAJOR UPDATE 10 and earlier), except for the
+one real fix that's carried forward from every iteration since: sentence 2
+("They experience" / "your decisions.") is two separate line elements, and
+line 2's delay is set to start EXACTLY when line 1's own wipe finishes
+(`delay += duration` after each line, `SENTENCE_PAUSE` only added before
+line 1) -- zero gap, so despite being two DOM elements they read as one
+uninterrupted sweep straight through the wrap point. That specific fix is
+NOT new to this update; it's been the correct part of every version since
+UPDATE 10 flagged the problem, just previously implemented as "no gap in
+the per-word stagger" instead of "no gap in the per-line chain."
+
+**Also new this update**: each line's `transition-duration` is no longer a
+flat value -- it's computed in JS as `wordCount * REVEAL_RATE` (0.4s/word),
+so the wipe SPEED stays visually consistent across lines of different
+lengths (line 0 has 5 words and takes 2.0s; "They experience" has 2 words
+and takes 0.8s) rather than every line taking the same fixed duration
+regardless of how much text it has to sweep across.
+
+`style.css` reverted to a single `.hero .headline > div{ --reveal:0%; ...
+mask-image:...; }` rule (the `.word` rule and its `display:inline-block`
+sibling are gone). The `transition` value declared there (`2s`) is only a
+fallback -- `main.js` sets `transitionDuration` inline per line at play
+time, which takes priority.
+
+Verified by reading each line's actual `transitionDelay`/`transitionDuration`
+off the DOM (line 0: 0s/2.0s: line 1: 2.7s/0.8s; line 2: 3.5s/0.8s -- line 2
+starts at literally the same moment line 1 ends) and screenshots through
+the sequence, including one at 500ms that shows the wipe edge mid-sweep
+INSIDE a word ("expe|rience") -- confirming it's one continuous sweep
+passing through word boundaries, not discrete per-word reveals.
+
+If tuning this again: `REVEAL_RATE` and `SENTENCE_PAUSE` in `main.js` are
+the two knobs now. Do not reintroduce per-word spans/staggering -- that
+specific approach was tried twice (UPDATE 11 and 12) and explicitly
+rejected both times, for two different reasons (too fast, then still
+structurally wrong even after slowing down).
