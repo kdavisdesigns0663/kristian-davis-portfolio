@@ -18,7 +18,14 @@
    overflow-x stays the default `visible`, so the page could scroll sideways to reveal that
    bled-off content even though body claimed to hide it. */
 html{ scroll-snap-type:y mandatory; overflow-x:hidden; }
-.snap-section{ min-height:100vh; scroll-snap-align:start; scroll-snap-stop:always; }
+/* 100vh on mobile Safari/Chrome measures the LARGEST possible viewport (address bar hidden),
+   not the actual visible one -- the address bar showing/hiding as you scroll makes the real
+   visible height smaller than 100vh by however tall that bar is, so a section sized to 100vh
+   can end up taller than what's actually on screen and shift slightly under your thumb mid-
+   scroll. 100dvh tracks the real, currently-visible viewport instead. Declared second (not
+   as a replacement) so it only overrides vh in browsers that understand it -- an unsupported
+   browser just ignores this line and keeps the vh value, no @supports needed. */
+.snap-section{ min-height:100vh; min-height:100dvh; scroll-snap-align:start; scroll-snap-stop:always; }
 /* Nav and the footer used to live outside the .snap-section flow (above hero, below contact)
    and were themselves given scroll-snap-align, which fixed an edge-landing bug but introduced
    a new one: they read as their own separate section, requiring an extra scroll step to get
@@ -28,18 +35,8 @@ html{ scroll-snap-type:y mandatory; overflow-x:hidden; }
 
 *{ margin:0; padding:0; box-sizing:border-box; }
 
-/* Ambient atmosphere: two soft, far-off-screen violet glows fixed to the viewport so they
-   read as one consistent light source across the whole page rather than tied to any single
-   section — gallery lighting, not a gradient background. Opacity is intentionally low enough
-   that this should barely register as "purple" on a quick glance, just enough that pure flat
-   black doesn't feel dead. background-attachment:fixed keeps it steady while scroll-snapping
-   between sections instead of jumping section to section. */
 body{
-  background:
-    radial-gradient(ellipse 900px 700px at 12% -8%, rgba(160,107,255,0.055), transparent 60%),
-    radial-gradient(ellipse 1000px 800px at 92% 105%, rgba(160,107,255,0.045), transparent 62%),
-    var(--bg);
-  background-attachment:fixed;
+  background:var(--bg);
   color:var(--text);
   font-family:'Inter',sans-serif;
   line-height:1.6;
@@ -146,13 +143,17 @@ a{ color:inherit; text-decoration:none; }
    single revert if it doesn't land well. See reference/raindrop-v4.html for the original tested
    source. Drop itself stays violet (matches the hero hint and the mobile version) -- only the
    section wash, ghost word, and card are part of the inversion. */
-/* padding-top clears the "WORK" ghost word (~300px tall at this font-size) so the stage sits
-   below it instead of centering through the section's full height and running straight through
-   the ghost -- align-items:center then centers the stage within whatever space is left under
-   that padding, rather than the section's true center. */
+/* padding-top clears the "WORK" ghost word so the stage sits below it instead of centering
+   through the section's full height and running straight through the ghost. 300px is exactly
+   the ghost's own rendered bottom edge (20px top offset + 280px font-size/line-height:1), with
+   no extra buffer added on top of that -- align-items:center then splits whatever space remains
+   below it evenly above/below the card, which is what makes the gap above the card (from the
+   ghost) end up equal to the gap below the card (to the section's bottom edge). Padding any
+   larger than the ghost's actual height would break that symmetry by adding space that only
+   counts on the top side. */
 .work-section{
   position:relative; display:flex; align-items:center; justify-content:center;
-  padding-top:340px;
+  padding-top:300px;
   background:rgba(var(--accent-rgb),0.14);
 }
 /* White instead of the sitewide violet stroke -- against this section's dark violet wash, a
@@ -323,13 +324,13 @@ a{ color:inherit; text-decoration:none; }
 /* --proj-rgb drives the tint, the ring, the corners, the glow, and (via .preview-tag being
    plain white above) is the one thing that changes per project — same treatment otherwise.
    Colors match each project's actual screenshot; Amun stays neutral gray since it has no real
-   screen yet. Both .preview-wrap.KEY (desktop, see above) and plain .preview.KEY (the mobile
-   accordion's own preview element, styled separately further down) need this same rule -- they
-   don't share a common class to hang it on. */
-.preview-wrap.nitefind, .preview.nitefind{ --proj-rgb:176,74,214; }
-.preview-wrap.smiteforge, .preview.smiteforge{ --proj-rgb:224,184,74; }
-.preview-wrap.zentra, .preview.zentra{ --proj-rgb:79,191,130; }
-.preview-wrap.amun, .preview.amun{ --proj-rgb:143,143,143; }
+   screen yet. Both .preview-wrap.KEY (desktop hover preview, above) and .mobile-preview-wrap.KEY
+   (the mobile accordion's single shared preview, set via JS in setMobilePreview()) need this
+   same rule -- they don't share a common class to hang it on. */
+.preview-wrap.nitefind, .mobile-preview-wrap.nitefind{ --proj-rgb:176,74,214; }
+.preview-wrap.smiteforge, .mobile-preview-wrap.smiteforge{ --proj-rgb:224,184,74; }
+.preview-wrap.zentra, .mobile-preview-wrap.zentra{ --proj-rgb:79,191,130; }
+.preview-wrap.amun, .mobile-preview-wrap.amun{ --proj-rgb:143,143,143; }
 
 /* Work section — mobile fallback. The X-layout raindrop animation assumes a desktop-sized
    canvas and doesn't translate below ~700px (nodes overflow the viewport), so under that
@@ -415,21 +416,50 @@ a{ color:inherit; text-decoration:none; }
 }
 
 .work-item-panel{ max-height:0; overflow:hidden; transition:max-height .75s ease; }
-/* 580 (not the old 440) -- the preview stage's top margin grew from 4px to 48px to stop the
-   glow being clipped (see the comment on .work-item-preview-stage below), so the panel needs
-   the matching extra headroom or that same margin change would just clip the button instead. */
-.work-item.open .work-item-panel{ max-height:580px; }
+/* Just the "view project" button now -- the preview used to live inside every panel (see the
+   restructure note above .mobile-preview-wrap below), which needed 580px of headroom. A button
+   alone needs much less. */
+.work-item.open .work-item-panel{ max-height:110px; }
+.work-item-btn{
+  display:inline-block; margin:16px 0 24px; padding:12px 24px; border:1px solid var(--line-strong);
+  font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--text);
+  opacity:0; transition:border-color .3s ease, color .3s ease, opacity .5s ease 1s;
+}
+.work-item-btn:hover, .work-item-btn:focus-visible{ border-color:var(--accent); color:var(--accent); }
+.work-item.open .work-item-btn{ opacity:1; }
 
-/* Fixed portrait width (9:19.5, matching the screenshot crops) centered in the panel, rather
-   than the old full-width landscape strip — a wide box no longer suits a phone-shaped image.
-   Top margin was 4px, which cut the image's box-shadow glow (0 0 50px 6px, needs ~56px to fully
-   fade) down to a hard 4px edge against the panel's overflow:hidden -- it read as the glow
-   getting cut off rather than blending into the section background. 48px gives it real room. */
-.work-item-preview-stage{ position:relative; width:150px; height:325px; margin:48px auto 20px; }
+/* Preview — restructured from one embedded per-item (each .work-item-panel had its own copy)
+   to a single shared element, #mobilePreviewWrap in index.html, positioned independently of the
+   accordion list and never moving. The old per-item version was the actual cause of "the
+   preview screen keeps shifting": each tap opened a DIFFERENT DOM element living inside that
+   particular item's own panel, and since panels above/below it were simultaneously
+   collapsing/expanding, the whole thing visibly relocated between taps even though nothing
+   about a single preview's own position ever changed. Now setMobilePreview()/hideMobilePreview()
+   in main.js just update this one element's content and toggle .active -- its position never
+   changes regardless of what the accordion list around it is doing.
+
+   position:fixed (viewport-centered), not absolute (section-centered) -- tapping a project also
+   triggers recenterOnSettledLayout(), which scrolls so THAT item's header sits at viewport
+   center, and which header that is (and so how far it is from the section's own midpoint)
+   differs per item. A section-relative preview stayed put in the DOCUMENT but visibly drifted
+   away from the header on screen once the recenter scroll landed somewhere that didn't happen
+   to put the section's center at the viewport's center too (confirmed by testing the first vs.
+   the last item in the list -- the last one left the preview floating well above the tapped
+   header instead of centered on it). Fixed positioning ties it to the viewport instead, which
+   is exactly where the recenter scroll always lands. pointer-events:none so it never blocks
+   taps on the header list underneath/around it. */
+.mobile-preview-wrap{ display:none; }
+@media (max-width:700px){
+  .mobile-preview-wrap{
+    display:block;
+    position:fixed; top:50%; left:50%; width:150px; height:325px;
+    transform:translate(-50%,-50%); z-index:20; pointer-events:none;
+  }
+}
 /* Card behind the image, matching the desktop stage-card treatment (dark, rounded, its own
-   depth shadow) -- sits behind .work-item-preview-bloom via DOM order (inserted before it in
-   the JS template), not z-index, since neither needs a stacking context otherwise. Grows in
-   sync with the image reveal so it reads as one materialization, not two. */
+   depth shadow) -- sits behind .work-item-preview-bloom via DOM order (index.html), not
+   z-index, since neither needs a stacking context otherwise. Grows in sync with the image
+   reveal so it reads as one materialization, not two. */
 .work-item-preview-card{
   position:absolute; left:50%; top:50%; width:0; height:0;
   transform:translate(-50%,-50%); opacity:0;
@@ -437,17 +467,25 @@ a{ color:inherit; text-decoration:none; }
   box-shadow:0 24px 60px -16px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.05);
   transition:width .9s cubic-bezier(.19,1,.22,1) .1s, height .9s cubic-bezier(.19,1,.22,1) .1s, opacity .6s ease .1s;
 }
-.work-item.open .work-item-preview-card{ width:calc(100% + 40px); height:calc(100% + 40px); opacity:1; }
+.mobile-preview-wrap.active .work-item-preview-card{ width:calc(100% + 40px); height:calc(100% + 40px); opacity:1; }
+/* Rotating ring, same treatment/keyframe as the desktop hover preview's .preview-ring
+   (previewRingSpin is defined once, globally, alongside that rule -- reused here rather than
+   redefined). Sized down for this smaller box. */
+.mobile-preview-wrap .preview-ring{
+  position:absolute; inset:-11px; border-radius:18px;
+  opacity:0; pointer-events:none; padding:1.5px;
+  background:conic-gradient(from 0deg, transparent 0%, rgba(var(--proj-rgb),0.9) 10%, #fff 18%, rgba(var(--proj-rgb),0.9) 26%, transparent 42%, transparent 100%);
+  -webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor;
+  mask-composite:exclude;
+  transition:opacity .6s ease;
+}
+.mobile-preview-wrap.active .preview-ring{ opacity:1; animation:previewRingSpin 3.2s linear infinite; }
 /* Preview materializes the same way the dropdown does — a clip-path circle expanding from the
-   top-center of its own box (i.e. from where the tapped header sits just above it), not a
-   fade. The transition is only declared once, on the base (closed) rule, so it runs
-   symmetrically: opening plays it forward from the tap, closing plays it in reverse, which is
-   what makes switching projects read as the old preview dissolving back into the point it
-   came from rather than a hard swap or a stack of overlapping previews. The delay on opening
-   only (via the .open override, since that's the rule the browser uses when clip-path is
-   animating toward it) is what makes the reveal feel caused by the tap ripple instead of
-   simultaneous with it. Same corner-tint/bottom-fade/label/glow layers as the desktop preview,
-   sharing --proj-rgb, so the two feel like the same treatment rather than two designs. */
+   top-center of its own box, not a fade. The transition is only declared once, on the base
+   (closed) rule, so it runs symmetrically: opening plays it forward, closing plays it in
+   reverse. Same corner-tint/bottom-fade/label/glow layers as the desktop preview, sharing
+   --proj-rgb, so the two feel like the same treatment rather than two designs. */
 .work-item-preview-bloom{
   position:absolute; inset:0;
   clip-path:circle(0% at 50% 0%); filter:blur(12px); transform:scaleY(0.95);
@@ -470,19 +508,12 @@ a{ color:inherit; text-decoration:none; }
   font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:14px; color:#f4f2ee;
   pointer-events:none;
 }
-.work-item.open .work-item-preview-bloom{
+.mobile-preview-wrap.active .work-item-preview-bloom{
   clip-path:circle(140% at 50% 0%); filter:blur(0); transform:scaleY(1);
   box-shadow:0 0 50px 6px rgba(var(--proj-rgb),0.3);
   transition:clip-path 1.15s cubic-bezier(.19,1,.22,1) .25s, filter .9s ease .25s, transform .95s cubic-bezier(.22,1,.36,1) .25s,
     box-shadow .7s ease .25s;
 }
-.work-item-btn{
-  display:inline-block; margin-bottom:24px; padding:12px 24px; border:1px solid var(--line-strong);
-  font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--text);
-  opacity:0; transition:border-color .3s ease, color .3s ease, opacity .5s ease 1s;
-}
-.work-item-btn:hover, .work-item-btn:focus-visible{ border-color:var(--accent); color:var(--accent); }
-.work-item.open .work-item-btn{ opacity:1; }
 
 @media (prefers-reduced-motion: reduce){
   .work-accordion{
@@ -503,7 +534,7 @@ a{ color:inherit; text-decoration:none; }
     clip-path:none !important; filter:none !important; transform:none !important;
     opacity:0; transition:opacity .3s ease !important;
   }
-  .work-item.open .work-item-preview-bloom{ opacity:1; }
+  .mobile-preview-wrap.active .work-item-preview-bloom{ opacity:1; }
 }
 
 /* About photo — duotone treatment (grayscale + contrast + violet multiply overlay) unchanged,
@@ -522,6 +553,11 @@ a{ color:inherit; text-decoration:none; }
   position:relative; z-index:1; order:2; flex:0 0 34%; max-width:420px; min-width:280px;
   border-radius:4px; overflow:hidden;
 }
+/* <picture> is inline by default -- without this the block-level .about-photo img inside it
+   can't reliably resolve its own width:100%/height:100% against the frame, since picture
+   itself isn't participating in the frame's box the same way a bare <img> did. Just a
+   transparent passthrough the same size as the frame. */
+.about-photo-frame picture{ display:block; width:100%; height:100%; }
 /* object-position shifted from the old 50% 12% (centered, near the very top) -- the source
    photo has the subject off to the right side of frame with his face/neck/chest well below the
    top, so a centered/top-anchored crop was showing mostly empty background wall with just a
@@ -544,12 +580,15 @@ a{ color:inherit; text-decoration:none; }
      and blocking it out completely. This margin gives the ghost room to peek above the frame
      the way it does in every other section instead of being fully covered by an opaque image. */
   .about-photo-frame{ order:-1; width:100%; aspect-ratio:2/1; margin-top:64px; }
-  /* This frame's 2:1 ratio is short/wide relative to the source photo's tall portrait shape,
-     so object-fit:cover always crops top/bottom here and shows the FULL width regardless of
-     the X value -- only the Y value (48%, down from 8%) actually does anything at this
-     breakpoint. 8% was cropped almost entirely above the subject's face; 48% centers the
-     visible band on his neck/chest/face instead. */
-  .about-photo{ object-position:50% 48%; }
+  /* This frame's 2:1 ratio is short/wide relative to the source photo's portrait shape, so
+     object-fit:cover always crops top/bottom here and shows the FULL width regardless of the
+     X value -- only Y does anything at this breakpoint. This is also exactly where the
+     <picture> source in index.html swaps to the dedicated mobile crop (kristian-about-mobile.jpg,
+     already tighter/more centered on him than the desktop photo), so this Y value is tuned for
+     THAT image specifically, not the desktop one: 11% keeps the crop window up near the top of
+     the source -- headroom above his hair down through his shoulders/collar -- rather than
+     cutting through the middle of his face or his crossed arms lower in the frame. */
+  .about-photo{ object-position:50% 11%; }
 }
 @media (max-width:600px){
   /* Aspect ratio inherited from the 900px breakpoint (2/1) rather than going full-square here
@@ -559,11 +598,15 @@ a{ color:inherit; text-decoration:none; }
     border-radius:0;
     width:100vw; margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw);
   }
-  .about-photo{ object-position:50% 48%; }
+  .about-photo{ object-position:50% 11%; }
 }
 
-/* About / Contact now sit inside full-viewport snap sections, centered */
-.about, .contact{ position:relative; display:flex; align-items:center; min-height:100vh; }
+/* About / Contact now sit inside full-viewport snap sections, centered. min-height:100dvh for
+   the same reason as .snap-section above -- these are redundant with that min-height in
+   practice (both are already .snap-section), kept here too since this rule is the one that
+   actually drives the flex centering and should agree with it exactly rather than relying on
+   inheritance from a different selector. */
+.about, .contact{ position:relative; display:flex; align-items:center; min-height:100vh; min-height:100dvh; }
 .about .wrap, .contact .wrap{ position:relative; z-index:2; width:100%; }
 /* Wider than the sitewide 1100px .wrap cap — the photo now takes a real width slice out of
    this row (it didn't when it was absolutely positioned), so the text column needs the extra
@@ -617,11 +660,58 @@ a{ color:inherit; text-decoration:none; }
 .contact{ padding:100px 0 120px; border-top:1px solid var(--line); }
 .contact h2{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:44px; max-width:640px; }
 .contact p{ margin-top:20px; font-size:17px; color:var(--text-dim); max-width:480px; }
+.contact .cta-row{ display:inline-flex; align-items:center; gap:22px; margin-top:40px; }
 .contact .cta{
-  display:inline-block; margin-top:40px; padding:16px 32px; border:1px solid var(--line-strong);
+  display:inline-block; padding:16px 32px; border:1px solid var(--line-strong);
   font-family:'JetBrains Mono',monospace; font-size:14px; transition:border-color .3s ease, color .3s ease;
 }
 .contact .cta:hover, .contact .cta:focus-visible{ border-color:var(--accent); color:var(--accent); }
+
+/* Listening pulse -- an ambient, always-looping cue (not a one-time trigger like the hero/work
+   ripples) meant to read as quiet presence/attentiveness next to the CTA, not speech: a small
+   dot continuously emitting soft rings on a slow "breathing" cadence. Reuses the same visual
+   language as the other rings in the site (thin border, slight blur) rather than inventing a
+   new one. Three rings on a shared 3.6s cycle, staggered by a third of that each (1.2s) so a
+   new one launches just as the previous one is fading -- continuous emission rather than a
+   single ring repeating with a dead gap between beats. Pure CSS (infinite animation) rather than
+   the JS setTimeout-chain the other rings use, since this one never stops/resets the way a
+   triggered reveal does. */
+.listen-pulse{
+  position:relative; flex-shrink:0; width:10px; height:10px;
+  opacity:0; transition:opacity 1s ease;
+}
+.listen-pulse.in-view{ opacity:1; }
+.listen-dot{
+  position:absolute; inset:0; border-radius:50%; background:var(--accent);
+  box-shadow:0 0 8px 2px rgba(var(--accent-rgb),0.6);
+}
+.listen-ring{
+  position:absolute; top:50%; left:50%; width:10px; height:10px;
+  border:1px solid var(--accent); border-radius:50%; filter:blur(0.3px);
+  transform:translate(-50%,-50%); opacity:0;
+  animation:listenPulse 3.6s ease-out infinite;
+}
+.listen-ring.r2{ animation-delay:1.2s; }
+.listen-ring.r3{ animation-delay:2.4s; }
+@keyframes listenPulse{
+  0%{ width:10px; height:10px; opacity:0.5; }
+  70%{ opacity:0; }
+  100%{ width:52px; height:52px; opacity:0; }
+}
+@media (max-width:720px){
+  /* Same cadence, smaller stage -- one ring dropped (r3) rather than three competing for the
+     tighter space next to the button on a narrow screen, and the max ring size scaled down to
+     match. Still reads as the same slow breathing pulse, just sized for the viewport. */
+  .listen-ring.r3{ display:none; }
+  @keyframes listenPulse{
+    0%{ width:8px; height:8px; opacity:0.5; }
+    70%{ opacity:0; }
+    100%{ width:34px; height:34px; opacity:0; }
+  }
+}
+@media (prefers-reduced-motion: reduce){
+  .listen-ring{ animation:none; opacity:0; }
+}
 
 /* Plain-text email fallback for anyone who can't use the button, and LinkedIn/Behance links.
    Icons are hand-drawn line art (thin stroke, no fill except the LinkedIn dot) matching the

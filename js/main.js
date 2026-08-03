@@ -249,6 +249,46 @@ if (accordion) {
   let snapRestoreTimer = null;
   let recenterTimer = null;
 
+  // Single shared preview (see the CSS comment above .mobile-preview-wrap for why this isn't
+  // one-per-item anymore) -- setMobilePreview()/hideMobilePreview() just update this one
+  // element's content and toggle .active, never its position.
+  const mobilePreviewWrap = document.getElementById('mobilePreviewWrap');
+  const mobilePreviewImg = document.getElementById('mobilePreviewImg');
+  const mobilePreviewTag = document.getElementById('mobilePreviewTag');
+  let mobilePreviewSwapTimer = null;
+
+  function setMobilePreview(p, isFreshOpen) {
+    clearTimeout(mobilePreviewSwapTimer);
+    const applyContent = () => {
+      mobilePreviewImg.src = p.img;
+      mobilePreviewImg.alt = p.isPlaceholder ? '' : p.name + ' preview';
+      mobilePreviewTag.textContent = p.name;
+      mobilePreviewWrap.className = 'mobile-preview-wrap active ' + p.key + (p.isPlaceholder ? ' is-placeholder' : '');
+    };
+    if (isFreshOpen) {
+      // Nothing was showing -- play the full bloom-in from scratch.
+      applyContent();
+    } else {
+      // Already open, switching directly to a different project. Replaying the whole
+      // retract-then-rebloom clip-path cycle here would either swap the image while still
+      // partially visible (looks broken) or force an ~1.1s wait before anything happens
+      // (feels sluggish) -- instead, cross-fade just the image/label in place while the
+      // bloom shape/card/ring stay fully expanded throughout, which is closer to how the old
+      // per-item version actually read (two elements animating concurrently) than a hard cut.
+      mobilePreviewImg.style.transition = 'opacity .18s ease';
+      mobilePreviewImg.style.opacity = '0';
+      mobilePreviewSwapTimer = setTimeout(() => {
+        applyContent();
+        mobilePreviewImg.style.opacity = '1';
+      }, 180);
+    }
+  }
+
+  function hideMobilePreview() {
+    clearTimeout(mobilePreviewSwapTimer);
+    mobilePreviewWrap.classList.remove('active');
+  }
+
   // .work-section is display:flex + justify-content:center on mobile (see style.css), which
   // vertically centers whatever the accordion's CURRENT total height is. That's what centers
   // the collapsed list at rest -- but it also means the moment a panel starts growing, the
@@ -260,15 +300,16 @@ if (accordion) {
   // collapsed, which is what made switching between projects "scroll up and down weird" even
   // after the panel-height math itself was fixed. Waiting for the transition to actually
   // finish (RECENTER_DELAY matches .work-item-panel's .75s max-height transition) before
-  // reading positions sidesteps the drift entirely instead of trying to predict it. As a
-  // bonus, `item` (header + panel together, see the .work-item wrapper below) is what should
-  // be centered either way: with a panel open, its rect is the full block; collapsed, it's
-  // just the header -- so opening and closing can share one code path.
+  // reading positions sidesteps the drift entirely instead of trying to predict it. Centers
+  // on the HEADER specifically (not the header+panel block) -- the shared #mobilePreviewWrap
+  // (see style.css) is fixed at the exact viewport center, so centering the tapped header
+  // there too is what keeps the two visually aligned; centering the taller block instead would
+  // leave the header sitting above the preview by roughly half the panel's height.
   const RECENTER_DELAY = 780;
-  function recenterOnSettledLayout(item) {
+  function recenterOnSettledLayout(el) {
     clearTimeout(recenterTimer);
     recenterTimer = setTimeout(() => {
-      const rect = item.getBoundingClientRect();
+      const rect = el.getBoundingClientRect();
       const targetScroll = Math.max(0, window.scrollY + rect.top + rect.height / 2 - window.innerHeight / 2);
 
       // scroll-snap-type:mandatory on <html> blocks smooth scroll animations that leave a
@@ -382,16 +423,11 @@ if (accordion) {
     const panel = document.createElement('div');
     panel.className = 'work-item-panel';
     panel.id = panelId;
-    panel.innerHTML = `
-      <div class="work-item-preview-stage">
-        <div class="work-item-preview-card"></div>
-        <div class="preview ${p.key} work-item-preview-bloom${p.isPlaceholder ? ' is-placeholder' : ''}"><img src="${p.img}" alt="${p.isPlaceholder ? '' : p.name + ' preview'}" loading="lazy"><span class="preview-tag">${p.name}</span></div>
-      </div>
-      <a class="work-item-btn mono" href="${p.href}">view project</a>
-    `;
+    panel.innerHTML = `<a class="work-item-btn mono" href="${p.href}">view project</a>`;
 
     header.addEventListener('click', () => {
       const isOpen = item.classList.contains('open');
+      const wasPreviewActive = mobilePreviewWrap.classList.contains('active');
       accordion.querySelectorAll('.work-item.open').forEach(other => {
         other.classList.remove('open');
         other.querySelector('.work-item-header').setAttribute('aria-expanded', 'false');
@@ -400,24 +436,42 @@ if (accordion) {
         item.classList.add('open');
         header.setAttribute('aria-expanded', 'true');
 
-        // The preview materializes on its own (pure CSS, driven by .open) —
-        // this ripple is purely the visible "cause": it establishes that the
-        // tap is what's generating the reveal below, same relationship the
-        // falling drop has to the dropdown's entrance.
+        // The preview materializes on its own (pure CSS, driven by .active on the shared
+        // #mobilePreviewWrap) — this ripple is purely the visible "cause": it establishes
+        // that the tap is what's generating the reveal, same relationship the falling drop
+        // has to the dropdown's entrance.
         if (!prefersReducedMotion) {
           spawnTapRipple(tapRipple);
         }
+        setMobilePreview(p, !wasPreviewActive);
+      } else {
+        hideMobilePreview();
       }
-      // Recenter on this item either way -- opening it (grown to its full panel height) or
-      // closing it back down to just its header. See recenterOnSettledLayout() below for why
-      // this can't just read positions synchronously here.
-      recenterOnSettledLayout(item);
+      // Recenter on the header either way -- see recenterOnSettledLayout() above for why this
+      // can't just read positions synchronously here, and why it's the header specifically.
+      recenterOnSettledLayout(header);
     });
 
     item.appendChild(header);
     item.appendChild(panel);
     accordion.appendChild(item);
   });
+}
+
+// --- Contact: listening-pulse visibility ---
+// The pulse animation itself is a plain CSS infinite loop (see .listen-ring in style.css) since
+// it never triggers/resets like the hero or work-section ripples do -- the only thing JS needs
+// to do here is fade it in/out with the section, so it isn't burning cycles (and isn't visible
+// mid-fade into the section) while scrolled away.
+const listenPulse = document.getElementById('listenPulse');
+const contactSection = document.getElementById('contact');
+if (listenPulse && contactSection) {
+  const listenObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      listenPulse.classList.toggle('in-view', entry.isIntersecting);
+    });
+  }, { threshold: 0.2 });
+  listenObserver.observe(contactSection);
 }
 
 // Smooth scroll for in-page nav links

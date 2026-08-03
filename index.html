@@ -20,8 +20,8 @@
   <div class="ghost">KRISTIAN</div>
   <div class="eyebrow">// <b>ux/ui_design</b> · product_design · web_experience</div>
   <div class="headline">
-    <div class="l1"><span class="line-inner">Most products don't need more.</span></div>
-    <div class="l3"><span class="line-inner"> They need better decisions.</span></div>
+    <div class="l1"><span class="line-inner">People don't experience your design.</span></div>
+    <div class="l3"><span class="line-inner"> They experience <p>your decisions.</p></span></div>
   </div>
   <p class="sub">Helping businesses navigate complexity through thoughtful strategy, purposeful design, and experiences people naturally understand.</p>
 </section>
@@ -40,6 +40,14 @@
     <div class="impact-glow"></div>
   </div>
   <div class="work-accordion wrap" id="workAccordion"></div>
+  <div class="mobile-preview-wrap" id="mobilePreviewWrap" aria-hidden="true">
+    <div class="work-item-preview-card"></div>
+    <div class="preview-ring"></div>
+    <div class="work-item-preview-bloom" id="mobilePreviewBloom">
+      <img id="mobilePreviewImg" src="" alt="" loading="lazy">
+      <span class="preview-tag" id="mobilePreviewTag"></span>
+    </div>
+  </div>
 </section>
 
 <section id="about" class="snap-section about">
@@ -69,7 +77,10 @@
       </div>
     </div>
     <div class="about-photo-frame">
-      <img src="img/kristian-about.jpg" alt="Kristian Davis" class="about-photo">
+      <picture>
+        <source media="(max-width:900px)" srcset="img/kristian-about-mobile.jpg">
+        <img src="img/kristian-about.jpg" alt="Kristian Davis" class="about-photo">
+      </picture>
     </div>
   </div>
 </section>
@@ -79,7 +90,15 @@
   <div class="wrap">
     <h2>Let's start a conversation.</h2>
     <p>The best projects begin long before the first wireframe. If you're looking for someone who values thoughtful questions, intentional design, and strategic thinking, I'd love to hear what you're building.</p>
-    <a class="cta mono" href="mailto:kdavisdesigns94@gmail.com">start a conversation</a>
+    <div class="cta-row">
+      <span class="listen-pulse" id="listenPulse" aria-hidden="true">
+        <span class="listen-ring r1"></span>
+        <span class="listen-ring r2"></span>
+        <span class="listen-ring r3"></span>
+        <span class="listen-dot"></span>
+      </span>
+      <a class="cta mono" href="mailto:kdavisdesigns94@gmail.com">start a conversation</a>
+    </div>
 
     <div class="contact-group">
       <span class="contact-label mono">email</span>
