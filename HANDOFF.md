@@ -1210,3 +1210,39 @@ delay slot", reintroducing a wipe/mask instead of a fade) -- stop and
 reconsider whether that's really what's being asked, or whether it's this
 agent over-engineering a simple request again. The last five rounds of
 "just this one more tweak" are exactly how this broke down last time.
+
+## MAJOR UPDATE 15 — UPDATE 14 was itself a misread: it IS word-by-word, and it IS a wipe, 2026-08-03
+
+Immediately after UPDATE 14 shipped, the owner corrected it: "Misunderstood.
+Wipe in animation not fade in. Wipe in left to right. One word at a time.
+Longer pause between the two different phrases." So the "reset to the
+simplest version" framing in UPDATE 14 was itself wrong on two counts --
+UPDATE 14's plain per-LINE opacity fade was not what was wanted; word-by-
+word WIPE (which had been built, then deliberately reverted, THREE updates
+earlier at UPDATE 13, in response to what looked at the time like a
+rejection of per-word reveals) was actually correct after all. That
+UPDATE-13 reversion was the actual misread, not the word-by-word structure
+itself.
+
+**What it is now**: word-splitting is back (`<span class="word">`,
+built once in `main.js` from each line's plain text, exactly like the
+UPDATE-11/12 versions). Each `.word` gets the `--reveal` mask-sweep
+technique (real WIPE, not opacity/blur/transform) -- `style.css`,
+`.hero .headline .word`, `opacity .8s ease` / `--reveal .9s
+cubic-bezier(.45,0,.2,1)`. `main.js` has two constants:
+`WORD_STAGGER = 0.3` (gap between each word's own wipe starting, applied
+uniformly -- including straight through the line 1/2 wrap inside phrase 2,
+no special case there) and `PHRASE_PAUSE = 1.2` (a clearly LONGER gap,
+inserted only once, between line 0 finishing its words and line 1's first
+word starting -- that's the one real "different kind of pause" in this
+version, and it's deliberate, not a bug). Current per-word delays: line 0
+words at 0/.3/.6/.9/1.2s, then "They" at 2.7s (1.2s pause + the normal .3s
+increment), "experience"/"your"/"decisions." following at .3s apart
+through 3.6s.
+
+**The actual lesson, updated**: don't assume a prior "this was rejected,
+don't bring it back" note (like UPDATE 13's) is permanently true either --
+re-verify against what's being asked THIS turn, same as every other note
+in this file. A rejection of one specific past IMPLEMENTATION (which had
+its own particular timing/style problems) is not necessarily a rejection
+of the underlying STRUCTURE (per-word reveal) that implementation used.

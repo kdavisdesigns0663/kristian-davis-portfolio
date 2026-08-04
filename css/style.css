@@ -110,16 +110,26 @@ a{ color:inherit; text-decoration:none; }
   .hero .sub{ margin-left:0; margin-top:40px; }
 }
 
-/* Hero headline: every line fades in with the exact same opacity transition -- one animation
-   style, no exceptions. Earlier versions tried a per-word stagger, then a left-to-right mask-wipe
-   sweep, then different speeds for different lines/sentences -- all of that kept drifting and
-   reading as inconsistent across rounds of tuning. This is deliberately the simplest version:
-   plain opacity 0 -> 1, same 2s duration and easing for every line, staggered purely via
-   transition-delay in main.js (line N's delay = N * that same 2s). Keep it this simple unless
-   there's a specific reason to special-case a particular line again. */
+/* Hero headline: reveals word by word, each word its own left-to-right WIPE, not a fade -- the
+   owner corrected an earlier "fading in" description back to "wipe in... one word at a time"
+   explicitly. --reveal drives a soft-edged mask band that travels across each WORD as it appears
+   (not the whole line at once), so every word visibly materializes left-to-right in sequence.
+   Needs @property below to animate --reveal smoothly; browsers without @property support just
+   skip the sweep and fall back to a plain (still per-word-timed) opacity fade. Lines themselves
+   (.headline > div) don't animate anything -- they're just containers; every word inside is what
+   actually transitions. See main.js for the per-word stagger and the longer pause between the
+   two phrases. */
 .hero .headline .line-inner{ display:block; }
-.hero .headline > div{ opacity:0; transition:opacity 2s ease; }
-.hero .headline > div.placed{ opacity:1; }
+.hero .headline .word{
+  display:inline-block;
+  --reveal:0%;
+  opacity:0;
+  -webkit-mask-image:linear-gradient(90deg, #000 0%, #000 var(--reveal), transparent calc(var(--reveal) + 25%), transparent 100%);
+  mask-image:linear-gradient(90deg, #000 0%, #000 var(--reveal), transparent calc(var(--reveal) + 25%), transparent 100%);
+  transition:opacity 0.8s ease, --reveal 0.9s cubic-bezier(.45,0,.2,1);
+}
+.hero .headline .word.placed{ opacity:1; --reveal:100%; }
+@property --reveal{ syntax:'<percentage>'; inherits:false; initial-value:0%; }
 
 /* Ghost word gets a deliberately quieter treatment than the headline lines -- a plain slow
    fade up to its normal resting opacity, no blur/bounce/wobble -- so it reads as a backdrop

@@ -1,27 +1,49 @@
-// --- Hero: headline lines fade in, one at a time, in reading order. ---
-// Deliberately the simplest version of this effect after several rounds of increasingly fiddly
-// variants (per-word staggering, a mask-sweep wipe, different speeds for different sentences,
-// different pauses between different lines) that kept drifting and reading as inconsistent.
-// ONE rule now, no exceptions: every line uses the exact same opacity transition (see
-// style.css), and line N's delay is simply N * LINE_DURATION -- each line fades fully in before
-// the next one starts, slow and fluid, same pace throughout. If this needs to change again,
-// change LINE_DURATION (or add a separate GAP if lines should pause between each other instead
-// of one continuous cadence) -- don't reintroduce per-line/per-sentence special cases without a
-// specific reason; that's exactly what made this hard to reason about before.
-// Fires once via IntersectionObserver (hero is the first section, so this effectively means "on
-// load") and never resets — this is not a scroll-repeat effect like the work-section ripple.
+// --- Hero: headline reveals one WORD at a time, each word its own left-to-right WIPE (not a
+// fade -- see .word/--reveal in style.css). Markup is 3 lines forming 2 PHRASES: "People don't
+// experience your design." (line 0) then "They experience" / "your decisions." (lines 1-2, one
+// phrase split across two lines purely for layout). Each line's plain text is split into
+// individual <span class="word"> elements here, then revealed left to right with a steady
+// per-word stagger (WORD_STAGGER) -- including straight across the line 1/2 wrap, so "experience"
+// and "your" are just two more words in the same steady rhythm, not a special case. The one real
+// break in that rhythm is PHRASE_PAUSE, a deliberately LONGER pause inserted only between line 0
+// and line 1 -- that boundary is an actual change of phrase, not just a layout line-wrap, so it
+// gets a clearly longer gap than the word-to-word stagger, not the same one. Fires once via
+// IntersectionObserver (hero is the first section, so this effectively means "on load") and
+// never resets — this is not a scroll-repeat effect like the work-section ripple.
 const heroSection = document.getElementById('hero');
 if (heroSection) {
   const heroLines = heroSection.querySelectorAll('.headline > div');
-  const LINE_DURATION = 2; // slow, fluid fade -- identical for every line
+  const WORD_STAGGER = 0.3; // gap between each word's own wipe starting
+  const PHRASE_PAUSE = 1.2; // gap between the two phrases -- clearly longer than WORD_STAGGER
+
+  // Build the word spans once up front (not inside playHeroReveal) -- the DOM structure doesn't
+  // need to wait for the reveal to actually fire, only the .placed/delay assignment does.
+  const lineWords = Array.prototype.map.call(heroLines, line => {
+    const inner = line.querySelector('.line-inner');
+    const words = inner.textContent.trim().split(/\s+/);
+    inner.textContent = '';
+    return words.map((word, i) => {
+      const span = document.createElement('span');
+      span.className = 'word';
+      span.textContent = word;
+      inner.appendChild(span);
+      if (i < words.length - 1) inner.appendChild(document.createTextNode(' '));
+      return span;
+    });
+  });
 
   let heroPlayed = false;
   function playHeroReveal() {
     if (heroPlayed) return;
     heroPlayed = true;
-    heroLines.forEach((line, i) => {
-      line.style.transitionDelay = (i * LINE_DURATION) + 's';
-      line.classList.add('placed');
+    let delay = 0;
+    lineWords.forEach((words, lineIndex) => {
+      if (lineIndex === 1) delay += PHRASE_PAUSE; // the only real phrase boundary
+      words.forEach(word => {
+        word.style.transitionDelay = delay + 's';
+        word.classList.add('placed');
+        delay += WORD_STAGGER;
+      });
     });
     heroSection.classList.add('revealed');
   }
