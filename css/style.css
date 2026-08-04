@@ -111,9 +111,22 @@ a{ color:inherit; text-decoration:none; }
 .hero .headline .line-inner{ display:block; }
 .hero .headline > div{
   --reveal:0%;
+  /* width:fit-content is load-bearing for the timing, not cosmetic. As full-width blocks every
+     line's box was the same width regardless of its text, so a --reveal sweep of 0->100% always
+     travelled that same distance -- meaning a short line finished uncovering its letters early
+     and then spent the rest of its duration sweeping empty space. That dead time was different
+     per line, which is what made the pacing read as uneven. Shrink-wrapped, 100% is exactly the
+     end of the text, so duration maps 1:1 to distance travelled and main.js can hold the sweep
+     speed constant. Verified this shifts no glyph: the boxes are left-aligned with no background
+     or border, so narrowing them leaves every line's left edge exactly where it was. */
+  width:fit-content;
   opacity:0;
-  -webkit-mask-image:linear-gradient(90deg, #000 0%, #000 var(--reveal), transparent calc(var(--reveal) + 22%), transparent 100%);
-  mask-image:linear-gradient(90deg, #000 0%, #000 var(--reveal), transparent calc(var(--reveal) + 22%), transparent 100%);
+  /* Soft edge in em, not the % it used to be: a percentage of a shrink-wrapped box would make the
+     fade physically narrower on short lines, so the same constant sweep speed would read as
+     "faster" there. An em ties it to the line's own type size instead, staying proportional to
+     the letters it's passing over. */
+  -webkit-mask-image:linear-gradient(90deg, #000 0%, #000 var(--reveal), transparent calc(var(--reveal) + 1.8em), transparent 100%);
+  mask-image:linear-gradient(90deg, #000 0%, #000 var(--reveal), transparent calc(var(--reveal) + 1.8em), transparent 100%);
   transition:opacity 0.15s ease, --reveal 2s linear;
 }
 .hero .headline > div.placed{ opacity:1; --reveal:100%; }
@@ -136,12 +149,13 @@ a{ color:inherit; text-decoration:none; }
   position:relative; display:flex; align-items:center; justify-content:center;
   padding-top:300px;
 }
-/* Black-to-violet wash expanding from a clip-path circle, shared by Work (origin = the raindrop
-   impact) and Contact (origin = the listening pulse, which has no raindrop of its own). A real
-   element rather than a ::before so JS can set --bloom-x/--bloom-y and toggle .bloomed — see
-   triggerSectionBloom() in main.js. The transition is declared ONLY on .bloomed, so adding the
-   class animates over 4.5s but removing it snaps back instantly — the sitewide "reset is instant,
-   only the reveal animates" pattern, same trick .drop-wrap's falling/impact classes use. */
+/* Black-to-violet wash expanding from a clip-path circle, originating at the raindrop's impact
+   point. Work only — Contact deliberately stays plain black with the CTA pulse as its single
+   moving element, so don't extend this there again without asking. A real element rather than a
+   ::before so JS can set --bloom-x/--bloom-y and toggle .bloomed — see triggerSectionBloom() in
+   main.js. The transition is declared ONLY on .bloomed, so adding the class animates over 4.5s
+   but removing it snaps back instantly — the sitewide "reset is instant, only the reveal
+   animates" pattern, same trick .drop-wrap's falling/impact classes use. */
 .section-bloom{
   position:absolute; inset:0; z-index:-1; pointer-events:none;
   background:rgba(var(--accent-rgb), 0.14);
@@ -594,11 +608,9 @@ a{ color:inherit; text-decoration:none; }
 .contact-social svg{ width:24px; height:24px; }
 
 @media (max-width:720px){
-  /* No background bloom at this width — the pulse carries the "something alive here" job alone,
-     made larger and brighter to read as a clear focal point instead of sharing attention with a
-     section-wide wash. Cadence (3.6s cycle, 70% fade, 1.2s stagger) is untouched; only size and
-     alpha change. Dropping r3 is about ring COUNT in tighter space, separate from that. */
-  .contact .section-bloom{ display:none; }
+  /* Larger and brighter on a small screen so the pulse still reads as a deliberate focal point.
+     Cadence (3.6s cycle, 70% fade point, 1.2s ring stagger) is untouched — only size and alpha
+     change. Dropping r3 is about ring COUNT in tighter space, separate from that. */
   .listen-pulse{ width:16px; height:16px; }
   .listen-ring{ --ring-from:16px; --ring-to:64px; --ring-alpha:0.75; }
   .listen-ring.r3{ display:none; }

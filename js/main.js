@@ -21,8 +21,17 @@
 const heroSection = document.getElementById('hero');
 if (heroSection) {
   const heroLines = heroSection.querySelectorAll('.headline > div');
-  const CHAR_RATE = 0.08; // seconds per character -- drives each line's own sweep duration
-  const PHRASE_PAUSE = 1.2; // gap between phrases -- clearly longer than a normal same-phrase chain
+  // Seconds per PIXEL of sweep, not per character. Character count was the old basis and it made
+  // the speed inconsistent: the mask travels the line box's width, but every box was the same
+  // full-container width, so a 12-character line got a short duration for exactly the same
+  // distance a 23-character line crossed -- measured at 428 / 820 / 639 / 639 px per second
+  // across the four lines. Pixels are what the eye actually reads as speed, so pacing off them
+  // makes all four identical by construction, and it self-adjusts at every breakpoint (narrower
+  // viewport -> shorter lines -> proportionally shorter durations, same speed) with no per-
+  // breakpoint tuning. ~556px/s here lands the full sequence at the same ~6.4s total the old
+  // timing had, and sits mid-range of the speeds it used to swing between.
+  const PX_RATE = 0.0018;
+  const PHRASE_PAUSE = 1.2; // the ONE deliberate gap: between the two sentences, nowhere else
 
   let heroPlayed = false;
   function playHeroReveal() {
@@ -35,7 +44,8 @@ if (heroSection) {
       // would otherwise make every line after the first look "different" from the one before it
       // once .placed is mixed into the className string).
       const phrase = line.classList.contains('l3') ? 'l3' : 'l1';
-      const duration = line.textContent.trim().length * CHAR_RATE;
+      // Measured after layout, so it already accounts for font, viewport and any wrapping.
+      const duration = line.getBoundingClientRect().width * PX_RATE;
       if (prevPhrase !== null && phrase !== prevPhrase) delay += PHRASE_PAUSE; // real phrase change
       line.style.transitionDelay = delay + 's';
       // Two values, matching the CSS `transition` list order (opacity, then --reveal) --
@@ -476,28 +486,20 @@ if (pillsWrap && pillsContainer) {
   }
 }
 
-// --- Contact: listening-pulse visibility + background bloom ---
+// --- Contact: listening-pulse visibility ---
+// Contact's background is plain black -- the pulse by the CTA is deliberately the only moving
+// thing in the section. (It briefly had a section-wide violet bloom like Work's, and before that
+// its own raindrop stage; both were removed on purpose. Don't reintroduce either without asking.)
 // The pulse animation itself is a plain CSS infinite loop (see .listen-ring in style.css) since
-// it never triggers/resets like the hero or work-section ripples do -- the only thing JS needs
-// to do here is fade it in/out with the section, so it isn't burning cycles (and isn't visible
-// mid-fade into the section) while scrolled away. The background bloom (see triggerSectionBloom
-// above) rides the exact same observer/threshold as the pulse itself -- tied to its trigger
-// timing, not a separate one -- and originates from the pulse's own on-screen position, computed
-// fresh each time in case the CTA row has reflowed (e.g. a viewport resize) since the last entry.
-// (Contact briefly had its own raindrop stage instead of this -- reverted; the pulse-driven
-// bloom is the intended treatment here, not a stand-in for one.)
+// it never triggers/resets like the hero or work-section ripples do -- the only thing JS does
+// here is fade it in/out with the section, so it isn't burning cycles (and isn't visible
+// mid-fade into the section) while scrolled away.
 const listenPulse = document.getElementById('listenPulse');
 const contactSection = document.getElementById('contact');
-const contactBloomEl = document.getElementById('contactBloom');
 if (listenPulse && contactSection) {
   const listenObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       listenPulse.classList.toggle('in-view', entry.isIntersecting);
-      if (entry.isIntersecting) {
-        triggerSectionBloom(contactSection, contactBloomEl, listenPulse);
-      } else {
-        resetSectionBloom(contactBloomEl);
-      }
     });
   }, { threshold: 0.2 });
   listenObserver.observe(contactSection);
