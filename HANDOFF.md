@@ -1130,3 +1130,19 @@ If tuning again: three knobs now, `SENTENCE1_RATE`, `SENTENCE2_RATE`,
 -- both it and the two rates are fair game depending on what's actually
 being asked for. Read the request rather than assuming a prior "don't
 touch X" note still applies.
+
+**Third same-day follow-up**: added `OPENING_DELAY` (0.4s) before line 0
+starts -- previously it fired the instant `playHeroReveal()` ran, which
+read as too abrupt on load. `SENTENCE_PAUSE` shortened again, `0.4s ->
+0.2s`, so sentence 2 starts even sooner after sentence 1 finishes. Current
+full timeline: line 0 at 0.4s/6.0s, line 1 at 6.6s/1.6s, line 2 at
+8.2s/1.6s.
+Also: `.hero .headline .l3`'s vertical spacing was tightened --
+`line-height:1.15 -> 1.0` AND `margin-top:18px -> 6px` (desktop),
+`margin-top:12px -> 4px` (mobile). Both had to move together -- at this
+font-size (100px desktop), most of the visible gap between "They
+experience" and "your decisions." was the font's own internal leading
+from `line-height:1.15` (a 115px-tall line box around a ~100px glyph),
+not the margin itself; cutting margin-top alone would barely have moved
+the actual visual gap. Measured directly (`getBoundingClientRect` on both
+`.l3` elements): 18px gap before, 6px after.

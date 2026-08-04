@@ -19,15 +19,18 @@
 const heroSection = document.getElementById('hero');
 if (heroSection) {
   const heroLines = heroSection.querySelectorAll('.headline > div');
+  const OPENING_DELAY = 0.4; // a small beat before line 0 starts, so the reveal doesn't feel
+                              // like it's firing the instant the page loads
   const SENTENCE1_RATE = 1.2;
   const SENTENCE2_RATE = 0.8;
-  const SENTENCE_PAUSE = 0.4;
+  const SENTENCE_PAUSE = 0.2; // shortened again -- sentence 2 should start sooner after
+                               // sentence 1 finishes than the previous tuning had it
 
   let heroPlayed = false;
   function playHeroReveal() {
     if (heroPlayed) return;
     heroPlayed = true;
-    let delay = 0;
+    let delay = OPENING_DELAY;
     heroLines.forEach((line, i) => {
       const wordCount = line.textContent.trim().split(/\s+/).length;
       const rate = i === 0 ? SENTENCE1_RATE : SENTENCE2_RATE;
