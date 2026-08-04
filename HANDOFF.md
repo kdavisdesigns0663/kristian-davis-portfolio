@@ -1177,3 +1177,36 @@ a permanent rule -- read what's being asked for THIS turn. "Style" and
 "speed" are separate knobs on this effect (mask-wipe technique vs.
 duration/rate), and a request about one doesn't imply anything about the
 other.
+
+## MAJOR UPDATE 14 — hero reveal RESET to the simplest possible version; ignore the mask-wipe/per-sentence-rate detail above, 2026-08-03
+
+Everything above this point about the hero headline reveal (word-splitting,
+the `--reveal` mask-sweep, `SENTENCE1_RATE`/`SENTENCE2_RATE`,
+`SENTENCE_PAUSE`, `OPENING_DELAY`) is **gone**. None of it exists in the
+code anymore. Owner feedback, verbatim: "Something isn't working right for
+the hero text. You keep switching the animations on the hero text." That
+was accurate -- five straight rounds of increasingly fiddly tuning (see
+everything above) had drifted into genuinely inconsistent, hard-to-reason-
+about behavior. The fix was not another tuning pass; it was throwing out
+all the special-casing and rebuilding the simplest version that satisfies
+the actual, stable requirement: **one animation style, same for every
+line, appearing sequentially, slow and fluid.**
+
+**What it is now**: `.hero .headline > div` is a plain `opacity:0 -> 1`
+transition, `2s ease`, IDENTICAL for all 3 lines -- no mask-image, no
+`--reveal` custom property, no `@property`. In `main.js`,
+`playHeroReveal()` sets each line's `transitionDelay` to `i * LINE_DURATION`
+(0s, 2s, 4s) and adds `.placed` -- that's the entire mechanism. No word-
+splitting, no per-sentence branching, no chained-delay math for a line
+wrapping mid-sentence. Every line behaves identically; sentence 1 vs.
+sentence 2 is not a concept the code knows about anymore.
+
+**If asked to tune this again**: there is exactly one knob,
+`LINE_DURATION` in `main.js` (currently `2`, controls both how long each
+line's own fade takes AND the gap before the next line starts, since
+delay is derived directly from it). Before adding ANY new distinction
+(a different rate for one line, a pause that isn't just "the next line's
+delay slot", reintroducing a wipe/mask instead of a fade) -- stop and
+reconsider whether that's really what's being asked, or whether it's this
+agent over-engineering a simple request again. The last five rounds of
+"just this one more tweak" are exactly how this broke down last time.

@@ -1,49 +1,27 @@
-// --- Hero: headline reveals as one continuous left-to-right wipe per SENTENCE, not per word.
-// Tried a per-word staggered wipe first -- reads as separate discrete reveals starting at
-// different times rather than one continuous motion, which is explicitly the wrong feel here.
-// Markup is 3 lines forming 2 SENTENCES: "People don't experience your design." (line 0, its own
-// sentence) then "They experience" / "your decisions." (lines 1-2, one sentence split across two
-// lines purely for layout, not meaning). Each LINE gets one --reveal mask sweep (see style.css),
-// same as the very first version of this effect -- but sentence 2's two lines need to read as ONE
-// uninterrupted sweep across the wrap point despite being two separate DOM elements, so line 2's
-// delay is set to start EXACTLY when line 1's own wipe finishes (delay + duration, zero gap)
-// instead of getting its own independent delay. Both sentences use the SAME mask-wipe technique
-// (that's the shared "animation style"), but sentence 2 plays back FASTER than sentence 1
-// (SENTENCE2_RATE < SENTENCE1_RATE) and starts almost immediately after it (SENTENCE_PAUSE is
-// tiny) -- speed and style are separate knobs here, don't conflate "make it match sentence 1"
-// requests with "make it play at the same rate" ones. Each line's transition-duration is
-// computed from its own word count (wordCount * that sentence's rate) rather than one flat
-// duration for every line, so a short line doesn't drag and a long one doesn't feel rushed.
+// --- Hero: headline lines fade in, one at a time, in reading order. ---
+// Deliberately the simplest version of this effect after several rounds of increasingly fiddly
+// variants (per-word staggering, a mask-sweep wipe, different speeds for different sentences,
+// different pauses between different lines) that kept drifting and reading as inconsistent.
+// ONE rule now, no exceptions: every line uses the exact same opacity transition (see
+// style.css), and line N's delay is simply N * LINE_DURATION -- each line fades fully in before
+// the next one starts, slow and fluid, same pace throughout. If this needs to change again,
+// change LINE_DURATION (or add a separate GAP if lines should pause between each other instead
+// of one continuous cadence) -- don't reintroduce per-line/per-sentence special cases without a
+// specific reason; that's exactly what made this hard to reason about before.
 // Fires once via IntersectionObserver (hero is the first section, so this effectively means "on
 // load") and never resets — this is not a scroll-repeat effect like the work-section ripple.
 const heroSection = document.getElementById('hero');
 if (heroSection) {
   const heroLines = heroSection.querySelectorAll('.headline > div');
-  const OPENING_DELAY = 0.4; // a small beat before line 0 starts, so the reveal doesn't feel
-                              // like it's firing the instant the page loads
-  const SENTENCE1_RATE = 1.2; // "People don't experience your design." -- unchanged, slow/weighty
-  const SENTENCE2_RATE = 0.5; // "They experience your decisions." -- faster than sentence 1 again;
-                                // an earlier version unified both sentences at 1.2s/word ("copy
-                                // sentence 1's STYLE"), but sentence 2 also needs to appear
-                                // faster than that once it starts -- style (the mask-wipe
-                                // technique) stayed shared, only the per-word SPEED differs again
-  const SENTENCE_PAUSE = 0.05; // near-immediate -- sentence 2 should start right as sentence 1
-                                 // finishes, not after a perceptible gap
+  const LINE_DURATION = 2; // slow, fluid fade -- identical for every line
 
   let heroPlayed = false;
   function playHeroReveal() {
     if (heroPlayed) return;
     heroPlayed = true;
-    let delay = OPENING_DELAY;
     heroLines.forEach((line, i) => {
-      const wordCount = line.textContent.trim().split(/\s+/).length;
-      const duration = wordCount * (i === 0 ? SENTENCE1_RATE : SENTENCE2_RATE);
-      if (i === 1) delay += SENTENCE_PAUSE; // the only real sentence boundary
-      line.style.transitionDelay = delay + 's';
-      line.style.transitionDuration = duration + 's';
+      line.style.transitionDelay = (i * LINE_DURATION) + 's';
       line.classList.add('placed');
-      delay += duration; // a line continuing the SAME sentence starts exactly when this one
-                          // finishes -- zero gap, reads as one continuous sweep across the wrap
     });
     heroSection.classList.add('revealed');
   }
