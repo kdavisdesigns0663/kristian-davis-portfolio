@@ -1318,3 +1318,25 @@ not still catching up.
 If tuning again and "hiccup"/"stutter" complaints come back: check
 `transition-timing-function` first, not just delay/duration -- an eased
 curve on the sweep property is the specific thing that caused this.
+
+**Same-day follow-up: hero markup edited directly by the owner (not this
+agent), JS adapted to match.** `index.html`'s headline went from 3 lines
+(1 for sentence 1, 2 for sentence 2) to 4 (2 lines each): "People don't
+experience" / "your design." are now both `.l1`, alongside the existing
+"They experience" / "your decisions." `.l3` pair. `playHeroReveal()` in
+`main.js` used to hardcode the phrase boundary at line INDEX 1
+(`if (i === 1) delay += PHRASE_PAUSE`) -- with a 2+2 structure that would
+have inserted the pause in the wrong place (after line 1, i.e. mid-
+sentence-1, instead of between the two phrases). Fixed by reading phrase
+membership from each line's own class (`.l1` vs `.l3`) and inserting
+`PHRASE_PAUSE` only where that class actually CHANGES between consecutive
+lines, rather than a hardcoded index -- this now works regardless of how
+many lines are in each phrase, so a future markup edit like this one
+shouldn't need a JS change to match. (Reads the class via
+`classList.contains('l3')`, not the raw `className` string, specifically
+because `className` picks up `.placed` as lines are processed and would
+make every already-processed line look "different" from a same-phrase
+line that hasn't been processed yet.)
+No CSS changes were needed -- `.l1`'s existing line-height already gives
+reasonable spacing between the two `.l1` lines with no visible overlap
+or awkward gap; verified via screenshot, not just assumed.

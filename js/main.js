@@ -1,35 +1,42 @@
 // --- Hero: headline reveals as ONE continuous left-to-right WIPE per LINE -- letters flow past
 // the reveal edge in a single fluid motion, not word-by-word pulses. A per-word version of this
-// (each word its own separate --reveal sweep, chained with zero time-gap) was tried right before
-// this -- the timing had no gap, but each word was still its own independent masked element, so
-// the reveal edge visually JUMPED from the end of one word to the start of the next instead of
-// continuously advancing through the space between them. Read as discrete pauses even with zero
-// delay between them. A single mask sweep across the WHOLE LINE has no such jump -- the edge
-// moves through every character, including spaces, at a steady rate. Markup is 3 lines forming 2
-// PHRASES: "People don't experience your design." (line 0) then "They experience" / "your
-// decisions." (lines 1-2, one phrase split across two lines purely for layout). Line 2's delay
-// starts EXACTLY when line 1's own sweep finishes (zero gap) so phrase 2 reads as one continuous
-// motion straight through its own line wrap, same as within a single line. Each line's duration
-// is its own character count * CHAR_RATE, so the sweep speed (not just total time) stays
-// consistent across lines of different lengths. The one real break in the motion is PHRASE_PAUSE,
-// a deliberately longer pause inserted only between line 0 and line 1 -- an actual change of
-// phrase, not just a line wrap. Fires once via IntersectionObserver (hero is the first section,
-// so this effectively means "on load") and never resets — this is not a scroll-repeat effect
-// like the work-section ripple.
+// (each word its own separate --reveal sweep, chained with zero time-gap) was tried and rejected
+// -- even with no time-gap, each word was still its own independent masked element, so the reveal
+// edge visually JUMPED from the end of one word to the start of the next instead of continuously
+// advancing through the space between them. A single mask sweep across a WHOLE LINE has no such
+// jump -- the edge moves through every character, including spaces, at a steady rate.
+// Markup is however many `.headline > div` lines make up each PHRASE (currently 2 lines for
+// "People don't experience" / "your design.", 2 more for "They experience" / "your decisions." --
+// this used to be 1+2 lines; the owner edited the HTML directly to make it 2+2, so phrase
+// membership is read from each line's own class (.l1 vs .l3) rather than a hardcoded line index,
+// specifically so this doesn't silently break again if the line count per phrase changes). Lines
+// sharing a phrase chain with ZERO gap (next line's delay = this line's delay + its own duration)
+// so a multi-line phrase reads as one continuous sweep straight through its own line wrap, same
+// as within a single line. The one real break in that flow is PHRASE_PAUSE, a deliberately longer
+// pause inserted only where the phrase class actually changes -- an actual change of phrase, not
+// just a line wrap. Each line's duration is its own character count * CHAR_RATE, so the sweep
+// SPEED (not just total time) stays consistent across lines of different lengths. Fires once via
+// IntersectionObserver (hero is the first section, so this effectively means "on load") and never
+// resets — this is not a scroll-repeat effect like the work-section ripple.
 const heroSection = document.getElementById('hero');
 if (heroSection) {
   const heroLines = heroSection.querySelectorAll('.headline > div');
   const CHAR_RATE = 0.08; // seconds per character -- drives each line's own sweep duration
-  const PHRASE_PAUSE = 1.2; // gap between the two phrases -- clearly longer than a normal line chain
+  const PHRASE_PAUSE = 1.2; // gap between phrases -- clearly longer than a normal same-phrase chain
 
   let heroPlayed = false;
   function playHeroReveal() {
     if (heroPlayed) return;
     heroPlayed = true;
     let delay = 0;
-    heroLines.forEach((line, i) => {
+    let prevPhrase = null;
+    heroLines.forEach((line) => {
+      // Read phrase membership from the class itself (not classList.add('placed') below, which
+      // would otherwise make every line after the first look "different" from the one before it
+      // once .placed is mixed into the className string).
+      const phrase = line.classList.contains('l3') ? 'l3' : 'l1';
       const duration = line.textContent.trim().length * CHAR_RATE;
-      if (i === 1) delay += PHRASE_PAUSE; // the only real phrase boundary
+      if (prevPhrase !== null && phrase !== prevPhrase) delay += PHRASE_PAUSE; // real phrase change
       line.style.transitionDelay = delay + 's';
       // Two values, matching the CSS `transition` list order (opacity, then --reveal) --
       // opacity keeps its fixed fast 0.15s from style.css, only --reveal's duration is
@@ -39,6 +46,7 @@ if (heroSection) {
       line.classList.add('placed');
       delay += duration; // a line continuing the SAME phrase starts exactly when this one
                           // finishes -- zero gap, one continuous motion across the wrap
+      prevPhrase = phrase;
     });
     heroSection.classList.add('revealed');
   }
