@@ -117,8 +117,10 @@ a{ color:inherit; text-decoration:none; }
    Needs @property below to animate --reveal smoothly; browsers without @property support just
    skip the sweep and fall back to a plain (still per-word-timed) opacity fade. Lines themselves
    (.headline > div) don't animate anything -- they're just containers; every word inside is what
-   actually transitions. See main.js for the per-word stagger and the longer pause between the
-   two phrases. */
+   actually transitions. transition-duration below is only a fallback -- main.js sets it per word
+   (character count * a fixed rate) so longer words visibly take longer to "write" than short
+   ones, meant to read like natural handwriting pace rather than a metronome. See main.js for the
+   per-word chaining and the longer pause between the two phrases. */
 .hero .headline .line-inner{ display:block; }
 .hero .headline .word{
   display:inline-block;

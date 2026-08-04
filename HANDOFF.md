@@ -1246,3 +1246,20 @@ re-verify against what's being asked THIS turn, same as every other note
 in this file. A rejection of one specific past IMPLEMENTATION (which had
 its own particular timing/style problems) is not necessarily a rejection
 of the underlying STRUCTURE (per-word reveal) that implementation used.
+
+**Same-day follow-up**: word-to-word timing changed from a fixed
+`WORD_STAGGER` (flat 0.3s gap for every word regardless of length) to
+`CHAR_RATE` (0.08s/character) -- each word's own wipe duration is now
+`word.length * CHAR_RATE`, and the next word's delay is that word's delay
++ its own duration (zero gap, fully chained, not just a shorter fixed
+gap). Explicit request: make the words "flow onto the screen as if you're
+writing them," like natural handwriting pace, where a long word
+("experience", 0.8s) visibly takes longer than a short one ("your",
+0.32s) instead of every word taking the same fixed time. The wipe visual
+style itself (--reveal mask-sweep) and `PHRASE_PAUSE` (1.2s, between the
+two phrases) are both unchanged -- this only touched the word-to-word
+rhythm within each phrase.
+If tuning again: `CHAR_RATE` is the one knob for word-flow speed now,
+`PHRASE_PAUSE` is the separate knob for the gap between phrases. Don't
+reintroduce a flat per-word stagger -- character-proportional + zero-gap
+chaining is specifically what "handwriting" pacing meant here.

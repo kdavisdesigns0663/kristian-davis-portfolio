@@ -1,20 +1,26 @@
 // --- Hero: headline reveals one WORD at a time, each word its own left-to-right WIPE (not a
-// fade -- see .word/--reveal in style.css). Markup is 3 lines forming 2 PHRASES: "People don't
-// experience your design." (line 0) then "They experience" / "your decisions." (lines 1-2, one
-// phrase split across two lines purely for layout). Each line's plain text is split into
-// individual <span class="word"> elements here, then revealed left to right with a steady
-// per-word stagger (WORD_STAGGER) -- including straight across the line 1/2 wrap, so "experience"
-// and "your" are just two more words in the same steady rhythm, not a special case. The one real
-// break in that rhythm is PHRASE_PAUSE, a deliberately LONGER pause inserted only between line 0
-// and line 1 -- that boundary is an actual change of phrase, not just a layout line-wrap, so it
-// gets a clearly longer gap than the word-to-word stagger, not the same one. Fires once via
-// IntersectionObserver (hero is the first section, so this effectively means "on load") and
+// fade -- see .word/--reveal in style.css, unchanged). Markup is 3 lines forming 2 PHRASES:
+// "People don't experience your design." (line 0) then "They experience" / "your decisions."
+// (lines 1-2, one phrase split across two lines purely for layout). Each line's plain text is
+// split into individual <span class="word"> elements here, then revealed left to right, one
+// flowing straight into the next with NO gap between them (next word's delay = this word's delay
+// + its own duration) -- meant to read like the words are being written, not like a metronome
+// ticking through a fixed stagger. To sell that, each word's own wipe DURATION is proportional to
+// its character count (CHAR_RATE seconds/char) instead of every word taking the same fixed time
+// regardless of length -- "experience" visibly takes longer to "write" than "your" does, the way
+// actual handwriting speed varies with how much there is to write, not just how many words there
+// are. This applies straight across the line 1/2 wrap inside phrase 2 too, so "experience" and
+// "your" are just two more words in the same continuous flow, not a special case. The one real
+// break in that flow is PHRASE_PAUSE, a deliberately LONGER pause inserted only between line 0
+// and line 1 -- that boundary is an actual change of phrase (a pen lift, not just a line wrap),
+// so it gets a clearly longer gap than the word-to-word chaining, not the same rhythm. Fires once
+// via IntersectionObserver (hero is the first section, so this effectively means "on load") and
 // never resets — this is not a scroll-repeat effect like the work-section ripple.
 const heroSection = document.getElementById('hero');
 if (heroSection) {
   const heroLines = heroSection.querySelectorAll('.headline > div');
-  const WORD_STAGGER = 0.3; // gap between each word's own wipe starting
-  const PHRASE_PAUSE = 1.2; // gap between the two phrases -- clearly longer than WORD_STAGGER
+  const CHAR_RATE = 0.08; // seconds per character -- drives each word's own wipe duration
+  const PHRASE_PAUSE = 1.2; // gap between the two phrases -- clearly longer than any word-to-word gap
 
   // Build the word spans once up front (not inside playHeroReveal) -- the DOM structure doesn't
   // need to wait for the reveal to actually fire, only the .placed/delay assignment does.
@@ -40,9 +46,11 @@ if (heroSection) {
     lineWords.forEach((words, lineIndex) => {
       if (lineIndex === 1) delay += PHRASE_PAUSE; // the only real phrase boundary
       words.forEach(word => {
+        const duration = word.textContent.length * CHAR_RATE;
         word.style.transitionDelay = delay + 's';
+        word.style.transitionDuration = duration + 's';
         word.classList.add('placed');
-        delay += WORD_STAGGER;
+        delay += duration; // next word starts the instant this one finishes -- continuous flow
       });
     });
     heroSection.classList.add('revealed');
