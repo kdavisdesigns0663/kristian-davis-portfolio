@@ -1158,3 +1158,22 @@ If tuning again: `OPENING_DELAY`, `REVEAL_RATE`, `SENTENCE_PAUSE` -- back
 to three simple knobs, one shared rate for the whole headline again. Don't
 reintroduce a per-sentence rate split without being asked; that was tried
 and explicitly undone this update.
+
+**Fifth same-day follow-up**: the per-sentence rate split IS back --
+`REVEAL_RATE` split into `SENTENCE1_RATE` (1.2, unchanged) and
+`SENTENCE2_RATE` (0.5, new) because the owner then asked for "they
+experience your decisions" specifically to "start appearing faster."
+Worth understanding why this isn't a contradiction of the previous
+entry's advice: "copy sentence 1's animation STYLE" (satisfied by both
+sentences sharing the same mask-wipe technique, unchanged) is a different
+axis from "play at the same SPEED" (which this follow-up explicitly
+undoes). `SENTENCE_PAUSE` also dropped further, `0.1s -> 0.05s`, for a
+near-immediate start after sentence 1. Current full timeline: line 0 at
+0.4s/6.0s (unchanged), line 1 at 6.45s/1.0s, line 2 at 7.45s/1.0s (still
+zero gap from line 1) -- sentence 2 now finishes at 8.45s total, down
+from 11.3s before this follow-up.
+The actual lesson here: don't treat any single prior note in this file as
+a permanent rule -- read what's being asked for THIS turn. "Style" and
+"speed" are separate knobs on this effect (mask-wipe technique vs.
+duration/rate), and a request about one doesn't imply anything about the
+other.

@@ -7,22 +7,28 @@
 // same as the very first version of this effect -- but sentence 2's two lines need to read as ONE
 // uninterrupted sweep across the wrap point despite being two separate DOM elements, so line 2's
 // delay is set to start EXACTLY when line 1's own wipe finishes (delay + duration, zero gap)
-// instead of getting its own independent delay. Both sentences share the SAME REVEAL_RATE (an
-// earlier version gave sentence 1 a slower rate than sentence 2; that distinction is gone --
-// sentence 2 now copies sentence 1's own animation style exactly, same speed per word). Each
-// line's transition-duration is still computed from its own word count (wordCount * REVEAL_RATE)
-// rather than one flat duration for every line, so a short line doesn't drag and a long one
-// doesn't feel rushed. Fires once via IntersectionObserver (hero is the first section, so this
-// effectively means "on load") and never resets — this is not a scroll-repeat effect like the
-// work-section ripple.
+// instead of getting its own independent delay. Both sentences use the SAME mask-wipe technique
+// (that's the shared "animation style"), but sentence 2 plays back FASTER than sentence 1
+// (SENTENCE2_RATE < SENTENCE1_RATE) and starts almost immediately after it (SENTENCE_PAUSE is
+// tiny) -- speed and style are separate knobs here, don't conflate "make it match sentence 1"
+// requests with "make it play at the same rate" ones. Each line's transition-duration is
+// computed from its own word count (wordCount * that sentence's rate) rather than one flat
+// duration for every line, so a short line doesn't drag and a long one doesn't feel rushed.
+// Fires once via IntersectionObserver (hero is the first section, so this effectively means "on
+// load") and never resets — this is not a scroll-repeat effect like the work-section ripple.
 const heroSection = document.getElementById('hero');
 if (heroSection) {
   const heroLines = heroSection.querySelectorAll('.headline > div');
   const OPENING_DELAY = 0.4; // a small beat before line 0 starts, so the reveal doesn't feel
                               // like it's firing the instant the page loads
-  const REVEAL_RATE = 1.2; // shared by both sentences now -- sentence 2 copies sentence 1's pace
-  const SENTENCE_PAUSE = 0.1; // shortened again -- sentence 2 should start sooner after
-                                // sentence 1 finishes than the previous tuning had it
+  const SENTENCE1_RATE = 1.2; // "People don't experience your design." -- unchanged, slow/weighty
+  const SENTENCE2_RATE = 0.5; // "They experience your decisions." -- faster than sentence 1 again;
+                                // an earlier version unified both sentences at 1.2s/word ("copy
+                                // sentence 1's STYLE"), but sentence 2 also needs to appear
+                                // faster than that once it starts -- style (the mask-wipe
+                                // technique) stayed shared, only the per-word SPEED differs again
+  const SENTENCE_PAUSE = 0.05; // near-immediate -- sentence 2 should start right as sentence 1
+                                 // finishes, not after a perceptible gap
 
   let heroPlayed = false;
   function playHeroReveal() {
@@ -31,7 +37,7 @@ if (heroSection) {
     let delay = OPENING_DELAY;
     heroLines.forEach((line, i) => {
       const wordCount = line.textContent.trim().split(/\s+/).length;
-      const duration = wordCount * REVEAL_RATE;
+      const duration = wordCount * (i === 0 ? SENTENCE1_RATE : SENTENCE2_RATE);
       if (i === 1) delay += SENTENCE_PAUSE; // the only real sentence boundary
       line.style.transitionDelay = delay + 's';
       line.style.transitionDuration = duration + 's';
