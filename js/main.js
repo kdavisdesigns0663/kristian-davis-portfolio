@@ -1,57 +1,40 @@
-// --- Hero: headline reveals one WORD at a time, each word its own left-to-right WIPE (not a
-// fade -- see .word/--reveal in style.css, unchanged). Markup is 3 lines forming 2 PHRASES:
-// "People don't experience your design." (line 0) then "They experience" / "your decisions."
-// (lines 1-2, one phrase split across two lines purely for layout). Each line's plain text is
-// split into individual <span class="word"> elements here, then revealed left to right, one
-// flowing straight into the next with NO gap between them (next word's delay = this word's delay
-// + its own duration) -- meant to read like the words are being written, not like a metronome
-// ticking through a fixed stagger. To sell that, each word's own wipe DURATION is proportional to
-// its character count (CHAR_RATE seconds/char) instead of every word taking the same fixed time
-// regardless of length -- "experience" visibly takes longer to "write" than "your" does, the way
-// actual handwriting speed varies with how much there is to write, not just how many words there
-// are. This applies straight across the line 1/2 wrap inside phrase 2 too, so "experience" and
-// "your" are just two more words in the same continuous flow, not a special case. The one real
-// break in that flow is PHRASE_PAUSE, a deliberately LONGER pause inserted only between line 0
-// and line 1 -- that boundary is an actual change of phrase (a pen lift, not just a line wrap),
-// so it gets a clearly longer gap than the word-to-word chaining, not the same rhythm. Fires once
-// via IntersectionObserver (hero is the first section, so this effectively means "on load") and
-// never resets — this is not a scroll-repeat effect like the work-section ripple.
+// --- Hero: headline reveals as ONE continuous left-to-right WIPE per LINE -- letters flow past
+// the reveal edge in a single fluid motion, not word-by-word pulses. A per-word version of this
+// (each word its own separate --reveal sweep, chained with zero time-gap) was tried right before
+// this -- the timing had no gap, but each word was still its own independent masked element, so
+// the reveal edge visually JUMPED from the end of one word to the start of the next instead of
+// continuously advancing through the space between them. Read as discrete pauses even with zero
+// delay between them. A single mask sweep across the WHOLE LINE has no such jump -- the edge
+// moves through every character, including spaces, at a steady rate. Markup is 3 lines forming 2
+// PHRASES: "People don't experience your design." (line 0) then "They experience" / "your
+// decisions." (lines 1-2, one phrase split across two lines purely for layout). Line 2's delay
+// starts EXACTLY when line 1's own sweep finishes (zero gap) so phrase 2 reads as one continuous
+// motion straight through its own line wrap, same as within a single line. Each line's duration
+// is its own character count * CHAR_RATE, so the sweep speed (not just total time) stays
+// consistent across lines of different lengths. The one real break in the motion is PHRASE_PAUSE,
+// a deliberately longer pause inserted only between line 0 and line 1 -- an actual change of
+// phrase, not just a line wrap. Fires once via IntersectionObserver (hero is the first section,
+// so this effectively means "on load") and never resets — this is not a scroll-repeat effect
+// like the work-section ripple.
 const heroSection = document.getElementById('hero');
 if (heroSection) {
   const heroLines = heroSection.querySelectorAll('.headline > div');
-  const CHAR_RATE = 0.08; // seconds per character -- drives each word's own wipe duration
-  const PHRASE_PAUSE = 1.2; // gap between the two phrases -- clearly longer than any word-to-word gap
-
-  // Build the word spans once up front (not inside playHeroReveal) -- the DOM structure doesn't
-  // need to wait for the reveal to actually fire, only the .placed/delay assignment does.
-  const lineWords = Array.prototype.map.call(heroLines, line => {
-    const inner = line.querySelector('.line-inner');
-    const words = inner.textContent.trim().split(/\s+/);
-    inner.textContent = '';
-    return words.map((word, i) => {
-      const span = document.createElement('span');
-      span.className = 'word';
-      span.textContent = word;
-      inner.appendChild(span);
-      if (i < words.length - 1) inner.appendChild(document.createTextNode(' '));
-      return span;
-    });
-  });
+  const CHAR_RATE = 0.08; // seconds per character -- drives each line's own sweep duration
+  const PHRASE_PAUSE = 1.2; // gap between the two phrases -- clearly longer than a normal line chain
 
   let heroPlayed = false;
   function playHeroReveal() {
     if (heroPlayed) return;
     heroPlayed = true;
     let delay = 0;
-    lineWords.forEach((words, lineIndex) => {
-      if (lineIndex === 1) delay += PHRASE_PAUSE; // the only real phrase boundary
-      words.forEach(word => {
-        const duration = word.textContent.length * CHAR_RATE;
-        word.style.transitionDelay = delay + 's';
-        word.style.transitionDuration = duration + 's';
-        word.classList.add('placed');
-        delay += duration; // next word starts the instant this one finishes -- continuous flow
-      });
+    heroLines.forEach((line, i) => {
+      const duration = line.textContent.trim().length * CHAR_RATE;
+      if (i === 1) delay += PHRASE_PAUSE; // the only real phrase boundary
+      line.style.transitionDelay = delay + 's';
+      line.style.transitionDuration = duration + 's';
+      line.classList.add('placed');
+      delay += duration; // a line continuing the SAME phrase starts exactly when this one
+                          // finishes -- zero gap, one continuous motion across the wrap
     });
     heroSection.classList.add('revealed');
   }

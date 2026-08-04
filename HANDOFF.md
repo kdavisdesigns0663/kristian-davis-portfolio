@@ -1263,3 +1263,32 @@ If tuning again: `CHAR_RATE` is the one knob for word-flow speed now,
 `PHRASE_PAUSE` is the separate knob for the gap between phrases. Don't
 reintroduce a flat per-word stagger -- character-proportional + zero-gap
 chaining is specifically what "handwriting" pacing meant here.
+
+**Immediate same-day correction**: word-splitting is GONE again. Owner
+feedback: "It is now being displayed in the correct order [the phrase
+sequencing/pacing was right]. Instead of pauses between words appearing
+we want one fluid motion of letters appearing." The per-word version
+(`<span class="word">`, chained with zero TIME-gap) still had a visible
+discontinuity: each word was its own independently-masked element, so the
+reveal edge visually JUMPED from the end of one word to the start of the
+next instead of continuously sliding through the space between them --
+zero time-gap doesn't mean zero visual-jump.
+Fix: back to a single `--reveal` mask sweep per LINE (not per word) --
+same technique UPDATE 13 used, this time with each line's duration set to
+`line.textContent.length * CHAR_RATE` (character count, not word count,
+for finer proportionality) instead of a flat per-line value. The edge now
+moves continuously through every character AND the spaces between words,
+which is what actually reads as "one fluid motion of letters appearing."
+`PHRASE_PAUSE` (1.2s) and the zero-gap chain between line 1 and line 2
+(so phrase 2 is one continuous sweep across its own line wrap) are both
+unchanged. Current timeline: line 0 at 0s/2.88s (36 chars), line 1 at
+4.08s/1.2s (15 chars, after the phrase pause), line 2 at 5.28s/1.2s
+(15 chars, zero gap from line 1).
+**Pattern worth naming explicitly**: this is the second time a per-word
+version got built, then reverted back to per-line, for two DIFFERENT
+underlying reasons (UPDATE 13: felt structurally disconnected; this time:
+zero-gap chaining still isn't the same as zero visual discontinuity for
+independently-masked elements). If a per-word request comes up again,
+the mask-jump problem described here is the specific technical reason
+per-word reveals struggle to read as "fluid" with this --reveal
+technique -- worth explaining rather than re-discovering by trial again.
