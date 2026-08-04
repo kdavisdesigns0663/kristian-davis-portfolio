@@ -69,9 +69,16 @@ a{ color:inherit; text-decoration:none; }
 }
 @media (max-width:900px){ .ghost{ font-size:110px; top:10px; } }
 
-/* Hero — matches reference/hero-pattern.html. Update that file too if these change. */
-.hero{ position:relative; padding:80px 64px 180px; min-height:820px; }
-.hero .eyebrow{ position:relative; z-index:2; padding-top:260px; font-family:var(--font-mono); font-size:15px; margin-left:24px; color:var(--text-dim); }
+/* Hero — content (eyebrow/headline/sub) is vertically centered in the full section height, not
+   top-anchored with padding. nav and .ghost are both position:absolute (see below), which takes
+   them out of flow entirely, so making .hero a flex column only affects the three actual content
+   elements -- no wrapper div needed just to centre a subset of the section's children.
+   eyebrow's old padding-top:260px existed purely to clear the nav under the old top-anchored
+   layout; centred content doesn't need it; removed rather than left as dead space above the
+   eyebrow now. min-height keeps a floor on very short viewports so centring still has visible
+   content to centre rather than collapsing toward the section's own min-content size. */
+.hero{ position:relative; display:flex; flex-direction:column; justify-content:center; padding:40px 64px; min-height:820px; }
+.hero .eyebrow{ position:relative; z-index:2; font-family:var(--font-mono); font-size:15px; margin-left:24px; color:var(--text-dim); }
 .hero .eyebrow b{ color:var(--accent); font-weight:500; }
 .hero .headline{ position:relative; z-index:2; margin-top:32px; margin-left:24px; }
 .hero .headline .l1{ font-family:var(--font-display); font-weight:700; font-size:76px; line-height:1.15; color:var(--text); }
@@ -80,20 +87,20 @@ a{ color:inherit; text-decoration:none; }
 .hero .headline .l3{ font-family:var(--font-display); font-weight:700; font-size:100px; line-height:1.0; color:var(--accent); margin-left:56px; margin-top:6px; }
 .hero .sub{ position:relative; z-index:2; margin-top:76px; margin-left:400px; max-width:440px; font-size:15px; line-height:1.7; color:var(--text-dim); padding-left:24px; border-left:2px solid var(--accent); }
 /* Ghost fades in plainly (no blur/bounce) so it reads as a backdrop settling in behind the text,
-   not part of the headline's reveal. top overrides the base .ghost 20px because nav now sits at
-   hero's own top edge — the base value put the ghost behind it instead of below it. Declared
-   before the breakpoint below, which lowers it further; both have equal specificity, so source
-   order is what decides. */
-.hero .ghost{ top:118px; opacity:0; transition:opacity 2.8s ease; }
+   not part of the headline's reveal. top:50% + translateY(-50%) (not a fixed px value like the
+   rest of this site's ghost words use) is what keeps it centred on the SAME point the content
+   column now centres on -- content moved from top-anchored to vertically centred, and a fixed
+   top offset here would have left the ghost sitting in the old top-anchored position while the
+   actual text moved away from it underneath. */
+.hero .ghost{ top:50%; transform:translateY(-50%); opacity:0; transition:opacity 2.8s ease; }
 .hero.revealed .ghost{ opacity:0.35; }
 @media (max-width:900px){
-  .hero{ padding:60px 24px 130px; }
-  .hero .eyebrow{ padding-top:120px; margin-left:0; }
+  .hero{ padding:24px; }
+  .hero .eyebrow{ margin-left:0; }
   .hero .headline{ margin-left:0; margin-top:26px; }
   .hero .headline .l1{ font-size:30px; }
   .hero .headline .l3{ font-size:38px; margin-left:20px; margin-top:4px; }
   .hero .sub{ margin-left:0; margin-top:40px; }
-  .hero .ghost{ top:96px; }
 }
 
 /* Each headline LINE wipes in as one continuous left-to-right sweep. A per-word version was
@@ -365,39 +372,43 @@ a{ color:inherit; text-decoration:none; }
    There's exactly one drop per visit, not one per tap: playMobileEntrance() in main.js fires it,
    and everything after — the pills, then the default first preview — is revealed by that same
    impact, so it reads as caused by the drop rather than materializing independently. */
-.work-pills-wrap, .work-mobile-stage, .mobile-preview-wrap, .mobile-preview-copy{ display:none; }
+.work-mobile-fixed, .work-mobile-stage, .mobile-preview-wrap, .mobile-preview-copy{ display:none; }
 @media (max-width:700px){
   .ripple-stage{ display:none; }
-  /* The three blocks (pills / preview / copy) are ONE centred flex column in normal flow, so they
-     move together as a unit and stay put relative to the section.
-     They used to be positioned independently: the pills absolute inside the section, the preview
-     and copy position:fixed to the viewport, tied together only by matching calc(50% + 187px)
-     offsets. That only lined up when the section happened to sit exactly at the viewport -- and
-     mobile deliberately uses scroll-snap proximity (a soft snap you can rest between), so it
-     usually didn't. Measured mid-scroll, the pills passed straight through the pinned image at
-     every offset from 400px out to 50px, which is what was slicing them in half. In flow, the
-     browser guarantees the stacking instead, and the magic 187px constants are gone with it.
-     padding-top clears the "WORK" ghost word (110px tall at this breakpoint, 10px from the top)
-     so the column starts below it rather than centring through it. */
-  .work-section{
-    flex-direction:column; justify-content:center; gap:26px;
-    padding:150px 24px 40px;
+  /* Pills / preview / copy are genuinely PINNED to the viewport while #work is in view -- not
+     in normal document flow. A prior version put them in flow instead (one flex column, scrolling
+     with the page) specifically to fix pills getting covered by the preview image; that traded one
+     bug for a different regression: in-flow content scrolls BY DEFINITION, so the "stay stationary
+     while you're in this section" behavior (the actual original goal) was gone, not fixed.
+     This version keeps the stationary behavior AND fixes the covering bug: all three are children
+     of ONE fixed, centred container (.work-mobile-fixed) instead of three independently
+     `position:fixed` elements tied together by matching calc(50% + 187px) offsets that only lined
+     up when the section happened to sit exactly at the viewport edge (mobile's scroll-snap is
+     `proximity`, a soft snap you can rest between, so that assumption regularly broke — measured
+     the pills passing straight through the pinned image at several mid-scroll offsets). With one
+     fixed parent and a normal flex column INSIDE it, the browser's own layout guarantees the pills
+     sit above the preview with no overlap, the same way it would for in-flow content — the
+     difference is the whole bundle is fixed to the viewport, not the document.
+     .in-view is toggled by main.js (an IntersectionObserver on #work, not CSS) so this hides
+     itself once the section actually leaves the viewport instead of floating over About/Contact
+     — see the comment above that observer in main.js for why threshold:0/rootMargin:-2px. */
+  .work-mobile-fixed.in-view{
+    display:flex; flex-direction:column; align-items:center; gap:16px;
+    position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+    z-index:4; width:100%; max-width:400px; padding:0 24px; text-align:center;
   }
   .work-pills-wrap{
-    display:flex; flex-direction:column; align-items:center; gap:16px;
-    width:100%; text-align:center;
+    width:100%;
     clip-path:circle(0% at 50% 50%); filter:blur(6px); transform:scaleY(0.97);
     transition:clip-path 1.6s cubic-bezier(.19,1,.22,1), filter .9s ease, transform 1s cubic-bezier(.22,1,.36,1);
   }
   .work-pills-wrap.revealed{ clip-path:circle(150% at 50% 50%); filter:blur(0); transform:scaleY(1); }
-  /* 2x2 grid rather than flex-wrap. Wrapping packed as many as fit per row, which with these four
-     labels meant a lopsided 3 + 1. A fixed two-column grid is symmetric regardless of how long
-     any single project name is, and equal-width cells keep the four reading as one set of
-     controls rather than four differently-sized tags. */
-  .work-pills{
-    display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px;
-    width:min(100%, 300px);
-  }
+  /* One row, not a grid — the fixed container has no section padding to fight for room now, and a
+     single line reads as one clear set of controls sitting cleanly above the preview instead of
+     stacking two rows between it and the preview underneath. .work-pill's padding/font-size below
+     are sized specifically so all four labels fit one line inside the 400px-wide fixed container; see
+     that rule for the actual measurement this was tuned against. */
+  .work-pills{ display:flex; flex-wrap:wrap; justify-content:center; gap:8px; }
   /* Zero-size anchor centered on the section, so the drop falls to the true centre of the screen
      regardless of where in-flow content sits. Single play, never reset. */
   .work-mobile-stage{ position:absolute; top:50%; left:50%; width:0; height:0; overflow:visible; display:block; z-index:3; pointer-events:none; }
@@ -414,41 +425,33 @@ a{ color:inherit; text-decoration:none; }
   /* One shared preview element whose content swaps per pill, rather than one embedded per item.
      (The earlier accordion embedded a copy per item — that was the real cause of "the preview
      keeps shifting": each tap revealed a DIFFERENT element inside that item's own panel while
-     panels around it were expanding and collapsing.) position:relative both keeps it in the
-     column's flow and gives the card/ring/bloom inside it a containing block. flex:none stops
-     the flex column from squashing its fixed 325px height on short viewports.
-     pointer-events:none so the image and its glow never swallow a tap meant for a pill. */
+     panels around it were expanding and collapsing.) position:relative gives the card/ring/bloom
+     inside it a containing block to anchor to. pointer-events:none so the image and its glow
+     never swallow a tap meant for a pill. */
   .mobile-preview-wrap{
-    display:block; position:relative; flex:none;
+    display:block; position:relative;
     width:150px; height:325px; z-index:1; pointer-events:none;
   }
   /* A sibling of the wrap rather than nested inside it, precisely because that wrap is
      pointer-events:none and this link has to stay tappable. */
   .mobile-preview-copy{
-    display:block; width:min(84vw, 320px); text-align:center;
+    display:block; width:100%; text-align:center;
     opacity:0; transition:opacity .6s ease;
   }
   .mobile-preview-copy.active{ opacity:1; }
-}
-/* Short viewports (iPhone SE and similar, roughly <=700px tall) can't fit the normal mobile
-   stack — measured 733px of content (150px top padding + pills + 2x26px gaps + the fixed 325px
-   preview + copy text/button + 40px bottom padding) against a 667px viewport, which cut the
-   "view project" button off below the fold with no visual cue that scrolling further within the
-   section would reveal it. Tightens the same properties rather than introducing new ones; 135px
-   top padding (not less) still clears the mobile ghost word's own ~120px height with a little
-   room to spare. Preview shrinks 150x325 -> 130x281, keeping its aspect ratio rather than just
-   its height, so the phone-screenshot crop doesn't look squashed. */
-@media (max-width:700px) and (max-height:700px){
-  .work-section{ padding:135px 24px 24px; gap:16px; }
-  .mobile-preview-wrap{ width:130px; height:281px; }
 }
 
 /* .work-pills' own layout lives in the max-width:700px block above -- it only ever renders there
    (its wrapper is display:none otherwise), and a base rule here would sit AFTER that block and
    silently override it at equal specificity. */
+/* padding/font-size tuned down from an earlier 9px 18px/12px specifically so all four labels
+   ("Nitefind", "SmiteForge", "Zentra", "Amun") fit on one row inside the fixed container's
+   400px max-width without wrapping to a second line — measured ~305px total for all four plus
+   gaps at this sizing, against ~352px of usable width once the container's own padding is
+   subtracted. */
 .work-pill{
-  padding:9px 18px; border:1px solid var(--line-strong); border-radius:999px;
-  background:none; font-family:var(--font-mono); font-size:12px; color:var(--text-dim);
+  padding:7px 14px; border:1px solid var(--line-strong); border-radius:999px;
+  background:none; font-family:var(--font-mono); font-size:11px; color:var(--text-dim);
   cursor:pointer; opacity:0; transform:scale(0.85);
   transition:opacity .7s ease, transform .8s cubic-bezier(.22,1,.36,1),
     color .3s ease, border-color .3s ease, background .3s ease, box-shadow .3s ease;

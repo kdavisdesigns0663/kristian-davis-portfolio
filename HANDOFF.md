@@ -1402,3 +1402,105 @@ tuning for it. Revisit only if real traffic data says otherwise.
 what was asked and enlarging it changes the pills' visual proportions —
 flagged here as a real judgment call for the owner, not silently decided
 either way.
+
+## MAJOR UPDATE 17 — mobile work section genuinely stationary (not just non-overlapping); hero vertically centered, slower + delayed reveal, 2026-08-04
+
+**Correction to UPDATE 16, same day.** The owner pointed out UPDATE 16
+fixed the wrong problem: it stopped the pills/preview from overlapping
+by putting them in normal document flow, but normal-flow content
+scrolls with the page BY DEFINITION -- the actual original ask ("stay
+in place in the work section") meant genuinely stationary/pinned while
+#work is in view, which in-flow content structurally cannot be.
+
+**Fix**: `#workPillsWrap`, `#mobilePreviewWrap`, and `#mobilePreviewCopy`
+are now children of one new wrapper, `#workMobileFixed` (see
+`index.html`), which is `position:fixed` and centred on the viewport
+(`top:50%; left:50%; transform:translate(-50%,-50%)`). The three
+children lay out via a normal flex column INSIDE that fixed parent, so
+the browser's own layout still guarantees zero overlap between them --
+same mechanism as UPDATE 16, just applied inside a fixed container
+instead of the page's own flow. `.work-mobile-fixed.in-view` is the
+actual display:none->flex switch, toggled by a new
+`fixedVisibilityObserver` in `main.js` (an `IntersectionObserver` on
+`#work`, `threshold:0`, `rootMargin:-2px` for the same edge-touching
+boundary case documented elsewhere in this file) -- this is what hides
+the whole stack once `#work` actually leaves the viewport, so it
+doesn't hang there over About/Contact.
+**Verified**: read `#workMobileFixed`'s `getBoundingClientRect()` at five
+different scroll positions with snap disabled -- `top`/`left` were
+byte-identical at every one, confirming it's genuinely pinned, not just
+non-overlapping.
+**Also changed**: pills went from a 2x2 grid to a single row (explicit
+request) -- `.work-pill` padding/font-size (9px 18px/12px -> 7px 14px/11px)
+so all four labels fit one line inside the fixed container's 400px
+max-width; verified via measured pill widths (~305px total vs ~352px
+usable). The `max-height:700px` short-viewport override from UPDATE 16
+is gone -- fixed+centred content needs roughly half its own height of
+clearance above and below, which the shorter single-row pills comfortably
+give it on every viewport tested, so the extra breakpoint tier is no
+longer necessary.
+**A real bug this surfaced and fixed**: `entranceObserver`'s mobile-only
+gate used to read `getComputedStyle(pillsWrap).display`, which stopped
+working once `.work-pills-wrap`'s own visibility became dependent on its
+ANCESTOR's runtime `.in-view` class -- that check could read "block" on
+desktop or "none" on mobile depending on which observer's callback
+happened to run first, a real race condition. Replaced with a direct
+`window.matchMedia('(max-width:700px)').matches` check, which answers
+the breakpoint question with no dependency on any other observer's
+timing.
+
+**Hero, same session**: three more changes on top of the existing
+PX_RATE/PHRASE_PAUSE sweep mechanism (unchanged in structure, see the
+prior MAJOR UPDATEs above for how that works):
+- `OPENING_DELAY = 1` (`main.js`) -- a full second of stillness before
+  line 0 starts, so the reveal doesn't fire the instant the page loads.
+- `PX_RATE` raised again, `0.003 -> 0.0045` (222px/s, was 556px/s
+  originally) -- slower, more deliberate sweep, per explicit "make it
+  cinematic" feedback.
+- `.hero` is now `display:flex; flex-direction:column;
+  justify-content:center;` instead of top-anchored via
+  `padding:80px 64px 180px`. nav and `.ghost` are both
+  `position:absolute` already, so they're unaffected by this -- only
+  eyebrow/headline/sub (the actual flex children) recentre. `.eyebrow`'s
+  old `padding-top:260px` (which existed purely to clear the nav under
+  the old top-anchored layout) is removed entirely rather than left as
+  dead space above now-centred content. `.hero .ghost` moved from a
+  fixed `top:118px` to `top:50%; transform:translateY(-50%)` so it
+  centres on the SAME point the content column now does, instead of
+  staying pinned to where the old top-anchored content used to sit.
+  Verified via direct measurement: hero section's vertical centre and
+  the content block's (eyebrow-top to sub-bottom) vertical centre are
+  literally identical (0px difference) at 1440x900.
+
+**Also worth recording — a large duplicate/stale task list arrived
+mid-session** repeating several items from much earlier `HANDOFF`
+entries (missing `#workBloom`/`#contactBloom`, orphaned `.cta-row`,
+dead `#workAccordion` markup, mobile pulse prominence, raindrop
+sink-in, hero phrase-pause tightening). All of those were verified
+against the CURRENT files, not assumed from memory, and found to
+already be resolved or no longer applicable:
+- `#workBloom` exists and works; `#workAccordion` doesn't exist anywhere.
+- `.cta-row` exists in both `index.html` and `style.css`, correctly
+  matched -- not orphaned.
+- `#contactBloom` genuinely does not exist anywhere (HTML, CSS, or JS)
+  -- but this is because Contact's bloom was deliberately removed in a
+  prior session, not because it's missing by accident. The current code
+  comment states outright: "Contact's background is plain black -- the
+  pulse by the CTA is deliberately the only moving thing in the
+  section." Re-adding a Contact bloom was NOT done here, since that
+  would reverse a deliberate, documented decision rather than fix a
+  bug -- flagging this explicitly rather than guessing which way to
+  resolve the contradiction.
+- Mobile listen-pulse prominence (larger ring, higher opacity, same
+  cadence) is already implemented (`--ring-from`/`--ring-to`/
+  `--ring-alpha` custom properties under the mobile breakpoint).
+- Raindrop impact is already `scale(1.4, 0.15)` with `translateY` and a
+  delayed `glowFadeDelay` -- matches the "sink in, not splat" spec
+  exactly.
+- Hero phrase-pause tightening (continuation lines flow with no gap,
+  real pause only between separate sentences) is already the current
+  mechanism (`PHRASE_PAUSE` only added when the `.l1`/`.l3` class
+  changes between consecutive lines).
+If this list resurfaces again, check current file state before acting
+on it -- most of it describes a snapshot of this codebase from well
+before this session's other changes.

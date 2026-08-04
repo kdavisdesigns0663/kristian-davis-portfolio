@@ -28,16 +28,21 @@ if (heroSection) {
   // across the four lines. Pixels are what the eye actually reads as speed, so pacing off them
   // makes all four identical by construction, and it self-adjusts at every breakpoint (narrower
   // viewport -> shorter lines -> proportionally shorter durations, same speed) with no per-
-  // breakpoint tuning. ~556px/s here lands the full sequence at the same ~6.4s total the old
-  // timing had, and sits mid-range of the speeds it used to swing between.
-  const PX_RATE = 0.0018;
+  // breakpoint tuning. The sequencing (order, phrase pause placement) was already right -- this
+  // only slows the sweep itself, ~222px/s now (was 556px/s originally, 333px/s one tuning pass
+  // ago) for a more deliberate, cinematic pace; total sequence time scales up with it since later
+  // starts are still chained off earlier durations, not held to a fixed clock.
+  const PX_RATE = 0.0045;
   const PHRASE_PAUSE = 1.2; // the ONE deliberate gap: between the two sentences, nowhere else
+  const OPENING_DELAY = 1; // a beat of stillness before line 0 starts -- without it the reveal
+                            // fires the instant the page loads, which read as motion starting
+                            // too abruptly rather than settling in first.
 
   let heroPlayed = false;
   function playHeroReveal() {
     if (heroPlayed) return;
     heroPlayed = true;
-    let delay = 0;
+    let delay = OPENING_DELAY;
     let prevPhrase = null;
     heroLines.forEach((line) => {
       // Read phrase membership from the class itself (not classList.add('placed') below, which
@@ -316,6 +321,7 @@ if (stage) {
 // a tap-to-expand accordion with its own per-tap scroll-recentering logic; that logic is gone
 // entirely here, not just disabled, because pills never change any element's height or the
 // page's scroll position, so there's nothing left needing recentering.
+const workMobileFixed = document.getElementById('workMobileFixed');
 const pillsWrap = document.getElementById('workPillsWrap');
 const pillsContainer = document.getElementById('workPills');
 const previewLink = document.getElementById('workPreviewLink');
@@ -443,25 +449,47 @@ if (pillsWrap && pillsContainer) {
     });
   }
 
-  // Watching #work (not the pills wrap itself) means this observer still fires on desktop,
-  // where the pills wrap is display:none — the visibility check below is what actually gates
-  // the entrance to mobile. threshold 0.5 plus the one-shot `mobileEntrancePlayed` flag (never
-  // reset) is what keeps small scroll jitters near the section boundary from re-triggering it,
-  // unlike desktop's ripple which deliberately resets on scroll-out.
+  // Watching #work (not the pills wrap itself) means this observer still fires on desktop --
+  // the matchMedia check below is what actually gates the entrance to mobile. That check used to
+  // read getComputedStyle(pillsWrap).display, but now that .work-pills-wrap's own visibility
+  // comes from its ANCESTOR (.work-mobile-fixed, whose display is now tied to the .in-view class
+  // the observer below toggles at runtime), the computed style of the wrap itself no longer
+  // reflects "are we on mobile" independent of scroll position -- it could read block even on
+  // desktop, or none on mobile before .in-view is first set, depending on which observer's
+  // callback happens to run first. matchMedia answers the breakpoint question directly, with no
+  // dependency on any other observer's timing. threshold 0.5 plus the one-shot
+  // `mobileEntrancePlayed` flag (never reset) is what keeps small scroll jitters near the section
+  // boundary from re-triggering it, unlike desktop's ripple which deliberately resets on scroll-out.
+  const isMobileLayout = () => window.matchMedia('(max-width:700px)').matches;
   if (workSectionEl) {
     const entranceObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
-        if (entry.isIntersecting && getComputedStyle(pillsWrap).display !== 'none') {
+        if (entry.isIntersecting && isMobileLayout()) {
           playMobileEntrance();
         }
       });
     }, { threshold: 0.5 });
     entranceObserver.observe(workSectionEl);
   }
-  // A second observer used to hide/reshow the preview as #work entered and left the viewport.
-  // That existed only because the preview and its copy were position:fixed, so they'd otherwise
-  // have hung on screen over the neighbouring sections. Both are in the section's normal flow
-  // now, so they scroll away with it on their own and the observer has nothing left to do.
+  // Pills/preview/copy are position:fixed to the viewport (see .work-mobile-fixed in style.css)
+  // specifically so they stay stationary while scrolling through #work, instead of scrolling with
+  // the page like normal content -- but "fixed to the viewport" also means they'd hang there over
+  // About/Contact once you scroll past #work, unless something hides them. This toggles .in-view
+  // (which the CSS uses as the actual display:none/flex switch) based on whether #work is
+  // currently in the viewport at all, independent of the one-shot entrance animation above.
+  // rootMargin:-2px (not the default 0) -- with scroll-snap landing sections exactly edge-to-edge,
+  // #work's own edge can end up sitting at EXACTLY 0px from the viewport edge with zero true
+  // overlap, an ambiguous boundary case for threshold:0 that's been observed reporting
+  // isIntersecting:true with nothing actually visible. Shrinking the effective root by 2px
+  // removes that ambiguity.
+  if (workSectionEl && workMobileFixed) {
+    const fixedVisibilityObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        workMobileFixed.classList.toggle('in-view', entry.isIntersecting);
+      });
+    }, { threshold: 0, rootMargin: '-2px' });
+    fixedVisibilityObserver.observe(workSectionEl);
+  }
 }
 
 // --- Contact: listening-pulse visibility ---
