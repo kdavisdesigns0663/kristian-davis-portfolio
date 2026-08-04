@@ -31,7 +31,11 @@ if (heroSection) {
       const duration = line.textContent.trim().length * CHAR_RATE;
       if (i === 1) delay += PHRASE_PAUSE; // the only real phrase boundary
       line.style.transitionDelay = delay + 's';
-      line.style.transitionDuration = duration + 's';
+      // Two values, matching the CSS `transition` list order (opacity, then --reveal) --
+      // opacity keeps its fixed fast 0.15s from style.css, only --reveal's duration is
+      // overridden per line. See the CSS comment above .hero .headline > div for why these
+      // are deliberately different durations instead of one shared value.
+      line.style.transitionDuration = '0.15s, ' + duration + 's';
       line.classList.add('placed');
       delay += duration; // a line continuing the SAME phrase starts exactly when this one
                           // finishes -- zero gap, one continuous motion across the wrap

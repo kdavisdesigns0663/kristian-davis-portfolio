@@ -1292,3 +1292,29 @@ independently-masked elements). If a per-word request comes up again,
 the mask-jump problem described here is the specific technical reason
 per-word reveals struggle to read as "fluid" with this --reveal
 technique -- worth explaining rather than re-discovering by trial again.
+
+**Immediate follow-up, same fix scope**: even the per-line sweep above
+still read as having "hiccups between words" to the owner. Root cause
+wasn't the delay/duration math (already continuous) -- it was that
+`opacity` and `--reveal` shared ONE duration on an eased curve
+(`cubic-bezier(.45,0,.2,1)`). That meant a character's overall BRIGHTNESS
+was on its own independent ramp, competing with the mask EDGE POSITION
+for attention, and the curve's non-constant rate of change read as a
+stutter even though nothing was discontinuous timing-wise. Fix: split
+them. `opacity` is now a fixed, near-instant `0.15s` (just avoids a hard
+pop when a character first gets unmasked); `--reveal` runs the full
+per-line duration on `linear` (constant speed, not eased) instead of the
+old cubic-bezier. `main.js` now sets `transitionDuration` as a two-value
+comma-separated string (`'0.15s, ' + duration + 's'`), matching the CSS
+`transition` property's declared order (opacity first, `--reveal`
+second) -- if that order ever changes in `style.css`, this line has to
+change with it or the two values will apply to the wrong properties.
+Practical effect: a character that's already behind the sweep edge is
+essentially at full brightness immediately, so the only thing visibly
+moving is the edge itself. Verified via `getComputedStyle(line).transition`
+showing exactly `"opacity 0.15s ..., --reveal Xs linear ..."` per line,
+and a screenshot confirming already-swept text is full-brightness white,
+not still catching up.
+If tuning again and "hiccup"/"stutter" complaints come back: check
+`transition-timing-function` first, not just delay/duration -- an eased
+curve on the sweep property is the specific thing that caused this.

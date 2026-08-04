@@ -119,18 +119,29 @@ a{ color:inherit; text-decoration:none; }
    character, including spaces, in one fluid motion. Sentence 2 ("They experience" / "your
    decisions.") is two separate line elements that still need to read as ONE uninterrupted sweep
    across the wrap point -- handled in main.js (line 2's delay starts exactly when line 1's own
-   sweep finishes, zero gap), not here. transition-duration below is only a fallback -- main.js
-   sets it per line (character count * a fixed rate) so the sweep SPEED stays consistent across
-   lines of different lengths. Needs @property below to animate --reveal smoothly; browsers
-   without @property support just skip the sweep and fall back to a plain (still per-line-timed)
-   opacity fade. */
+   sweep finishes, zero gap), not here.
+   opacity and --reveal are DELIBERATELY split into very different durations, not the same one:
+   opacity is a near-instant 0.15s (just enough to avoid a hard pop-in the moment the mask first
+   uncovers anything), while --reveal runs the full per-line duration main.js sets. Originally
+   both shared one duration with an eased curve on --reveal (cubic-bezier(.45,0,.2,1)) -- visually
+   that reads as the mask position and the text's overall brightness both ramping up together on
+   independent easing curves, which produced a "catching up" sensation right around where the
+   curve's rate of change isn't constant, felt like a stutter even though delay/duration timing
+   was mathematically continuous. Linear timing on --reveal removes any non-constant-speed moment
+   from the sweep itself, and decoupling opacity means brightness isn't a second, competing
+   animation -- once a character is far enough behind the mask edge it's essentially already at
+   full opacity, so the ONLY thing visibly moving is the sweep. transition-duration/-delay below
+   are only fallbacks -- main.js sets both per line (comma-separated, matching this property
+   order: opacity's fixed 0.15s, then --reveal's character-count-based duration). Needs @property
+   below to animate --reveal smoothly; browsers without @property support just skip the sweep and
+   fall back to a plain (still per-line-timed) opacity fade. */
 .hero .headline .line-inner{ display:block; }
 .hero .headline > div{
   --reveal:0%;
   opacity:0;
   -webkit-mask-image:linear-gradient(90deg, #000 0%, #000 var(--reveal), transparent calc(var(--reveal) + 22%), transparent 100%);
   mask-image:linear-gradient(90deg, #000 0%, #000 var(--reveal), transparent calc(var(--reveal) + 22%), transparent 100%);
-  transition:opacity 2s ease, --reveal 2s cubic-bezier(.45,0,.2,1);
+  transition:opacity 0.15s ease, --reveal 2s linear;
 }
 .hero .headline > div.placed{ opacity:1; --reveal:100%; }
 @property --reveal{ syntax:'<percentage>'; inherits:false; initial-value:0%; }
