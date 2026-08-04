@@ -1340,3 +1340,65 @@ line that hasn't been processed yet.)
 No CSS changes were needed -- `.l1`'s existing line-height already gives
 reasonable spacing between the two `.l1` lines with no visible overlap
 or awkward gap; verified via screenshot, not just assumed.
+
+## MAJOR UPDATE 16 — mobile work section: pills/preview/copy moved into normal flow (owner's own edit), plus a short-viewport fix, 2026-08-04
+
+**The owner made this fix directly, not this agent** — recorded here per
+this repo's own convention of keeping `HANDOFF.md` in sync with reworks
+of this size, not because the agent built it.
+
+The mobile pills/preview/copy stack (`#workPillsWrap`, `#mobilePreviewWrap`,
+`#mobilePreviewCopy`) used to be positioned independently: pills
+`position:absolute` inside the section, preview and copy
+`position:fixed` to the viewport, all three tied together only by
+matching `calc(50% + 187px)` offsets that assumed the section sat exactly
+at the viewport edge. Mobile deliberately uses `scroll-snap-type:proximity`
+(a soft snap you can rest between, not `mandatory`), so that assumption
+regularly didn't hold — mid-scroll, the pills passed straight through the
+pinned preview image at multiple measured offsets, which is what was
+slicing them in half / making them look "covered."
+
+**Fix**: all three are now one flex column in the section's own normal
+document flow (`.work-section{ flex-direction:column; justify-content:
+center; gap:26px; padding:150px 24px 40px; }` under `max-width:700px`).
+They move together as a rigid unit because the browser's own box layout
+guarantees the stacking now, instead of three independently-positioned
+elements that only lined up under one specific scroll assumption. The
+187px magic-number offsets are gone entirely, not just adjusted. Pills
+also changed from `flex-wrap` (which packed a lopsided 3+1 given these
+four project names) to a fixed 2x2 `grid`, symmetric regardless of label
+length. The now-unnecessary `previewVisibilityObserver` in `main.js` (it
+existed only to hide/reshow the `position:fixed` preview as `#work`
+entered/left the viewport) was removed — everything scrolls away with
+the section on its own now, nothing left for that observer to do.
+
+**Verified (this agent, after the fact)**: measured pills-vs-preview
+bounding-box overlap at the fully-snapped position AND at four mid-scroll
+offsets (section top minus 100/200/300/400px, snap forcibly disabled to
+simulate resting somewhere `proximity` would allow) — gap stayed a
+constant -26px (no overlap) at every position, confirming the fix holds
+across the actual scroll range, not just at rest.
+
+**Bug found during that verification, fixed this same pass**: on short
+viewports (iPhone SE 2nd/3rd gen, 390x667) the stack's total height
+(733px: 150px top padding + pills + 2x26px gaps + the fixed 325px preview
++ copy text/button + 40px bottom padding) exceeded the 667px viewport,
+cutting the "view project" button off below the fold with no visual cue
+that scrolling further within the section would reveal it. Added
+`@media (max-width:700px) and (max-height:700px)` tightening the SAME
+properties (135px top padding, 16px gap, 24px bottom padding, preview
+shrunk 150x325 -> 130x281 keeping its aspect ratio) rather than
+introducing new ones. Verified this brings total height to exactly
+667px (fits with zero overflow) and doesn't affect taller phones (the
+390x844 measurements are byte-for-byte identical before/after, since
+that viewport doesn't match `max-height:700px`).
+**Known remaining gap, not fixed**: the original iPhone 5/SE (2016,
+320x568) still overflows by ~46px even with the short-viewport fix above
+— that device is 8+ years discontinued with negligible traffic today, so
+this was deliberately left rather than adding a third tier of spacing
+tuning for it. Revisit only if real traffic data says otherwise.
+**Also noted, not changed**: `.work-pill`'s tap target is 36px tall
+(WCAG's 2.5.5 recommendation is 44px). Left as-is since it wasn't part of
+what was asked and enlarging it changes the pills' visual proportions —
+flagged here as a real judgment call for the owner, not silently decided
+either way.

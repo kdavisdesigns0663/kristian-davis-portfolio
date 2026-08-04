@@ -457,33 +457,11 @@ if (pillsWrap && pillsContainer) {
       });
     }, { threshold: 0.5 });
     entranceObserver.observe(workSectionEl);
-
-    // #mobilePreviewWrap and #mobilePreviewCopy are both position:fixed (see style.css)
-    // specifically so they stay put on screen regardless of what the pills around them are
-    // doing -- but "stays put on screen" also means they don't automatically leave with the
-    // rest of the section once you scroll past it, unlike everything else in #work. This hides
-    // both the moment #work leaves the viewport and reshows them once you're back, without
-    // replaying the one-shot entrance or re-picking a project -- setMobilePreview() already left
-    // the right image/label/description in place, this just toggles the same .active classes
-    // that reveal them.
-    // rootMargin:-2px (not the default 0) -- with scroll-snap landing sections exactly
-    // edge-to-edge, #work's bottom can end up sitting at EXACTLY 0px from the viewport top with
-    // zero true overlap, which is an ambiguous boundary case for threshold:0 (observed reporting
-    // isIntersecting:true with zero visible pixels). Shrinking the effective root by 2px removes
-    // that ambiguity -- an exact touch no longer counts as an intersection.
-    const previewVisibilityObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (!entry.isIntersecting) {
-          mobilePreviewWrap.classList.remove('active');
-          if (mobilePreviewCopy) mobilePreviewCopy.classList.remove('active');
-        } else if (activePill) {
-          mobilePreviewWrap.classList.add('active');
-          if (mobilePreviewCopy) mobilePreviewCopy.classList.add('active');
-        }
-      });
-    }, { threshold: 0, rootMargin: '-2px' });
-    previewVisibilityObserver.observe(workSectionEl);
   }
+  // A second observer used to hide/reshow the preview as #work entered and left the viewport.
+  // That existed only because the preview and its copy were position:fixed, so they'd otherwise
+  // have hung on screen over the neighbouring sections. Both are in the section's normal flow
+  // now, so they scroll away with it on their own and the observer has nothing left to do.
 }
 
 // --- Contact: listening-pulse visibility ---

@@ -368,19 +368,36 @@ a{ color:inherit; text-decoration:none; }
 .work-pills-wrap, .work-mobile-stage, .mobile-preview-wrap, .mobile-preview-copy{ display:none; }
 @media (max-width:700px){
   .ripple-stage{ display:none; }
-  /* bottom/top:calc(50% + 187px) — 187px is the fixed preview's half-height (325/2) plus a ~24px
-     gap. The pills sit that far above it and the copy that far below, so the whole stack reads
-     centered and symmetric at any viewport height. Recompute both if the preview's 150x325 box
-     ever changes. */
+  /* The three blocks (pills / preview / copy) are ONE centred flex column in normal flow, so they
+     move together as a unit and stay put relative to the section.
+     They used to be positioned independently: the pills absolute inside the section, the preview
+     and copy position:fixed to the viewport, tied together only by matching calc(50% + 187px)
+     offsets. That only lined up when the section happened to sit exactly at the viewport -- and
+     mobile deliberately uses scroll-snap proximity (a soft snap you can rest between), so it
+     usually didn't. Measured mid-scroll, the pills passed straight through the pinned image at
+     every offset from 400px out to 50px, which is what was slicing them in half. In flow, the
+     browser guarantees the stacking instead, and the magic 187px constants are gone with it.
+     padding-top clears the "WORK" ghost word (110px tall at this breakpoint, 10px from the top)
+     so the column starts below it rather than centring through it. */
+  .work-section{
+    flex-direction:column; justify-content:center; gap:26px;
+    padding:150px 24px 40px;
+  }
   .work-pills-wrap{
     display:flex; flex-direction:column; align-items:center; gap:16px;
-    position:absolute; left:0; right:0; z-index:4;
-    bottom:calc(50% + 187px);
-    padding:0 24px; text-align:center;
+    width:100%; text-align:center;
     clip-path:circle(0% at 50% 50%); filter:blur(6px); transform:scaleY(0.97);
     transition:clip-path 1.6s cubic-bezier(.19,1,.22,1), filter .9s ease, transform 1s cubic-bezier(.22,1,.36,1);
   }
   .work-pills-wrap.revealed{ clip-path:circle(150% at 50% 50%); filter:blur(0); transform:scaleY(1); }
+  /* 2x2 grid rather than flex-wrap. Wrapping packed as many as fit per row, which with these four
+     labels meant a lopsided 3 + 1. A fixed two-column grid is symmetric regardless of how long
+     any single project name is, and equal-width cells keep the four reading as one set of
+     controls rather than four differently-sized tags. */
+  .work-pills{
+    display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px;
+    width:min(100%, 300px);
+  }
   /* Zero-size anchor centered on the section, so the drop falls to the true centre of the screen
      regardless of where in-flow content sits. Single play, never reset. */
   .work-mobile-stage{ position:absolute; top:50%; left:50%; width:0; height:0; overflow:visible; display:block; z-index:3; pointer-events:none; }
@@ -394,29 +411,41 @@ a{ color:inherit; text-decoration:none; }
   }
   .work-mobile-stage .impact-flash.flash{ transition:transform .65s ease-out, opacity .65s ease-out; transform:translate(-50%,-50%) scale(9); opacity:0; }
 
-  /* Single shared preview, positioned independently of the pills and never moving. (The earlier
-     accordion embedded one copy per item — that was the real cause of "the preview keeps
-     shifting": each tap opened a DIFFERENT element inside that item's own panel while panels
-     around it were expanding/collapsing.) position:fixed keeps it centred on screen without
-     depending on the section's height; pointer-events:none so it never blocks taps on the pills. */
+  /* One shared preview element whose content swaps per pill, rather than one embedded per item.
+     (The earlier accordion embedded a copy per item — that was the real cause of "the preview
+     keeps shifting": each tap revealed a DIFFERENT element inside that item's own panel while
+     panels around it were expanding and collapsing.) position:relative both keeps it in the
+     column's flow and gives the card/ring/bloom inside it a containing block. flex:none stops
+     the flex column from squashing its fixed 325px height on short viewports.
+     pointer-events:none so the image and its glow never swallow a tap meant for a pill. */
   .mobile-preview-wrap{
-    display:block;
-    position:fixed; top:50%; left:50%; width:150px; height:325px;
-    transform:translate(-50%,-50%); z-index:20; pointer-events:none;
+    display:block; position:relative; flex:none;
+    width:150px; height:325px; z-index:1; pointer-events:none;
   }
-  /* Separate element from the wrap (not nested) precisely because that wrap is pointer-events:none
-     but this link has to stay tappable. */
+  /* A sibling of the wrap rather than nested inside it, precisely because that wrap is
+     pointer-events:none and this link has to stay tappable. */
   .mobile-preview-copy{
-    display:block;
-    position:fixed; top:calc(50% + 187px); left:50%; z-index:20;
-    width:min(84vw, 320px); transform:translateX(-50%);
-    text-align:center;
+    display:block; width:min(84vw, 320px); text-align:center;
     opacity:0; transition:opacity .6s ease;
   }
   .mobile-preview-copy.active{ opacity:1; }
 }
+/* Short viewports (iPhone SE and similar, roughly <=700px tall) can't fit the normal mobile
+   stack — measured 733px of content (150px top padding + pills + 2x26px gaps + the fixed 325px
+   preview + copy text/button + 40px bottom padding) against a 667px viewport, which cut the
+   "view project" button off below the fold with no visual cue that scrolling further within the
+   section would reveal it. Tightens the same properties rather than introducing new ones; 135px
+   top padding (not less) still clears the mobile ghost word's own ~120px height with a little
+   room to spare. Preview shrinks 150x325 -> 130x281, keeping its aspect ratio rather than just
+   its height, so the phone-screenshot crop doesn't look squashed. */
+@media (max-width:700px) and (max-height:700px){
+  .work-section{ padding:135px 24px 24px; gap:16px; }
+  .mobile-preview-wrap{ width:130px; height:281px; }
+}
 
-.work-pills{ display:flex; flex-wrap:wrap; justify-content:center; gap:10px; }
+/* .work-pills' own layout lives in the max-width:700px block above -- it only ever renders there
+   (its wrapper is display:none otherwise), and a base rule here would sit AFTER that block and
+   silently override it at equal specificity. */
 .work-pill{
   padding:9px 18px; border:1px solid var(--line-strong); border-radius:999px;
   background:none; font-family:var(--font-mono); font-size:12px; color:var(--text-dim);
