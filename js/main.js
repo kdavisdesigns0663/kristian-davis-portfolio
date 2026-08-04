@@ -176,6 +176,10 @@ function resetSectionBloom(bloomEl) {
   if (bloomEl) bloomEl.classList.remove('bloomed');
 }
 
+// Looked up once here rather than re-queried in each of the three places that need them (the
+// desktop ripple sequence, the mobile entrance, and the mobile preview's visibility observer).
+const workSectionEl = document.getElementById('work');
+const workBloomEl = document.getElementById('workBloom');
 const stage = document.getElementById('rippleStage');
 
 if (stage) {
@@ -193,7 +197,7 @@ if (stage) {
     // not children) can extend past the image's own rounded corners instead of being clipped
     // by the overflow:hidden that the image itself needs. See style.css for the visual detail.
     const previewWrap = document.createElement('div');
-    previewWrap.className = 'preview-wrap ' + p.key + (p.isPlaceholder ? ' is-placeholder' : '');
+    previewWrap.className = 'preview-wrap ' + p.key;
     previewWrap.innerHTML = `
       <div class="preview-ring"></div>
       <span class="preview-corner tl"></span>
@@ -207,7 +211,6 @@ if (stage) {
       </div>
     `;
     stage.appendChild(previewWrap);
-    p.preview = previewWrap;
 
     const on = () => { stage.classList.add('hovering'); previewWrap.classList.add('active'); };
     const off = () => { stage.classList.remove('hovering'); previewWrap.classList.remove('active'); };
@@ -267,7 +270,7 @@ if (stage) {
       glowFadeDelay: 0.3,
       registerTimer: (id) => timers.push(id),
       onImpact: () => {
-        triggerSectionBloom(workSection, workBloomEl, stage);
+        triggerSectionBloom(workSectionEl, workBloomEl, stage);
         const card = stage.querySelector('.stage-card');
         if (card) card.classList.add('active');
         projects.forEach((p, i) => {
@@ -287,15 +290,13 @@ if (stage) {
   // first ~80px of scrolling away from the hero, so the scroll itself reads as what
   // triggers the drop, but still above the section's small natural peek at rest (hero is
   // a hair shorter than the viewport) so it doesn't fire before any scrolling happens.
-  const workSection = document.getElementById('work');
-  const workBloomEl = document.getElementById('workBloom');
   const rippleObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) playSequence();
       else resetSequence();
     });
   }, { threshold: 0.15 });
-  if (workSection) rippleObserver.observe(workSection);
+  if (workSectionEl) rippleObserver.observe(workSectionEl);
 }
 
 // --- Work section: mobile pill selector (below ~700px, see style.css) ---
@@ -334,7 +335,7 @@ if (pillsWrap && pillsContainer) {
       mobilePreviewImg.src = p.img;
       mobilePreviewImg.alt = p.isPlaceholder ? '' : p.name + ' preview';
       mobilePreviewTag.textContent = p.name;
-      mobilePreviewWrap.className = 'mobile-preview-wrap active ' + p.key + (p.isPlaceholder ? ' is-placeholder' : '');
+      mobilePreviewWrap.className = 'mobile-preview-wrap active ' + p.key;
       if (mobilePreviewDesc) mobilePreviewDesc.textContent = p.desc || p.hook;
       if (mobilePreviewCopy) mobilePreviewCopy.classList.add('active');
     };
@@ -426,7 +427,7 @@ if (pillsWrap && pillsContainer) {
       // fade = 0.75s) -- see the glowFadeDelay comment in playRaindrop() above.
       glowFadeDelay: 0.3,
       onImpact: () => {
-        triggerSectionBloom(document.getElementById('work'), document.getElementById('workBloom'), mobileStage);
+        triggerSectionBloom(workSectionEl, workBloomEl, mobileStage);
         revealPills();
       },
     });
@@ -437,7 +438,6 @@ if (pillsWrap && pillsContainer) {
   // the entrance to mobile. threshold 0.5 plus the one-shot `mobileEntrancePlayed` flag (never
   // reset) is what keeps small scroll jitters near the section boundary from re-triggering it,
   // unlike desktop's ripple which deliberately resets on scroll-out.
-  const workSectionEl = document.getElementById('work');
   if (workSectionEl) {
     const entranceObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {

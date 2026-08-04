@@ -1,8 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500&display=swap');
-
 :root{
   --bg:#050505;
-  --bg-raised:#0d0d0c;
   --line:#1c1c1a;
   --line-strong:#3a3a38;
   --text:#e9e7df;
@@ -10,42 +7,27 @@
   --text-mute:#5a5754;
   --accent:#a06bff;
   --accent-rgb:160,107,255;
+  --font-display:'Space Grotesk',sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
 }
 
-/* overflow-x:hidden alone on body doesn't stop horizontal scroll here — html is the actual
-   scrolling container (that's where scroll-snap-type lives), and elements like .ghost
-   deliberately bleed off the left edge (negative left position). Without this, html's own
-   overflow-x stays the default `visible`, so the page could scroll sideways to reveal that
-   bled-off content even though body claimed to hide it. */
+/* overflow-x:hidden must be on html, not just body — html is the actual scrolling container
+   (scroll-snap-type lives there), and .ghost deliberately bleeds off the left edge. Without it
+   html's own overflow-x stays `visible` and the page scrolls sideways to reveal that bleed. */
 html{ scroll-snap-type:y mandatory; overflow-x:hidden; }
-/* 100vh on mobile Safari/Chrome measures the LARGEST possible viewport (address bar hidden),
-   not the actual visible one -- the address bar showing/hiding as you scroll makes the real
-   visible height smaller than 100vh by however tall that bar is, so a section sized to 100vh
-   can end up taller than what's actually on screen and shift slightly under your thumb mid-
-   scroll. 100dvh tracks the real, currently-visible viewport instead. Declared second (not
-   as a replacement) so it only overrides vh in browsers that understand it -- an unsupported
-   browser just ignores this line and keeps the vh value, no @supports needed. */
+/* 100dvh declared after 100vh (not replacing it) so unsupported browsers keep the vh fallback,
+   no @supports needed. Mobile 100vh measures the LARGEST viewport (address bar hidden), so a
+   section sized to it ends up taller than what's actually on screen; dvh tracks the real one. */
 .snap-section{ min-height:100vh; min-height:100dvh; scroll-snap-align:start; scroll-snap-stop:always; }
-/* Mobile gets a softer snap than desktop. `mandatory` + `scroll-snap-stop:always` forces a full
-   stop at literally every section regardless of how hard you swipe -- combined with touch's
-   direct finger-tracking (there's no equivalent of the wheel-resistance controller further down
-   this file on touch; that's wheel-only on purpose, see its own comment), a fast swipe getting
-   physically stopped at a section it was trying to scroll past read as the page fighting the
-   gesture rather than assisting it. `proximity` only snaps when you're already close to a
-   section's edge -- scrolling freely mid-section, or flicking hard enough to sail past one
-   entirely, both stay uninterrupted; it only gently pulls you the rest of the way in once you're
-   nearly there. `scroll-snap-stop:normal` is the correct pairing for that -- `always` fighting
-   with `proximity` would still force a stop even when the scroll was already sailing past. */
+/* Mobile gets a softer snap. `mandatory` + `stop:always` forces a stop at every section however
+   hard you swipe, and with touch tracking the finger directly (the wheel-resistance controller at
+   the bottom of this file is wheel-only on purpose) that read as the page fighting the gesture.
+   `proximity` only pulls you in once you're already close; `stop:normal` is its correct pairing —
+   `always` would still force a stop even when the scroll was legitimately sailing past. */
 @media (max-width:700px){
   html{ scroll-snap-type:y proximity; }
   .snap-section{ scroll-snap-stop:normal; }
 }
-/* Nav and the footer used to live outside the .snap-section flow (above hero, below contact)
-   and were themselves given scroll-snap-align, which fixed an edge-landing bug but introduced
-   a new one: they read as their own separate section, requiring an extra scroll step to get
-   past them into hero/contact. Now they're DOM children of hero/contact respectively (see
-   index.html) and just overlaid at the section's own top/bottom edge -- one snap stop each,
-   nav/footer along for the ride instead of stops of their own. */
 
 *{ margin:0; padding:0; box-sizing:border-box; }
 
@@ -59,82 +41,73 @@ body{
 
 a{ color:inherit; text-decoration:none; }
 
-.mono{ font-family:'JetBrains Mono',monospace; }
+.mono{ font-family:var(--font-mono); }
 
 .wrap{ max-width:1100px; margin:0 auto; padding:0 64px; }
-
 @media (max-width:720px){ .wrap{ padding:0 24px; } }
 
-/* Nav — lives inside #hero now (see index.html) so it scrolls as part of the hero snap stop
-   instead of being one itself. Absolutely positioned at hero's own top edge rather than sitting
-   in normal flow, so it doesn't push the eyebrow/headline down — hero's existing top
-   padding + the eyebrow's own 260px padding-top already leaves far more clearance than nav's
-   height needs. */
+/* Nav lives inside #hero (see index.html) so it rides hero's snap stop instead of being one
+   itself. Absolutely positioned at hero's top edge so it doesn't push the eyebrow/headline down. */
 .site-nav{
   position:absolute; top:0; left:0; right:0; z-index:10;
   display:flex; align-items:center; justify-content:space-between;
   padding:32px 64px; border-bottom:1px solid var(--line);
 }
-@media (max-width:720px){ .site-nav{ padding:24px; } }
-.site-nav .logo{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:18px; transition:color .3s ease; }
+.site-nav .logo{ font-family:var(--font-display); font-weight:700; font-size:18px; transition:color .3s ease; }
 .site-nav .logo:hover, .site-nav .logo:focus-visible{ color:var(--accent); }
-.site-nav ul{ display:flex; gap:32px; list-style:none; font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--text-dim); }
+.site-nav ul{ display:flex; gap:32px; list-style:none; font-family:var(--font-mono); font-size:13px; color:var(--text-dim); }
 .site-nav ul a{ transition:color .3s ease; }
 .site-nav ul a:hover, .site-nav ul a:focus-visible{ color:var(--text); }
+@media (max-width:720px){ .site-nav{ padding:24px; } }
 
-/* Ghost word — oversized outline text bleeding off the left edge, used as a
-   background/wayfinding mark. One shared treatment, reused across sections
-   (hero, work, about, contact) rather than redefined per section. */
-.ghost{ position:absolute; top:20px; left:-30px; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:280px; line-height:1; color:transparent; -webkit-text-stroke:1px var(--accent); letter-spacing:-0.02em; z-index:0; opacity:0.35; pointer-events:none; }
+/* Ghost word — oversized outline text bleeding off the left edge, one shared treatment reused
+   across hero/work/about/contact rather than redefined per section. */
+.ghost{
+  position:absolute; top:20px; left:-30px; z-index:0; pointer-events:none;
+  font-family:var(--font-display); font-weight:700; font-size:280px; line-height:1;
+  color:transparent; -webkit-text-stroke:1px var(--accent); letter-spacing:-0.02em; opacity:0.35;
+}
 @media (max-width:900px){ .ghost{ font-size:110px; top:10px; } }
 
-/* Hero — locked, matches reference/hero-pattern.html exactly. Do not modify without updating that file too. */
+/* Hero — matches reference/hero-pattern.html. Update that file too if these change. */
 .hero{ position:relative; padding:80px 64px 180px; min-height:820px; }
-.hero .eyebrow{ position:relative; z-index:2; padding-top:260px; font-family:'JetBrains Mono',monospace; font-size:15px; margin-left:24px; color:var(--text-dim); }
+.hero .eyebrow{ position:relative; z-index:2; padding-top:260px; font-family:var(--font-mono); font-size:15px; margin-left:24px; color:var(--text-dim); }
 .hero .eyebrow b{ color:var(--accent); font-weight:500; }
 .hero .headline{ position:relative; z-index:2; margin-top:32px; margin-left:24px; }
-.hero .headline .l1, .hero .headline .l2{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:76px; line-height:1.15; color:var(--text); }
-.hero .headline .l2{ font-size:70px;}
-/* line-height tightened from 1.15 (down to 1.0) alongside margin-top -- at this font-size (100px)
-   most of the visible gap between "They experience" and "your decisions." was the font's own
-   internal leading (1.15 line-height = 115px-tall line box around a ~100px glyph), not the 18px
-   margin itself; cutting margin-top alone wouldn't have closed much of the actual visual gap. */
-.hero .headline .l3{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:100px; line-height:1.0; color:var(--accent); margin-left:56px; margin-top:6px; }
+.hero .headline .l1{ font-family:var(--font-display); font-weight:700; font-size:76px; line-height:1.15; color:var(--text); }
+/* line-height 1.0 (not 1.15) alongside the small margin-top: at 100px most of the visible gap
+   between the two l3 lines was the font's own internal leading, not the margin. */
+.hero .headline .l3{ font-family:var(--font-display); font-weight:700; font-size:100px; line-height:1.0; color:var(--accent); margin-left:56px; margin-top:6px; }
 .hero .sub{ position:relative; z-index:2; margin-top:76px; margin-left:400px; max-width:440px; font-size:15px; line-height:1.7; color:var(--text-dim); padding-left:24px; border-left:2px solid var(--accent); }
+/* Ghost fades in plainly (no blur/bounce) so it reads as a backdrop settling in behind the text,
+   not part of the headline's reveal. top overrides the base .ghost 20px because nav now sits at
+   hero's own top edge — the base value put the ghost behind it instead of below it. Declared
+   before the breakpoint below, which lowers it further; both have equal specificity, so source
+   order is what decides. */
+.hero .ghost{ top:118px; opacity:0; transition:opacity 2.8s ease; }
+.hero.revealed .ghost{ opacity:0.35; }
 @media (max-width:900px){
   .hero{ padding:60px 24px 130px; }
   .hero .eyebrow{ padding-top:120px; margin-left:0; }
   .hero .headline{ margin-left:0; margin-top:26px; }
-  .hero .headline .l1, .hero .headline .l2{ font-size:30px; }
+  .hero .headline .l1{ font-size:30px; }
   .hero .headline .l3{ font-size:38px; margin-left:20px; margin-top:4px; }
   .hero .sub{ margin-left:0; margin-top:40px; }
+  .hero .ghost{ top:96px; }
 }
 
-/* Hero headline: each LINE wipes in as ONE continuous left-to-right sweep -- not word by word.
-   A per-word version (each word its own separate --reveal sweep) was tried right before this:
-   even chained with zero time-gap between words, each word was still an independently masked
-   element, so the reveal edge visually JUMPED from the end of one word to the start of the next
-   instead of continuously advancing through the space between them -- read as discrete pauses.
-   A single mask sweep across the whole line's text has no such jump; the edge moves through every
-   character, including spaces, in one fluid motion. Sentence 2 ("They experience" / "your
-   decisions.") is two separate line elements that still need to read as ONE uninterrupted sweep
-   across the wrap point -- handled in main.js (line 2's delay starts exactly when line 1's own
-   sweep finishes, zero gap), not here.
-   opacity and --reveal are DELIBERATELY split into very different durations, not the same one:
-   opacity is a near-instant 0.15s (just enough to avoid a hard pop-in the moment the mask first
-   uncovers anything), while --reveal runs the full per-line duration main.js sets. Originally
-   both shared one duration with an eased curve on --reveal (cubic-bezier(.45,0,.2,1)) -- visually
-   that reads as the mask position and the text's overall brightness both ramping up together on
-   independent easing curves, which produced a "catching up" sensation right around where the
-   curve's rate of change isn't constant, felt like a stutter even though delay/duration timing
-   was mathematically continuous. Linear timing on --reveal removes any non-constant-speed moment
-   from the sweep itself, and decoupling opacity means brightness isn't a second, competing
-   animation -- once a character is far enough behind the mask edge it's essentially already at
-   full opacity, so the ONLY thing visibly moving is the sweep. transition-duration/-delay below
-   are only fallbacks -- main.js sets both per line (comma-separated, matching this property
-   order: opacity's fixed 0.15s, then --reveal's character-count-based duration). Needs @property
-   below to animate --reveal smoothly; browsers without @property support just skip the sweep and
-   fall back to a plain (still per-line-timed) opacity fade. */
+/* Each headline LINE wipes in as one continuous left-to-right sweep. A per-word version was
+   tried and rejected: each word being its own masked element made the reveal edge JUMP from the
+   end of one word to the start of the next instead of advancing through the spaces between them.
+   opacity and --reveal are deliberately given very different durations. opacity is a near-instant
+   0.15s (just enough to avoid a hard pop-in when the mask first uncovers anything); --reveal runs
+   the full per-line duration main.js sets, on LINEAR timing. Both originally shared one eased
+   duration, which read as a stutter — mask position and brightness ramping on independent curves
+   produced a "catching up" moment wherever the curve's rate of change wasn't constant. Linear
+   removes any non-constant-speed moment, and decoupling opacity means the sweep is the only thing
+   visibly moving. Durations/delays here are fallbacks; main.js sets both per line (comma-separated,
+   matching this property order). Needs @property to animate --reveal — browsers without it fall
+   back to a plain (still per-line-timed) opacity fade. */
 .hero .headline .line-inner{ display:block; }
 .hero .headline > div{
   --reveal:0%;
@@ -146,67 +119,29 @@ a{ color:inherit; text-decoration:none; }
 .hero .headline > div.placed{ opacity:1; --reveal:100%; }
 @property --reveal{ syntax:'<percentage>'; inherits:false; initial-value:0%; }
 
-/* Ghost word gets a deliberately quieter treatment than the headline lines -- a plain slow
-   fade up to its normal resting opacity, no blur/bounce/wobble -- so it reads as a backdrop
-   settling in behind the text, not part of the same liquid-reveal sequence.
-   top is overridden from the base .ghost's 20px -- now that nav lives inside #hero and is
-   absolutely positioned at the section's own top edge (~94px tall desktop, ~78px mobile), the
-   base value sat the ghost word directly under/behind the nav bar instead of below it. */
-.hero .ghost{ top:118px; opacity:0; transition:opacity 2.8s ease; }
-.hero.revealed .ghost{ opacity:0.35; }
-@media (max-width:900px){ .hero .ghost{ top:96px; } }
-
-/* Section heading */
-.section-head{ padding:80px 0 0; }
 .section-head h2{
-  font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:44px;
+  font-family:var(--font-display); font-weight:700; font-size:44px;
   line-height:1.1; letter-spacing:-0.01em; max-width:760px;
 }
 @media (max-width:720px){ .section-head h2{ font-size:30px; } }
-.section-head p{ margin-top:20px; font-size:17px; color:var(--text-dim); max-width:540px; }
 
-/* Philosophy */
-.philosophy{ padding:40px 0 100px; }
-.philosophy .thread{ display:flex; gap:0; margin-top:56px; flex-wrap:wrap; border-top:1px solid var(--line); }
-.philosophy .step{ flex:1; min-width:200px; padding:28px 24px 28px 0; border-right:1px solid var(--line); }
-.philosophy .step:last-child{ border-right:none; }
-.philosophy .step .n{ font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--accent); margin-bottom:12px; }
-.philosophy .step h3{ font-family:'Space Grotesk',sans-serif; font-weight:500; font-size:18px; margin-bottom:8px; }
-.philosophy .step p{ font-size:14px; color:var(--text-dim); }
-
-/* Work section — ripple reveal. Background starts pure black (matching the rest of the site)
-   and animates to a violet wash via .section-bloom (below), triggered the instant the drop
-   impacts -- same moment as the ripple rings, same origin point -- instead of sitting
-   permanently tinted from load. See reference/raindrop-v4.html for the original tested source
-   this evolved from. Drop itself stays violet (matches the hero hint and the mobile version). */
-/* padding-top clears the "WORK" ghost word so the stage sits below it instead of centering
-   through the section's full height and running straight through the ghost. 300px is exactly
-   the ghost's own rendered bottom edge (20px top offset + 280px font-size/line-height:1), with
-   no extra buffer added on top of that -- align-items:center then splits whatever space remains
-   below it evenly above/below the card, which is what makes the gap above the card (from the
-   ghost) end up equal to the gap below the card (to the section's bottom edge). Padding any
-   larger than the ghost's actual height would break that symmetry by adding space that only
-   counts on the top side. padding-bottom is intentionally unset (0) -- confirmed via
-   getBoundingClientRect measurement at three viewport sizes (1440x900, 1920x1080, 1280x800) that
-   gap-above and gap-below land exactly equal as-is; don't add a padding-bottom without
-   re-deriving that symmetry. */
+/* Work section. Background starts pure black and animates to a violet wash via .section-bloom,
+   triggered the instant the drop impacts — same moment and origin as the ripple rings.
+   padding-top:300px is exactly the ghost word's own rendered height (20px offset + 280px at
+   line-height:1), with NO extra buffer, so align-items:center splits the remaining space evenly
+   and the gap above the card equals the gap below it. padding-bottom stays 0 — verified by
+   measurement at 1440x900 / 1920x1080 / 1280x800 that the two gaps land equal as-is. Adding
+   either value breaks that symmetry. */
 .work-section{
   position:relative; display:flex; align-items:center; justify-content:center;
   padding-top:300px;
 }
-/* Background bloom -- a black-to-violet wash that expands from a point via clip-path circle,
-   shared by the work section (desktop stage + mobile pills, tied to the raindrop's impact) and
-   Contact (tied to the listening-pulse's position/trigger instead -- Contact has no raindrop of
-   its own). A real element (not a ::before) specifically so JS can set --bloom-x/--bloom-y and
-   toggle .bloomed directly -- see
-   triggerSectionBloom()/resetSectionBloom() in main.js. Transition is declared ONLY on the
-   .bloomed rule, not the base one below -- same trick used by .drop-wrap's .falling/.impact
-   classes elsewhere in this file: adding the class animates over 4.5s (slowed from an earlier 3s
-   for a more fluid feel, matching the slower raindrop/ripple timings), but removing it snaps back
-   to 0% instantly (base rule has no transition, so its 0s default duration applies), matching the
-   sitewide "reset is instant, only the reveal animates" pattern already used for the rings/drop/
-   mobile reveal. z-index:-1 keeps it behind literally everything else in the section (ghost is 0,
-   ripple-stage is 2) without needing DOM-order tricks. */
+/* Black-to-violet wash expanding from a clip-path circle, shared by Work (origin = the raindrop
+   impact) and Contact (origin = the listening pulse, which has no raindrop of its own). A real
+   element rather than a ::before so JS can set --bloom-x/--bloom-y and toggle .bloomed — see
+   triggerSectionBloom() in main.js. The transition is declared ONLY on .bloomed, so adding the
+   class animates over 4.5s but removing it snaps back instantly — the sitewide "reset is instant,
+   only the reveal animates" pattern, same trick .drop-wrap's falling/impact classes use. */
 .section-bloom{
   position:absolute; inset:0; z-index:-1; pointer-events:none;
   background:rgba(var(--accent-rgb), 0.14);
@@ -216,92 +151,96 @@ a{ color:inherit; text-decoration:none; }
   clip-path:circle(150% at var(--bloom-x, 50%) var(--bloom-y, 50%));
   transition:clip-path 4.5s cubic-bezier(.19,1,.22,1);
 }
-/* White instead of the sitewide violet stroke -- against this section's violet wash once it
-   blooms in, a violet-on-violet stroke nearly disappears, and black fails WCAG contrast
-   entirely. White clears AA's 3:1 large-text minimum with room to spare. */
+/* White, not the sitewide violet: against the violet wash a violet stroke nearly disappears and
+   black fails WCAG contrast. White clears AA's 3:1 large-text minimum with room to spare. */
 .work-section .ghost{ -webkit-text-stroke:1px #fff; opacity:0.45; }
-/* Wide, not square -- width and height are sized independently (was one min() shared by both)
-   so the stage (and the card inside it, at 108% of this) reads as a deliberately
-   landscape-proportioned panel instead of a square island. Both still viewport-driven so it
-   scales down gracefully on narrower windows; the vh/vw mix of caps is tuned so the ratio stays
-   roughly 2:1-2.3:1 rather than drifting toward square or absurdly thin at either extreme. */
+/* Deliberately landscape, so width and height are sized independently rather than sharing one
+   min(). The vw/vh mix keeps the ratio around 2:1–2.3:1 instead of drifting square or too thin. */
 .ripple-stage{
   position:relative; z-index:2;
   width:min(78vw, 1180px);
   height:min(40vw, 56vh, 560px);
 }
 
-/* Wrapper handles vertical fall + squash/stretch in true screen-space. Shape handles rotation only.
-   These are deliberately separate elements -- combining stretch and rotation on one element
-   causes the stretch to skew diagonally instead of falling straight down. Start point is
-   -90vh (well above the viewport, not just above the stage) so it visibly falls INTO view
-   instead of materializing a few dozen pixels above the text. Fall duration is 3.2s (slowed from
-   an original 2.2s for a more fluid/liquid feel) -- the earlier fix for "nothing happens" was
-   starting the sequence sooner (see the IntersectionObserver threshold in main.js), not making
-   the fall itself faster, and that's still true at this slower speed too. */
-.ripple-stage .drop-wrap{ position:absolute; left:50%; top:-90vh; transform:translateX(-50%) scaleY(1); z-index:5; opacity:0; filter:blur(0px); }
-.ripple-stage .drop-wrap.falling{ opacity:1; transition:top 3.2s cubic-bezier(.36,.06,.29,.99), transform 3.2s cubic-bezier(.36,.06,.29,.99); top:50%; transform:translateX(-50%) scaleY(1.4); }
-/* Sinks in, not splats: the wrap keeps drifting down (translateY) as it narrows/flattens
-   (scale) instead of stopping dead and squashing in place -- a flat squash with no continued
-   motion read as hitting a solid floor, not breaking through a liquid surface. The flatten
-   itself is also much less extreme than an earlier version (scale(2.6,0.1), which pancaked wide
-   enough to read as a splat against something solid) -- scale(1.4,0.15) still narrows/flattens
-   but reads more like sinking through the surface than spreading across it. Opacity/blur are
-   held for a beat (the transition-delay) before fading so the sink is actually visible first,
-   then it melts into the blur rather than cutting out -- see .impact-glow below, timed to still
-   be near its own peak brightness at the moment this finishes fading, so it reads as "something
-   absorbed it" rather than the drop just vanishing on its own. */
-.ripple-stage .drop-wrap.impact{
-  top:50%;
-  transition:transform 0.6s cubic-bezier(.16,1,.3,1), opacity 0.5s ease-in 0.22s, filter 0.5s ease-in 0.22s;
-  transform:translateX(-50%) translateY(10px) scale(1.4, 0.15);
-  opacity:0; filter:blur(4px);
+/* --- Raindrop, shared by both stages (desktop .ripple-stage, mobile .work-mobile-stage) ---
+   The mobile stage is a 0x0 anchor element, so top:50% resolves to 0 there — identical to the
+   explicit top:0 these rules used to carry as a separate copy. Only the few size values that
+   genuinely differ are overridden per stage, via the custom properties just below.
+   .drop-wrap and .drop-shape are separate elements on purpose: combining the fall's vertical
+   squash/stretch with the shape's 135deg rotation on one element skews the stretch diagonally
+   instead of straight down. Never merge them. Start point is -90vh (well above the viewport, not
+   just above the stage) so the drop visibly falls INTO view. */
+.ripple-stage{ --drop-size:12px; --drop-glow:14px; --flash-size:6px; --ring-border:3px; }
+.work-mobile-stage{ --drop-size:10px; --drop-glow:12px; --flash-size:5px; --ring-border:2px; }
+.ripple-stage .drop-wrap, .work-mobile-stage .drop-wrap{
+  position:absolute; left:50%; top:-90vh; z-index:5;
+  transform:translateX(-50%) scaleY(1); opacity:0; filter:blur(0px);
 }
-.ripple-stage .drop-shape{ width:12px; height:12px; background:var(--accent); box-shadow:0 0 14px 3px rgba(var(--accent-rgb),0.55); border-radius:50% 50% 50% 0; transform:rotate(135deg); }
-
-.ripple-stage .impact-flash{ position:absolute; top:50%; left:50%; width:6px; height:6px; border-radius:50%; background:#fff; transform:translate(-50%,-50%) scale(1); opacity:0; z-index:4; }
+.ripple-stage .drop-shape, .work-mobile-stage .drop-shape{
+  width:var(--drop-size); height:var(--drop-size); background:var(--accent);
+  box-shadow:0 0 var(--drop-glow) 3px rgba(var(--accent-rgb),0.55);
+  border-radius:50% 50% 50% 0; transform:rotate(135deg);
+}
+.ripple-stage .impact-flash, .work-mobile-stage .impact-flash{
+  position:absolute; top:50%; left:50%; z-index:4;
+  width:var(--flash-size); height:var(--flash-size); border-radius:50%; background:#fff;
+  transform:translate(-50%,-50%) scale(1); opacity:0;
+}
+/* Soft diffuse splash at the impact point — reads as the liquid reacting, distinct from the crisp
+   rings tracing outward. Must start at explicit 0 size for the same reflow reason as .ring. */
+.ripple-stage .impact-glow, .work-mobile-stage .impact-glow{
+  position:absolute; top:50%; left:50%; z-index:3; width:0; height:0; border-radius:50%;
+  background:radial-gradient(circle, rgba(var(--accent-rgb),0.4), transparent 70%);
+  transform:translate(-50%,-50%); opacity:0; filter:blur(2px);
+}
+/* Rings MUST start at explicit 0 width/height — transitioning from an implicit "auto" size does
+   not reliably animate, which was the original root cause of the ripple never appearing. */
+.ripple-stage .ring, .work-mobile-stage .ring{
+  position:absolute; top:50%; left:50%; z-index:2; width:0; height:0;
+  border:var(--ring-border) solid var(--accent); border-radius:50%;
+  transform:translate(-50%,-50%); opacity:0; filter:blur(0px);
+}
+/* Fall + sink timings differ enough per stage to stay separate. "Sinks in, not splats": the wrap
+   keeps drifting down (translateY) while it narrows/flattens, instead of stopping dead and
+   squashing in place — a flat squash read as hitting a solid floor rather than breaking a liquid
+   surface. Opacity/blur are held for a beat (the transition-delay) so the sink is visible first,
+   then it melts into blur; .impact-glow is timed to still be near peak brightness at that moment,
+   so it reads as "something absorbed it" rather than the drop just vanishing. */
+.ripple-stage .drop-wrap.falling{
+  top:50%; opacity:1; transform:translateX(-50%) scaleY(1.4);
+  transition:top 3.2s cubic-bezier(.36,.06,.29,.99), transform 3.2s cubic-bezier(.36,.06,.29,.99);
+}
+.ripple-stage .drop-wrap.impact{
+  top:50%; transform:translateX(-50%) translateY(10px) scale(1.4, 0.15); opacity:0; filter:blur(4px);
+  transition:transform 0.6s cubic-bezier(.16,1,.3,1), opacity 0.5s ease-in 0.22s, filter 0.5s ease-in 0.22s;
+}
 .ripple-stage .impact-flash.flash{ transition:transform 0.6s ease-out, opacity 0.6s ease-out; transform:translate(-50%,-50%) scale(6); opacity:0; }
 
-/* Soft filled pulse at the exact impact point -- a diffuse "splash" that reads as a liquid
-   disturbance, distinct from the crisp ring outlines which trace the water rippling outward
-   from it. Must start at explicit 0 size for the same reflow-before-transition reason as .ring. */
-.ripple-stage .impact-glow{ position:absolute; top:50%; left:50%; width:0; height:0; border-radius:50%; background:radial-gradient(circle, rgba(var(--accent-rgb),0.4), transparent 70%); transform:translate(-50%,-50%); opacity:0; filter:blur(2px); z-index:3; }
-
-/* Ring MUST start at explicit 0 width/height -- transitioning from implicit "auto" does not
-   reliably animate in browsers. This was the root cause of the ripple not appearing at all.
-   z-index above .stage-card so the ripple still reads as tracing across the card's surface
-   rather than getting hidden behind it. */
-.ripple-stage .ring{ position:absolute; top:50%; left:50%; width:0; height:0; border:3px solid var(--accent); border-radius:50%; transform:translate(-50%,-50%); opacity:0; filter:blur(0px); z-index:2; }
-
-/* Card the projects sit on once the ripple lands. Sized so every node's full two-line label
-   (name + hook) clears the card edge with ~65px to spare, not just the node's center point --
-   at the original 66.6% size the widest hooks (e.g. Zentra's) overflowed the card by ~58px.
-   108% of the stage (not a fixed px value) so it still scales with .ripple-stage's own
-   90vw cap on narrower desktop windows. Sits behind the rings/nodes (z-index:1) but above the
-   section's own background. Grows in from the center in sync with the ripple, not before or
-   after it. */
-.ripple-stage .stage-card{
+/* Card the projects sit on once the ripple lands. 108% of the stage (not a fixed px value) so it
+   scales with .ripple-stage — sized so each node's full two-line label clears the edge, not just
+   its center point. Sits behind the rings/nodes but above the section background. */
+.ripple-stage .stage-card, .work-item-preview-card{
   position:absolute; top:50%; left:50%; width:0; height:0;
-  transform:translate(-50%,-50%); opacity:0; z-index:1;
+  transform:translate(-50%,-50%); opacity:0;
   background:#0a0a0a; border-radius:20px;
+}
+.ripple-stage .stage-card{
+  z-index:1;
   box-shadow:0 40px 100px -24px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.05);
   transition:width .8s cubic-bezier(.19,1,.22,1), height .8s cubic-bezier(.19,1,.22,1), opacity .6s ease;
 }
 .ripple-stage .stage-card.active{ width:108%; height:108%; opacity:1; }
-/* Subtle spotlight cue while a preview is open -- the card dims a touch further behind the
-   glowing preview, reinforcing the "stage" read the enlarged preview is going for. */
+/* Spotlight cue: the card dims behind the glowing preview, reinforcing the "stage" read. */
 .ripple-stage.hovering .stage-card{ filter:brightness(0.75); transition:filter .5s ease; }
 
-.ripple-stage .node{ position:absolute; top:50%; left:50%; opacity:0; color:var(--text); font-family:'Space Grotesk',sans-serif; font-size:20px; font-weight:700; white-space:nowrap; text-align:center; cursor:pointer; z-index:2; transform:translate(-50%,-50%) scale(0.3); filter:blur(8px); transition:opacity 1.9s ease, transform 2.6s cubic-bezier(.22,1.44,.36,1), filter 2.2s ease-out; }
+.ripple-stage .node{ position:absolute; top:50%; left:50%; opacity:0; color:var(--text); font-family:var(--font-display); font-size:20px; font-weight:700; white-space:nowrap; text-align:center; cursor:pointer; z-index:2; transform:translate(-50%,-50%) scale(0.3); filter:blur(8px); transition:opacity 1.9s ease, transform 2.6s cubic-bezier(.22,1.44,.36,1), filter 2.2s ease-out; }
 .ripple-stage .node .hook{ font-family:'Inter',sans-serif; font-size:11px; color:var(--text-mute); font-weight:400; margin-top:4px; }
 .ripple-stage .node:hover, .ripple-stage .node:focus{ color:var(--accent); }
 .ripple-stage .node.placed{ opacity:1; filter:blur(0px); }
 .ripple-stage.hovering .node:not(:hover){ opacity:0.25 !important; }
 
-/* Text ripple: a damped scale/skew wobble on the text itself as it settles, like it's the
-   surface a ripple just passed under. Lives on an inner wrapper so it doesn't fight the
-   outer .node's own position/opacity/blur transition (both would be animating `transform`
-   otherwise). Plays once via `animation`, independent of the transition above. */
+/* Damped wobble as the text settles, like the surface a ripple just passed under. Lives on an
+   inner wrapper so it doesn't fight .node's own transform transition. */
 @keyframes textRipple{
   0%{ transform:scale(.82) skewX(0deg); }
   32%{ transform:scale(1.07) skewX(-5deg); }
@@ -312,15 +251,30 @@ a{ color:inherit; text-decoration:none; }
 .ripple-stage .node-inner{ display:block; }
 .ripple-stage .node.placed .node-inner{ animation:textRipple 1.3s cubic-bezier(.22,1,.36,1) both; }
 
-/* Preview — split into an outer .preview-wrap (position/size/active-toggle, NOT clipped) and
-   an inner .preview (the actual clipped image box), so the ring + HUD corner brackets below can
-   extend past the image's own rounded corners instead of getting cut off by the overflow:hidden
-   that the image itself needs. Sized to a 9:19.5 phone-screen ratio to match the screenshot
-   crops. Three stacked layers sit above the image: ::before is a corner-positioned accent tint
-   (subtle, photo still reads through), ::after is a bottom-up dark fade for text legibility, and
-   .preview-tag is the project name sitting on top of that fade. The outer glow is a box-shadow
-   on the inner .preview, per-project color driven by --proj-rgb so the same rules work for all
-   four instead of repeating values per project. */
+/* --- Preview image layers, shared by the desktop hover preview and the mobile fixed preview ---
+   Three stacked layers over the image: ::before is a corner accent tint, ::after a bottom-up dark
+   fade for label legibility, .preview-tag the project name on top of that fade. All keyed off
+   --proj-rgb so one set of rules covers every project. */
+.ripple-stage .preview img, .work-item-preview-bloom img{
+  position:relative; z-index:1; width:100%; height:100%;
+  object-fit:cover; object-position:top; display:block;
+}
+.ripple-stage .preview::before, .work-item-preview-bloom::before{
+  content:""; position:absolute; inset:0; z-index:2; pointer-events:none;
+  background:radial-gradient(circle at 82% 14%, rgba(var(--proj-rgb),0.4), transparent 55%);
+}
+.ripple-stage .preview::after, .work-item-preview-bloom::after{
+  content:""; position:absolute; inset:0; z-index:3; pointer-events:none;
+  background:linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 22%, transparent 46%);
+}
+.ripple-stage .preview .preview-tag, .work-item-preview-bloom .preview-tag{
+  position:absolute; left:14px; bottom:12px; z-index:4; pointer-events:none;
+  font-family:var(--font-display); font-weight:700; font-size:14px; color:#f4f2ee;
+}
+
+/* Desktop preview is split into an outer .preview-wrap (position/size/active toggle, NOT clipped)
+   and an inner .preview (the clipped image box), so the ring and corner brackets can extend past
+   the image's rounded corners instead of being cut off by the overflow:hidden the image needs. */
 .ripple-stage .preview-wrap{
   position:absolute; top:50%; left:50%; width:56px; height:121px;
   transform:translate(-50%,-50%) scale(0.3); opacity:0;
@@ -337,49 +291,32 @@ a{ color:inherit; text-decoration:none; }
   transition:box-shadow .5s ease;
 }
 .ripple-stage .preview-wrap.active .preview{ box-shadow:0 0 90px 14px rgba(var(--proj-rgb),0.4); }
-.ripple-stage .preview img{ position:relative; z-index:1; width:100%; height:100%; object-fit:cover; object-position:top; display:block; }
-.ripple-stage .preview::before{
-  content:""; position:absolute; inset:0; z-index:2; pointer-events:none;
-  background:radial-gradient(circle at 82% 14%, rgba(var(--proj-rgb),0.4), transparent 55%);
-}
-.ripple-stage .preview::after{
-  content:""; position:absolute; inset:0; z-index:3; pointer-events:none;
-  background:linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 22%, transparent 46%);
-}
-.ripple-stage .preview .preview-tag{
-  position:absolute; left:14px; bottom:12px; z-index:4;
-  font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:14px; color:#f4f2ee;
-  pointer-events:none;
-}
-/* One-time light sweep across the image when it activates -- a glass/metal-catching-light cue
-   rather than a loop, so it reads as a premium "reveal" moment instead of a constant gimmick.
-   z-index above the dark fade (3) so it's visible over the whole image, below the tag (4) so
-   the project name still reads clearly through it. */
+/* One-time light sweep on activation — a glass-catching-light cue, not a loop. Above the dark
+   fade (3) so it reads across the whole image, below the tag (4) so the name stays legible. */
 .ripple-stage .preview .preview-shimmer{
-  content:""; position:absolute; inset:0; z-index:3.5; pointer-events:none;
+  position:absolute; inset:0; z-index:3.5; pointer-events:none;
   background:linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.28) 48%, rgba(255,255,255,0.06) 54%, transparent 70%);
   transform:translateX(-130%);
 }
 .ripple-stage .preview-wrap.active .preview-shimmer{ animation:previewShimmer 1.1s cubic-bezier(.19,1,.22,1) .2s 1; }
 @keyframes previewShimmer{ to{ transform:translateX(130%); } }
 
-/* Rotating conic-gradient ring + HUD-style corner brackets -- the "futuristic/luxury" showcase
-   cue for the active preview, sitting on .preview-wrap (not .preview) specifically so both can
-   extend past the image's own clipped edges instead of being cut off. The ring is a solid
-   conic-gradient box with the center masked out (mask-composite:exclude), leaving just a thin
-   rotating border -- cheaper and crisper than an actual animated SVG/border-image, and it spins
-   as one rigid shape since the whole element rotates rather than trying to animate the gradient
-   angle itself. */
-.ripple-stage .preview-ring{
-  position:absolute; inset:-16px; border-radius:22px; z-index:0;
-  opacity:0; pointer-events:none; padding:1.5px;
+/* Rotating conic-gradient ring, shared by both previews (only inset/radius differ). A solid
+   conic-gradient box with its centre masked out, leaving just a thin rotating border — cheaper
+   and crisper than an animated SVG, and it spins as one rigid shape because the whole element
+   rotates rather than the gradient angle animating. */
+.ripple-stage .preview-ring, .mobile-preview-wrap .preview-ring{
+  position:absolute; opacity:0; pointer-events:none; padding:1.5px;
   background:conic-gradient(from 0deg, transparent 0%, rgba(var(--proj-rgb),0.9) 10%, #fff 18%, rgba(var(--proj-rgb),0.9) 26%, transparent 42%, transparent 100%);
   -webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite:xor;
   mask-composite:exclude;
   transition:opacity .6s ease;
 }
-.ripple-stage .preview-wrap.active .preview-ring{ opacity:1; animation:previewRingSpin 3.2s linear infinite; }
+.ripple-stage .preview-ring{ inset:-16px; border-radius:22px; z-index:0; }
+.mobile-preview-wrap .preview-ring{ inset:-11px; border-radius:18px; }
+.ripple-stage .preview-wrap.active .preview-ring,
+.mobile-preview-wrap.active .preview-ring{ opacity:1; animation:previewRingSpin 3.2s linear infinite; }
 @keyframes previewRingSpin{ to{ transform:rotate(360deg); } }
 
 .ripple-stage .preview-corner{
@@ -397,41 +334,30 @@ a{ color:inherit; text-decoration:none; }
 .ripple-stage .preview-wrap.active .preview-corner.bl{ transition-delay:.1s; }
 .ripple-stage .preview-wrap.active .preview-corner.br{ transition-delay:.15s; }
 
-/* --proj-rgb drives the tint, the ring, the corners, the glow, and (via .preview-tag being
-   plain white above) is the one thing that changes per project — same treatment otherwise.
-   Colors match each project's actual screenshot; Amun stays neutral gray since it has no real
-   screen yet. .preview-wrap.KEY (desktop hover preview), .mobile-preview-wrap.KEY (mobile's
-   single shared preview, set via JS in setMobilePreview()), and .work-pill.KEY (mobile pill
-   selector's active state, below) all need this same rule -- none of the three share a common
-   class to hang it on instead. */
+/* --proj-rgb is the one thing that changes per project — it drives the tint, ring, corners and
+   glow everywhere. Colors match each project's actual screenshot; Amun stays neutral gray since
+   it has no real screen yet. All three consumers need the rule; none share a common class. */
 .preview-wrap.nitefind, .mobile-preview-wrap.nitefind, .work-pill.nitefind{ --proj-rgb:176,74,214; }
 .preview-wrap.smiteforge, .mobile-preview-wrap.smiteforge, .work-pill.smiteforge{ --proj-rgb:224,184,74; }
 .preview-wrap.zentra, .mobile-preview-wrap.zentra, .work-pill.zentra{ --proj-rgb:79,191,130; }
 .preview-wrap.amun, .mobile-preview-wrap.amun, .work-pill.amun{ --proj-rgb:143,143,143; }
 
-/* Work section — mobile fallback. The X-layout raindrop animation assumes a desktop-sized
-   canvas and doesn't translate below ~700px (nodes overflow the viewport), so under that width
-   it's replaced by a row of pills below the fixed preview instead. Tapping a pill swaps which
-   project's image/label/color show in #mobilePreviewWrap -- the preview container itself never
-   moves or resizes. (An earlier version used a tap-to-expand accordion; that had persistent
-   scroll-recentering bugs stemming from its own height changing on every tap. Pills have no
-   collapse/expand state, so there's no height change and nothing to recenter -- that whole class
-   of bug is gone, not just patched.)
-
-   Unlike the desktop stage, mobile does NOT replay a drop on every tap. There is exactly one
-   drop per visit (.work-mobile-stage, driven by playMobileEntrance() in main.js); every reveal
-   after that -- the pills row, then the default first-project preview -- is a clip-path
-   circle-reveal triggered by that same impact, not a fade, so it reads as caused by the drop
-   instead of materializing independently of it. */
-.work-pills-wrap{ display:none; }
-.work-mobile-stage{ display:none; }
+/* --- Work section, mobile fallback ---
+   The X-layout stage assumes a desktop canvas, so below 700px it's replaced by a row of pills
+   above one fixed preview. Tapping a pill only swaps that preview's image/label/color — the
+   container never moves or resizes. (An earlier accordion version had persistent scroll-recenter
+   bugs caused by its own height changing on every tap; pills have no expand/collapse state, so
+   that entire class of bug is gone rather than patched.)
+   There's exactly one drop per visit, not one per tap: playMobileEntrance() in main.js fires it,
+   and everything after — the pills, then the default first preview — is revealed by that same
+   impact, so it reads as caused by the drop rather than materializing independently. */
+.work-pills-wrap, .work-mobile-stage, .mobile-preview-wrap, .mobile-preview-copy{ display:none; }
 @media (max-width:700px){
   .ripple-stage{ display:none; }
-  /* bottom:calc(50% + 187px) instead of a flat px-from-bottom value -- 187px is the fixed
-     preview's own half-height (325/2 = 162.5) plus a ~24px gap, so this sits the pills row's
-     BOTTOM edge just above the preview regardless of viewport height (the preview itself is
-     always centered at 50%, see .mobile-preview-wrap below). If the preview's fixed 150x325 size
-     ever changes, recompute this against its new height, not the old constant. */
+  /* bottom/top:calc(50% + 187px) — 187px is the fixed preview's half-height (325/2) plus a ~24px
+     gap. The pills sit that far above it and the copy that far below, so the whole stack reads
+     centered and symmetric at any viewport height. Recompute both if the preview's 150x325 box
+     ever changes. */
   .work-pills-wrap{
     display:flex; flex-direction:column; align-items:center; gap:16px;
     position:absolute; left:0; right:0; z-index:4;
@@ -441,95 +367,31 @@ a{ color:inherit; text-decoration:none; }
     transition:clip-path 1.6s cubic-bezier(.19,1,.22,1), filter .9s ease, transform 1s cubic-bezier(.22,1,.36,1);
   }
   .work-pills-wrap.revealed{ clip-path:circle(150% at 50% 50%); filter:blur(0); transform:scaleY(1); }
-
-  /* Entrance stage: a zero-size anchor centered on the section itself, so the drop falls to the
-     true center of the screen regardless of where any in-flow content happens to sit. The drop's
-     own -90vh -> 0 fall is unchanged; only the anchor it falls relative to has moved. Same
-     mechanics as the desktop stage otherwise (reflow-before-transition, falling removed before
-     impact is added), just a single play, never reset. Timings are intentionally slow and
-     spaced out so each stage — fall, impact, ripple, reveal — reads as its own unhurried beat. */
+  /* Zero-size anchor centered on the section, so the drop falls to the true centre of the screen
+     regardless of where in-flow content sits. Single play, never reset. */
   .work-mobile-stage{ position:absolute; top:50%; left:50%; width:0; height:0; overflow:visible; display:block; z-index:3; pointer-events:none; }
-  .work-mobile-stage .drop-wrap{ position:absolute; left:50%; top:-90vh; transform:translateX(-50%) scaleY(1); opacity:0; z-index:5; filter:blur(0px); }
-  .work-mobile-stage .drop-wrap.falling{ opacity:1; transition:top 2.2s cubic-bezier(.36,.06,.29,.99), transform 2.2s cubic-bezier(.36,.06,.29,.99); top:0; transform:translateX(-50%) scaleY(1.35); }
-  /* Same sink-in treatment as the desktop stage -- keeps drifting down while narrowing/
-     flattening, holds briefly, then fades+blurs -- instead of a flat squash that stops dead.
-     See .ripple-stage .drop-wrap.impact for the full rationale. */
-  .work-mobile-stage .drop-wrap.impact{
-    top:0;
-    transition:transform 0.7s cubic-bezier(.16,1,.3,1), opacity 0.55s ease-in 0.2s, filter 0.55s ease-in 0.2s;
-    transform:translateX(-50%) translateY(8px) scale(1.3, 0.15);
-    opacity:0; filter:blur(3px);
+  .work-mobile-stage .drop-wrap.falling{
+    top:50%; opacity:1; transform:translateX(-50%) scaleY(1.35);
+    transition:top 2.2s cubic-bezier(.36,.06,.29,.99), transform 2.2s cubic-bezier(.36,.06,.29,.99);
   }
-  .work-mobile-stage .drop-shape{ width:10px; height:10px; background:var(--accent); box-shadow:0 0 12px 3px rgba(var(--accent-rgb),0.55); border-radius:50% 50% 50% 0; transform:rotate(135deg); }
-  .work-mobile-stage .impact-flash{ position:absolute; left:50%; top:0; width:5px; height:5px; border-radius:50%; background:#fff; transform:translate(-50%,-50%) scale(1); opacity:0; z-index:4; }
+  .work-mobile-stage .drop-wrap.impact{
+    top:50%; transform:translateX(-50%) translateY(8px) scale(1.3, 0.15); opacity:0; filter:blur(3px);
+    transition:transform 0.7s cubic-bezier(.16,1,.3,1), opacity 0.55s ease-in 0.2s, filter 0.55s ease-in 0.2s;
+  }
   .work-mobile-stage .impact-flash.flash{ transition:transform .65s ease-out, opacity .65s ease-out; transform:translate(-50%,-50%) scale(9); opacity:0; }
-  .work-mobile-stage .impact-glow{ position:absolute; left:50%; top:0; width:0; height:0; border-radius:50%; background:radial-gradient(circle, rgba(var(--accent-rgb),0.4), transparent 70%); transform:translate(-50%,-50%); opacity:0; filter:blur(2px); z-index:3; }
-  .work-mobile-stage .ring{ position:absolute; left:50%; top:0; width:0; height:0; border:2px solid var(--accent); border-radius:50%; transform:translate(-50%,-50%); opacity:0; }
-}
-.work-pills{ display:flex; flex-wrap:wrap; justify-content:center; gap:10px; }
-.work-pill{
-  padding:9px 18px; border:1px solid var(--line-strong); border-radius:999px;
-  background:none; font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-dim);
-  cursor:pointer; opacity:0; transform:scale(0.85);
-  transition:opacity .7s ease, transform .8s cubic-bezier(.22,1,.36,1),
-    color .3s ease, border-color .3s ease, background .3s ease, box-shadow .3s ease;
-}
-.work-pill.placed{ opacity:1; transform:scale(1); }
-/* Active state keyed off the same --proj-rgb each project's preview ring/glow already uses
-   (set below, alongside .preview-wrap.KEY/.mobile-preview-wrap.KEY) rather than the generic
-   sitewide accent -- same colored-border/glow language as the desktop hover preview, just
-   applied to the control that triggers it instead of the preview itself. */
-.work-pill.active{
-  color:var(--text);
-  border-color:rgba(var(--proj-rgb),0.9);
-  background:rgba(var(--proj-rgb),0.14);
-  box-shadow:0 0 20px -4px rgba(var(--proj-rgb),0.55);
-}
-/* The "view project" link + per-project description live in .mobile-preview-copy (below the
-   fixed preview, see index.html) rather than inside a per-item collapsible panel, so they're
-   always visible once the wrap reveals -- no separate opacity-gated open state needed. */
-.mobile-preview-copy .work-item-btn{
-  display:inline-block; padding:12px 24px; border:1px solid var(--line-strong);
-  font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--text);
-  transition:border-color .3s ease, color .3s ease;
-}
-.mobile-preview-copy .work-item-btn:hover, .mobile-preview-copy .work-item-btn:focus-visible{ border-color:var(--accent); color:var(--accent); }
 
-/* Preview — a single shared element, #mobilePreviewWrap in index.html, positioned independently
-   of the pills row and never moving. (An earlier accordion version embedded one copy of this
-   per item, which was the actual cause of "the preview screen keeps shifting": each tap opened a
-   DIFFERENT DOM element living inside that particular item's own panel, and since panels above/
-   below it were simultaneously collapsing/expanding, the whole thing visibly relocated between
-   taps even though nothing about a single preview's own position ever changed.) setMobilePreview()
-   in main.js just updates this one element's content and toggles .active -- its position never
-   changes regardless of which pill is active.
-
-   position:fixed (viewport-centered), not absolute (section-centered) -- simplest way to keep it
-   dead-center on screen without depending on exactly how tall .work-section ends up (it's a
-   snap-section, min-height:100vh, so the two are equivalent in practice, but fixed doesn't need
-   that to stay true). Tapping a pill never scrolls the page, so there's no drift to account for
-   the way an earlier per-item-accordion version had to. pointer-events:none so it never blocks
-   taps on the pills underneath/around it. */
-.mobile-preview-wrap{ display:none; }
-@media (max-width:700px){
+  /* Single shared preview, positioned independently of the pills and never moving. (The earlier
+     accordion embedded one copy per item — that was the real cause of "the preview keeps
+     shifting": each tap opened a DIFFERENT element inside that item's own panel while panels
+     around it were expanding/collapsing.) position:fixed keeps it centred on screen without
+     depending on the section's height; pointer-events:none so it never blocks taps on the pills. */
   .mobile-preview-wrap{
     display:block;
     position:fixed; top:50%; left:50%; width:150px; height:325px;
     transform:translate(-50%,-50%); z-index:20; pointer-events:none;
   }
-}
-
-/* Per-project description + "view project" link, sitting below the fixed preview -- a separate
-   element from .mobile-preview-wrap (not nested inside it) specifically because that wrap is
-   pointer-events:none (so the image/card never blocks taps on the pills), but the link here
-   needs to actually be tappable. top:calc(50% + 187px) is the mirror of .work-pills-wrap's
-   bottom:calc(50% + 187px) above -- both sit the same ~24px gap off the preview's fixed
-   150x325 box, one above it and one below, so the whole stack (pills / preview / copy) reads as
-   centered and symmetric regardless of viewport height. Content and .active are updated by the
-   same setMobilePreview() calls that drive the image swap in main.js, cross-fading in sync with
-   it rather than as a separate, unrelated update. */
-.mobile-preview-copy{ display:none; }
-@media (max-width:700px){
+  /* Separate element from the wrap (not nested) precisely because that wrap is pointer-events:none
+     but this link has to stay tappable. */
   .mobile-preview-copy{
     display:block;
     position:fixed; top:calc(50% + 187px); left:50%; z-index:20;
@@ -539,41 +401,45 @@ a{ color:inherit; text-decoration:none; }
   }
   .mobile-preview-copy.active{ opacity:1; }
 }
+
+.work-pills{ display:flex; flex-wrap:wrap; justify-content:center; gap:10px; }
+.work-pill{
+  padding:9px 18px; border:1px solid var(--line-strong); border-radius:999px;
+  background:none; font-family:var(--font-mono); font-size:12px; color:var(--text-dim);
+  cursor:pointer; opacity:0; transform:scale(0.85);
+  transition:opacity .7s ease, transform .8s cubic-bezier(.22,1,.36,1),
+    color .3s ease, border-color .3s ease, background .3s ease, box-shadow .3s ease;
+}
+.work-pill.placed{ opacity:1; transform:scale(1); }
+/* Active state keyed off the same --proj-rgb the project's preview ring/glow uses, rather than
+   the generic accent — same colored-border language, applied to the control that triggers it. */
+.work-pill.active{
+  color:var(--text);
+  border-color:rgba(var(--proj-rgb),0.9);
+  background:rgba(var(--proj-rgb),0.14);
+  box-shadow:0 0 20px -4px rgba(var(--proj-rgb),0.55);
+}
 .mobile-preview-copy p{
   font-size:14px; line-height:1.55; color:var(--text-dim);
   margin-bottom:16px; transition:opacity .18s ease;
 }
+.mobile-preview-copy .work-item-btn{
+  display:inline-block; padding:12px 24px; border:1px solid var(--line-strong);
+  font-family:var(--font-mono); font-size:13px; color:var(--text);
+  transition:border-color .3s ease, color .3s ease;
+}
+.mobile-preview-copy .work-item-btn:hover, .mobile-preview-copy .work-item-btn:focus-visible{ border-color:var(--accent); color:var(--accent); }
 
-/* Card behind the image, matching the desktop stage-card treatment (dark, rounded, its own
-   depth shadow) -- sits behind .work-item-preview-bloom via DOM order (index.html), not
-   z-index, since neither needs a stacking context otherwise. Grows in sync with the image
-   reveal so it reads as one materialization, not two. */
+/* Card behind the mobile preview image — same dark/rounded/depth treatment as the desktop
+   .stage-card it shares a base rule with above. Sits behind the bloom via DOM order. */
 .work-item-preview-card{
-  position:absolute; left:50%; top:50%; width:0; height:0;
-  transform:translate(-50%,-50%); opacity:0;
-  background:#0a0a0a; border-radius:20px;
   box-shadow:0 24px 60px -16px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.05);
   transition:width .9s cubic-bezier(.19,1,.22,1) .1s, height .9s cubic-bezier(.19,1,.22,1) .1s, opacity .6s ease .1s;
 }
 .mobile-preview-wrap.active .work-item-preview-card{ width:calc(100% + 40px); height:calc(100% + 40px); opacity:1; }
-/* Rotating ring, same treatment/keyframe as the desktop hover preview's .preview-ring
-   (previewRingSpin is defined once, globally, alongside that rule -- reused here rather than
-   redefined). Sized down for this smaller box. */
-.mobile-preview-wrap .preview-ring{
-  position:absolute; inset:-11px; border-radius:18px;
-  opacity:0; pointer-events:none; padding:1.5px;
-  background:conic-gradient(from 0deg, transparent 0%, rgba(var(--proj-rgb),0.9) 10%, #fff 18%, rgba(var(--proj-rgb),0.9) 26%, transparent 42%, transparent 100%);
-  -webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite:xor;
-  mask-composite:exclude;
-  transition:opacity .6s ease;
-}
-.mobile-preview-wrap.active .preview-ring{ opacity:1; animation:previewRingSpin 3.2s linear infinite; }
-/* Preview materializes the same way the dropdown does — a clip-path circle expanding from the
-   top-center of its own box, not a fade. The transition is only declared once, on the base
-   (closed) rule, so it runs symmetrically: opening plays it forward, closing plays it in
-   reverse. Same corner-tint/bottom-fade/label/glow layers as the desktop preview, sharing
-   --proj-rgb, so the two feel like the same treatment rather than two designs. */
+/* Materializes as a clip-path circle from its own top-centre, not a fade. The transition is
+   declared only on the base rule so it runs symmetrically — opening plays forward, closing
+   reverses. */
 .work-item-preview-bloom{
   position:absolute; inset:0;
   clip-path:circle(0% at 50% 0%); filter:blur(12px); transform:scaleY(0.95);
@@ -582,20 +448,6 @@ a{ color:inherit; text-decoration:none; }
   transition:clip-path 1.1s cubic-bezier(.19,1,.22,1), filter .85s ease, transform .9s cubic-bezier(.22,1,.36,1),
     box-shadow .6s ease;
 }
-.work-item-preview-bloom img{ position:relative; z-index:1; width:100%; height:100%; object-fit:cover; object-position:top; display:block; }
-.work-item-preview-bloom::before{
-  content:""; position:absolute; inset:0; z-index:2; pointer-events:none;
-  background:radial-gradient(circle at 82% 14%, rgba(var(--proj-rgb),0.4), transparent 55%);
-}
-.work-item-preview-bloom::after{
-  content:""; position:absolute; inset:0; z-index:3; pointer-events:none;
-  background:linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 22%, transparent 46%);
-}
-.work-item-preview-bloom .preview-tag{
-  position:absolute; left:14px; bottom:12px; z-index:4;
-  font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:14px; color:#f4f2ee;
-  pointer-events:none;
-}
 .mobile-preview-wrap.active .work-item-preview-bloom{
   clip-path:circle(140% at 50% 0%); filter:blur(0); transform:scaleY(1);
   box-shadow:0 0 50px 6px rgba(var(--proj-rgb),0.3);
@@ -603,184 +455,100 @@ a{ color:inherit; text-decoration:none; }
     box-shadow .7s ease .25s;
 }
 
-@media (prefers-reduced-motion: reduce){
-  .section-bloom{
-    clip-path:none !important; opacity:0; transition:opacity .3s ease !important;
-  }
-  .section-bloom.bloomed{ opacity:1; }
-  .work-pills-wrap{
-    clip-path:none !important; filter:none !important; transform:none !important;
-    opacity:0; transition:opacity .3s ease !important;
-  }
-  .work-pills-wrap.revealed{ opacity:1; }
-  .work-pill{
-    transform:none !important;
-    transition:opacity .3s ease !important, color .3s ease, border-color .3s ease, background .3s ease, box-shadow .3s ease;
-  }
-  .work-pill.placed{ opacity:1; }
-  .work-item-preview-bloom{
-    clip-path:none !important; filter:none !important; transform:none !important;
-    opacity:0; transition:opacity .3s ease !important;
-  }
-  .mobile-preview-wrap.active .work-item-preview-bloom{ opacity:1; }
-}
-
-/* About photo — duotone treatment (grayscale + contrast + violet multiply overlay) unchanged,
-   but the frame itself now matches the text column's actual rendered height exactly (top at
-   the "Background." heading, bottom at the last skills row) via flexbox stretch, instead of a
-   fixed-pixel box that had to be hand-tuned against a specific line count and drifted out of
-   alignment whenever the copy changed length. This replaces the earlier bleed-past-the-edge,
-   overlap-the-skills-column composition — the two columns line up cleanly now instead. */
+/* About photo — duotone (grayscale + contrast + violet multiply). The frame matches the text
+   column's real rendered height via flexbox stretch rather than a hand-tuned fixed box that
+   drifted whenever the copy changed length. */
 .about-layout{ display:flex; align-items:stretch; gap:56px; }
 .about-text{ flex:1; min-width:0; }
-/* flex-basis as a percentage (not a fixed px width) so the photo shrinks proportionally at
-   narrower desktop widths instead of always eating the same fixed slice out of the row — a
-   fixed 420px was fine at 1440px wide but left barely 400px for two columns of text at
-   1024px, wrapping into enough extra lines to make the section taller, not shorter. */
+/* flex-basis as a percentage, not fixed px — a fixed 420px was fine at 1440px wide but left
+   barely 400px for two text columns at 1024px, wrapping into enough extra lines to make the
+   section taller rather than shorter. */
 .about-photo-frame{
   position:relative; z-index:1; order:2; flex:0 0 34%; max-width:420px; min-width:280px;
   border-radius:4px; overflow:hidden;
 }
-/* <picture> is inline by default -- without this the block-level .about-photo img inside it
-   can't reliably resolve its own width:100%/height:100% against the frame, since picture
-   itself isn't participating in the frame's box the same way a bare <img> did. Just a
-   transparent passthrough the same size as the frame. */
-.about-photo-frame picture{ display:block; width:100%; height:100%; }
-/* object-position shifted from the old 50% 12% (centered, near the very top) -- the source
-   photo has the subject off to the right side of frame with his face/neck/chest well below the
-   top, so a centered/top-anchored crop was showing mostly empty background wall with just a
-   sliver of hair at the bottom edge. This desktop frame is usually narrower relative to its
-   own height than the source photo is, so object-fit:cover crops the SIDES here (not the
-   top/bottom) -- 68% shifts the visible window toward the subject's side; 34% is a fallback
-   for the cases where the frame's own aspect ratio is short enough that it crops top/bottom
-   instead. */
+/* 68% X shifts the visible window toward the subject, who sits right-of-centre in the source with
+   his face well below the top — a centred/top-anchored crop showed mostly empty wall. This frame
+   is usually narrower than the source relative to its height, so cover crops the SIDES here; 34%
+   is the fallback for frame ratios short enough to crop top/bottom instead. */
 .about-photo{ width:100%; height:100%; object-fit:cover; object-position:68% 34%; filter:grayscale(1) contrast(1.15) brightness(0.95); display:block; }
-/* Duotone tint, shared by every breakpoint (this rule isn't overridden in the media queries
-   below, so desktop and mobile always get the identical treatment). Alpha values dialed down
-   from an earlier 0.28/0.4 -- measured against actual pixels, that version darkened the face by
-   ~25% with a visible blue-violet cast and the torso by ~35%, which read as a color filter over
-   the person rather than the intended "ties into the palette" subtlety. 0.14/0.18 keeps the same
-   gradient geometry (still darker toward the lower-right) but roughly halves the visible shift. */
+/* Tint alpha dialled down from an earlier 0.28/0.4 — measured against real pixels, that darkened
+   the face ~25% with a visible blue-violet cast. Same gradient geometry, roughly half the shift. */
 .about-photo-frame::after{ content:""; position:absolute; inset:0; background:linear-gradient(160deg, rgba(var(--accent-rgb),0.14), rgba(5,5,5,0.18) 70%); mix-blend-mode:multiply; }
 
-/* Tablet/phone: stacked, photo above text (order:-1 flips it without reordering the actual
-   markup — the photo stays after the bio copy in the DOM/reading order for screen readers,
-   only its visual position moves). Frame goes back to a fixed aspect-ratio box since there's
-   no text column height to match once it's not sitting beside one. */
-@media (max-width:900px){
-  .about-layout{ flex-direction:column; gap:32px; }
-  /* Pushed down from flush-top (margin was 0) -- at this stacked layout the photo is the
-     first element in the section, sitting directly over the "BIO" ghost word underneath it
-     and blocking it out completely. This margin gives the ghost room to peek above the frame
-     the way it does in every other section instead of being fully covered by an opaque image. */
-  /* This is also exactly where the <picture> source in index.html swaps to the dedicated
-     mobile crop (kristian-about-mobile.jpg, 2174x2436 native). aspect-ratio is set to that
-     image's own pixel ratio -- not an arbitrary 2:1 -- specifically so object-fit:cover has
-     nothing left to crop: frame and image proportions now match almost exactly, so the whole
-     photo (head down through the crossed arms) shows instead of a tight head-and-shoulders
-     crop. If a different mobile photo is ever swapped in, recompute this against ITS actual
-     dimensions -- it's tied to this specific file, not a general mobile ratio. */
-  .about-photo-frame{ order:-1; width:100%; aspect-ratio:2174/2436; margin-top:64px; }
-  /* Centered, not top-biased -- with the frame ratio now matching the source image, cover has
-     essentially nothing to crop, so there's no need to shift the window toward the top like the
-     old mismatched-ratio frame required. */
-  .about-photo{ object-position:50% 50%; }
-}
-@media (max-width:600px){
-  /* Aspect ratio inherited from the 900px breakpoint (the mobile image's own 2174:2436 ratio)
-     rather than going full-square here — a 1:1 crop at full viewport width was costing ~375px
-     of a ~812px-tall phone viewport on its own, a big part of why About ran to more than double
-     the viewport height on mobile. */
-  .about-photo-frame{
-    border-radius:0;
-    width:100vw; margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw);
-  }
-  .about-photo{ object-position:50% 50%; }
-}
-
-/* About / Contact now sit inside full-viewport snap sections, centered. min-height:100dvh for
-   the same reason as .snap-section above -- these are redundant with that min-height in
-   practice (both are already .snap-section), kept here too since this rule is the one that
-   actually drives the flex centering and should agree with it exactly rather than relying on
-   inheritance from a different selector. */
+/* About / Contact are full-viewport snap sections, vertically centred. */
 .about, .contact{ position:relative; display:flex; align-items:center; min-height:100vh; min-height:100dvh; }
 .about .wrap, .contact .wrap{ position:relative; z-index:2; width:100%; }
-/* Wider than the sitewide 1100px .wrap cap — the photo now takes a real width slice out of
-   this row (it didn't when it was absolutely positioned), so the text column needs the extra
-   room or paragraphs wrap into more lines than before and the section gets taller, not shorter. */
+/* Wider than the sitewide 1100px cap — the photo takes a real width slice out of this row, so the
+   text column needs the extra room or paragraphs wrap into more lines and the section gets taller. */
 .about .wrap{ max-width:1280px; }
 
-/* Background / About */
-/* Padding/spacing here is deliberately tighter than it was — at common laptop viewport heights
-   (~768-900px) the old values made this section run taller than one viewport even in the
-   2-column desktop layout, which meant scroll-snap couldn't settle here in a single gesture
-   and the extra scrolling needed to clear it read as getting "stuck." */
+/* Spacing here is deliberately tight: at common laptop heights (~768-900px) the older values made
+   this section taller than one viewport even in the 2-column layout, so scroll-snap couldn't
+   settle in a single gesture and the extra scrolling read as getting "stuck". */
 .about{ padding:90px 0; border-top:1px solid var(--line); overflow:hidden; }
-.about .section-head{ padding-top:0; }
 .about .section-head h2::after{
   content:""; display:block; width:64px; height:1px; margin-top:24px;
   background:linear-gradient(90deg, var(--accent), transparent);
   opacity:0.8;
 }
 .about .grid{ display:grid; grid-template-columns:minmax(0,500px) 1fr; gap:64px; margin-top:32px; }
-@media (max-width:900px){ .about .grid{ grid-template-columns:1fr; } }
 .about .col p{ font-size:16px; line-height:1.7; color:var(--text-dim); margin-bottom:20px; max-width:52ch; }
 .about .col p:last-child{ margin-bottom:0; }
 .about .skills{ display:flex; flex-direction:column; }
-.about .skills .k{ font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:400; color:var(--text-mute); margin:32px 0 10px; text-transform:uppercase; letter-spacing:.08em; }
+.about .skills .k{ font-family:var(--font-mono); font-size:11px; font-weight:400; color:var(--text-mute); margin:32px 0 10px; text-transform:uppercase; letter-spacing:.08em; }
 .about .skills .k:first-child{ margin-top:0; }
+.about .skills .v{ font-size:15px; color:var(--text); line-height:1.6; }
 
-/* Mobile spacing tightened further than desktop's — stacking the paragraph and skills columns
-   (rather than sitting side by side) already roughly doubles this section's content height on
-   its own, on top of the photo now sitting above it too; without this the section ran to more
-   than double the viewport height, which is what made scroll-snap into/out of it feel like
-   "free scroll, nothing pulling you along" rather than a section transition. */
+/* Tablet/phone: stacked, photo above text. order:-1 moves it visually without reordering the
+   markup, so the photo stays after the bio copy in reading order for screen readers. Spacing is
+   tightened further than desktop's — stacking the paragraph and skills columns already roughly
+   doubles this section's height on its own, on top of the photo now sitting above it. */
 @media (max-width:900px){
   .about{ padding:48px 0; }
-  .about-layout{ gap:24px; }
-  .about .grid{ gap:28px; margin-top:24px; }
+  .about-layout{ flex-direction:column; gap:24px; }
+  /* margin-top keeps the photo off the "BIO" ghost word underneath it — at this stacked layout
+     the photo is the section's first element and was covering it completely.
+     aspect-ratio is the mobile crop's own native pixel ratio (2174x2436), not an arbitrary 2:1,
+     so object-fit:cover has almost nothing left to trim. Recompute it against the real
+     dimensions if a different photo is ever swapped in — it's tied to that specific file. */
+  .about-photo-frame{ order:-1; width:100%; aspect-ratio:2174/2436; margin-top:64px; }
+  /* Centred, not top-biased — with frame and image ratios matched there's nothing to crop. */
+  .about-photo{ object-position:50% 50%; }
+  .about .grid{ grid-template-columns:1fr; gap:28px; margin-top:24px; }
   .about .col p{ font-size:15px; line-height:1.55; margin-bottom:14px; }
-  /* Multi-column instead of the stacked single column — CSS multicol keeps each label
-     directly above its own value (unlike a 2-col grid, which would place plain sibling
-     elements side by side and break the k-above-v pairing) while roughly halving how much
-     vertical space the four design/development/platforms/focus rows take up. */
-  /* column-count only works on a non-flex container — .skills is display:flex normally
-     (for the desktop single-column stack), which silently disables multicol entirely if left
-     as-is here. */
+  /* Multicol, not a 2-col grid: grid would place plain siblings side by side and break the
+     label-above-value pairing. column-count also needs a non-flex container, so display:block
+     here is load-bearing — leaving .skills as flex silently disables multicol entirely. */
   .about .skills{ display:block; column-count:2; column-gap:24px; }
   .about .skills .k{ margin:18px 0 6px; break-after:avoid; }
   .about .skills .k:first-child{ margin-top:0; }
 }
-.about .skills .v{ font-size:15px; color:var(--text); line-height:1.6; }
+@media (max-width:600px){
+  .about-photo-frame{
+    border-radius:0;
+    width:100vw; margin-left:calc(50% - 50vw); margin-right:calc(50% - 50vw);
+  }
+}
 
 /* Contact */
 .contact{ padding:100px 0 120px; border-top:1px solid var(--line); }
-.contact h2{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:44px; max-width:640px; }
+.contact h2{ font-family:var(--font-display); font-weight:700; font-size:44px; max-width:640px; }
 .contact p{ margin-top:20px; font-size:17px; color:var(--text-dim); max-width:480px; }
 .contact .cta-row{ display:inline-flex; align-items:center; gap:22px; margin-top:40px; }
-/* Mobile-only: no background bloom here -- the listening-pulse (below) carries the "there's
-   something alive in this section" job on its own at this width instead, made larger/brighter
-   to read as a clear focal point rather than sharing attention with a section-wide wash. Desktop
-   keeps the bloom (still tied to the pulse's trigger, see main.js) -- this is a mobile-specific
-   exclusion, not a removal of the feature. */
-@media (max-width:720px){
-  .contact .section-bloom{ display:none; }
-}
 .contact .cta{
   display:inline-block; padding:16px 32px; border:1px solid var(--line-strong);
-  font-family:'JetBrains Mono',monospace; font-size:14px; transition:border-color .3s ease, color .3s ease;
+  font-family:var(--font-mono); font-size:14px; transition:border-color .3s ease, color .3s ease;
 }
 .contact .cta:hover, .contact .cta:focus-visible{ border-color:var(--accent); color:var(--accent); }
 
-/* Listening pulse -- an ambient, always-looping cue (not a one-time trigger like the hero/work
-   ripples) meant to read as quiet presence/attentiveness next to the CTA, not speech: a small
-   dot continuously emitting soft rings on a slow "breathing" cadence. Reuses the same visual
-   language as the other rings in the site (thin border, slight blur) rather than inventing a
-   new one. Three rings on a shared 3.6s cycle, staggered by a third of that each (1.2s) so a
-   new one launches just as the previous one is fading -- continuous emission rather than a
-   single ring repeating with a dead gap between beats. Pure CSS (infinite animation) rather than
-   the JS setTimeout-chain the other rings use, since this one never stops/resets the way a
-   triggered reveal does. */
+/* Listening pulse — an ambient always-looping cue (unlike the one-shot hero/work ripples): a dot
+   continuously emitting soft rings on a slow breathing cadence, reusing the same thin-border ring
+   language as the rest of the site. Three rings on a shared 3.6s cycle staggered a third apart,
+   so a new one launches as the previous fades — continuous emission, not one ring with a dead gap.
+   Pure CSS infinite animation since it never stops or resets. Size/alpha come from custom
+   properties so the mobile tuning below is three values rather than a second copy of the
+   keyframes. */
 .listen-pulse{
   position:relative; flex-shrink:0; width:10px; height:10px;
   opacity:0; transition:opacity 1s ease;
@@ -791,7 +559,8 @@ a{ color:inherit; text-decoration:none; }
   box-shadow:0 0 8px 2px rgba(var(--accent-rgb),0.6);
 }
 .listen-ring{
-  position:absolute; top:50%; left:50%; width:10px; height:10px;
+  --ring-from:10px; --ring-to:52px; --ring-alpha:0.5;
+  position:absolute; top:50%; left:50%; width:var(--ring-from); height:var(--ring-from);
   border:1px solid var(--accent); border-radius:50%; filter:blur(0.3px);
   transform:translate(-50%,-50%); opacity:0;
   animation:listenPulse 3.6s ease-out infinite;
@@ -799,47 +568,19 @@ a{ color:inherit; text-decoration:none; }
 .listen-ring.r2{ animation-delay:1.2s; }
 .listen-ring.r3{ animation-delay:2.4s; }
 @keyframes listenPulse{
-  0%{ width:10px; height:10px; opacity:0.5; }
+  0%{ width:var(--ring-from); height:var(--ring-from); opacity:var(--ring-alpha); }
   70%{ opacity:0; }
-  100%{ width:52px; height:52px; opacity:0; }
-}
-@media (max-width:720px){
-  /* Same cadence as desktop -- 3.6s cycle, 70% fade point, 1.2s ring stagger are all untouched
-     here, only size/opacity change. Made larger and brighter than an earlier, more conservative
-     mobile tuning specifically because Contact no longer gets the background bloom at this width
-     (see .contact .section-bloom above) -- the pulse needs to read as a clear focal point on its
-     own now, not share attention with a section-wide wash the way it does on desktop. One ring
-     still dropped (r3) rather than three competing for the tighter space next to the button on a
-     narrow screen -- that's about ring COUNT, which is unrelated to the size/opacity bump here. */
-  .listen-pulse{ width:16px; height:16px; }
-  .listen-ring.r3{ display:none; }
-  @keyframes listenPulse{
-    0%{ width:16px; height:16px; opacity:0.75; }
-    70%{ opacity:0; }
-    100%{ width:64px; height:64px; opacity:0; }
-  }
-}
-@media (prefers-reduced-motion: reduce){
-  .listen-ring{ animation:none; opacity:0; }
+  100%{ width:var(--ring-to); height:var(--ring-to); opacity:0; }
 }
 
-/* Plain-text email fallback for anyone who can't use the button, and LinkedIn/Behance links.
-   Icons are hand-drawn line art (thin stroke, no fill except the LinkedIn dot) matching the
-   ghost word's outline treatment and the bordered-box language already used by .cta/
-   .work-item-btn elsewhere, rather than imported brand-icon glyphs. Static on purpose — no
-   transform/motion, only the same color/border-color transition already used sitewide on hover.
-
-   Hierarchy: the button is the one clearly primary action (largest, boldest border). Email
-   and social links are both secondary, each under its own small uppercase label — the exact
-   .k/.v label treatment already used for the About section's skills list, reused here rather
-   than invented fresh, so "email" / "elsewhere" read as the same kind of quiet system label as
-   "design" / "development" do there. */
+/* Icons are hand-drawn line art matching the ghost word's outline treatment and the bordered-box
+   language of .cta, rather than imported brand glyphs. Hierarchy: the button is the one clearly
+   primary action; email and social are secondary, each under the same small uppercase label
+   treatment the About skills list uses, so they read as the same kind of quiet system label. */
 .contact-group{ margin-top:32px; }
 .contact-group:first-of-type{ margin-top:36px; }
 .contact-label{ display:block; font-size:11px; font-weight:400; color:var(--text-mute); margin-bottom:10px; text-transform:uppercase; letter-spacing:.08em; }
-/* No violet here on purpose — the underline is what signals "this is a link," not color, so it
-   doesn't compete with the CTA button for the eye. Hover/focus just brightens to full text
-   color rather than accent. */
+/* No violet here on purpose — the underline signals "link", so it doesn't compete with the CTA. */
 .contact .email-plain{ font-size:15px; color:var(--text-dim); border-bottom:1px solid var(--line-strong); transition:color .3s ease, border-color .3s ease; }
 .contact .email-plain:hover, .contact .email-plain:focus-visible{ color:var(--text); border-color:var(--text-dim); }
 
@@ -852,40 +593,61 @@ a{ color:inherit; text-decoration:none; }
 .contact-social a:hover, .contact-social a:focus-visible{ color:var(--accent); border-color:var(--accent); }
 .contact-social svg{ width:24px; height:24px; }
 
-/* Touch devices have no hover state to reveal the accent color, so on mobile the CTA button
-   and social icons carry their hover treatment at rest instead of only on interaction —
-   otherwise they'd look permanently muted/inactive on a phone. Plain email is deliberately
-   left out of this: it was never violet even on desktop, its underline already reads as a
-   link without needing an active-looking color. */
 @media (max-width:720px){
+  /* No background bloom at this width — the pulse carries the "something alive here" job alone,
+     made larger and brighter to read as a clear focal point instead of sharing attention with a
+     section-wide wash. Cadence (3.6s cycle, 70% fade, 1.2s stagger) is untouched; only size and
+     alpha change. Dropping r3 is about ring COUNT in tighter space, separate from that. */
+  .contact .section-bloom{ display:none; }
+  .listen-pulse{ width:16px; height:16px; }
+  .listen-ring{ --ring-from:16px; --ring-to:64px; --ring-alpha:0.75; }
+  .listen-ring.r3{ display:none; }
+  /* Touch has no hover state, so the CTA and social icons carry their hover treatment at rest —
+     otherwise they'd look permanently muted. Plain email is excluded: it was never violet, and
+     its underline already reads as a link. */
   .contact .cta{ border-color:var(--accent); color:var(--accent); }
   .contact-social a{ color:var(--accent); border-color:var(--accent); }
 }
 
-/* Footer — lives inside #contact now (see index.html) so it scrolls as part of the contact
-   snap stop instead of being one itself. Absolutely positioned at contact's own bottom edge;
-   contact's 120px bottom padding already leaves clearance so it doesn't collide with the
-   centered .wrap content above it. */
+/* Footer lives inside #contact (see index.html) so it rides contact's snap stop instead of being
+   one itself. Contact's 120px bottom padding keeps it clear of the centred .wrap content. */
 .site-footer{
   position:absolute; bottom:0; left:0; right:0; z-index:10;
-  padding:32px 64px; border-top:1px solid var(--line); font-family:'JetBrains Mono',monospace;
+  padding:32px 64px; border-top:1px solid var(--line); font-family:var(--font-mono);
   font-size:12px; color:var(--text-mute); display:flex; justify-content:space-between;
 }
 @media (max-width:720px){ .site-footer{ padding:24px; flex-direction:column; gap:8px; } }
 
-/* Case study page */
+/* Case study pages */
 .cs-hero{ padding:80px 0 60px; border-bottom:1px solid var(--line); }
-.cs-hero .back{ font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--text-mute); display:inline-block; margin-bottom:32px; transition:color .3s ease; }
+.cs-hero .back{ font-family:var(--font-mono); font-size:13px; color:var(--text-mute); display:inline-block; margin-bottom:32px; transition:color .3s ease; }
 .cs-hero .back:hover, .cs-hero .back:focus-visible{ color:var(--accent); }
-.cs-hero h1{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:52px; letter-spacing:-0.01em; }
-@media (max-width:720px){ .cs-hero h1{ font-size:32px; } }
-.cs-hero .meta{ display:flex; gap:32px; margin-top:24px; flex-wrap:wrap; font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--text-mute); }
+.cs-hero h1{ font-family:var(--font-display); font-weight:700; font-size:52px; letter-spacing:-0.01em; }
+.cs-hero .meta{ display:flex; gap:32px; margin-top:24px; flex-wrap:wrap; font-family:var(--font-mono); font-size:13px; color:var(--text-mute); }
 .cs-hero .meta strong{ color:var(--text-dim); font-weight:500; }
-
 .cs-section{ padding:64px 0; border-bottom:1px solid var(--line); }
-.cs-section h2{ font-family:'Space Grotesk',sans-serif; font-weight:500; font-size:26px; margin-bottom:20px; }
+.cs-section h2{ font-family:var(--font-display); font-weight:500; font-size:26px; margin-bottom:20px; }
 .cs-section p{ font-size:16px; color:var(--text-dim); max-width:680px; }
 .cs-placeholder{
   margin-top:24px; padding:20px 24px; border:1px dashed var(--line-strong); border-radius:8px;
-  font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--text-mute);
+  font-family:var(--font-mono); font-size:13px; color:var(--text-mute);
+}
+@media (max-width:720px){ .cs-hero h1{ font-size:32px; } }
+
+/* All reduced-motion overrides collected in one place rather than scattered per component.
+   Each reveal keeps its end state but loses the clip-path/blur/transform choreography. */
+@media (prefers-reduced-motion: reduce){
+  .section-bloom{ clip-path:none !important; opacity:0; transition:opacity .3s ease !important; }
+  .section-bloom.bloomed{ opacity:1; }
+  .work-pills-wrap, .work-item-preview-bloom{
+    clip-path:none !important; filter:none !important; transform:none !important;
+    opacity:0; transition:opacity .3s ease !important;
+  }
+  .work-pills-wrap.revealed, .mobile-preview-wrap.active .work-item-preview-bloom{ opacity:1; }
+  .work-pill{
+    transform:none !important;
+    transition:opacity .3s ease !important, color .3s ease, border-color .3s ease, background .3s ease, box-shadow .3s ease;
+  }
+  .work-pill.placed{ opacity:1; }
+  .listen-ring{ animation:none; opacity:0; }
 }
