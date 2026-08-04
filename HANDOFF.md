@@ -1146,3 +1146,15 @@ from `line-height:1.15` (a 115px-tall line box around a ~100px glyph),
 not the margin itself; cutting margin-top alone would barely have moved
 the actual visual gap. Measured directly (`getBoundingClientRect` on both
 `.l3` elements): 18px gap before, 6px after.
+
+**Fourth same-day follow-up**: `SENTENCE1_RATE`/`SENTENCE2_RATE` are gone,
+collapsed back into a single `REVEAL_RATE = 1.2` shared by both sentences
+-- explicit request to make sentence 2 "copy" sentence 1's own animation
+style/speed rather than having its own faster rate. `SENTENCE_PAUSE`
+shortened again, `0.2s -> 0.1s`. Current full timeline: line 0 at
+0.4s/6.0s, line 1 at 6.5s/2.4s (2 words * 1.2s/word, up from 1.6s at the
+old 0.8s/word rate), line 2 at 8.9s/2.4s (still zero gap from line 1).
+If tuning again: `OPENING_DELAY`, `REVEAL_RATE`, `SENTENCE_PAUSE` -- back
+to three simple knobs, one shared rate for the whole headline again. Don't
+reintroduce a per-sentence rate split without being asked; that was tried
+and explicitly undone this update.
