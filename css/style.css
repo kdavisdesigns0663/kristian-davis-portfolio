@@ -83,3 +83,16 @@
   [data-row] > *:nth-child(3){ grid-area:dec; padding-left:0 !important; border-left:0 !important; padding-top:17px; border-top:1px solid #1c1c1a; }
   [data-row] > *:nth-child(4){ grid-area:shot; width:88px !important; }
 }
+
+/* --- hero water surface --- */
+@keyframes reflWobble{
+  0%{ transform:scaleY(-1) skewX(0deg) scaleX(1); filter:blur(4px); }
+  26%{ transform:scaleY(-1) skewX(-1.6deg) scaleX(1.012); filter:blur(2.6px); }
+  54%{ transform:scaleY(-1) skewX(1deg) scaleX(.995); filter:blur(2px); }
+  78%{ transform:scaleY(-1) skewX(-.4deg) scaleX(1.002); filter:blur(1.7px); }
+  100%{ transform:scaleY(-1) skewX(0deg) scaleX(1); filter:blur(1.6px); }
+}
+@keyframes reflIdle{
+  0%,100%{ transform:scaleY(-1) skewX(0deg); }
+  50%{ transform:scaleY(-1) skewX(-.5deg); }
+}

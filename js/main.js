@@ -32,41 +32,97 @@ class Portfolio {
     (this.observers = this.observers || []).push(io);
   }
 
-  // --- Hero: one continuous left-to-right wipe per phrase ---
+  // --- Hero: a drop lands on the waterline and the impact is what reveals the thesis. The
+  // reflection beneath the line carries the disturbance, then settles into a slow idle. ---
   initHero() {
-    const hero = document.getElementById('hero');
     const ghost = document.getElementById('heroGhost');
     const lines = Array.prototype.slice.call(document.querySelectorAll('#heroHeadline [data-line]'));
-    if (!hero || !lines.length) return;
+    const line = document.getElementById('waterline');
+    const refl = document.getElementById('reflection');
+    const stage = document.getElementById('heroDropStage');
+    if (!lines.length || !stage) return;
+
+    const reflLines = Array.prototype.slice.call(document.querySelectorAll('#reflection [data-refl]'));
+    const wipe = function () {
+      // Constant pace in ems, so both phrases read as one sweep regardless of their width.
+      // The reflection is driven off the same delay and duration, so each mirrored phrase
+      // surfaces in step with the real one rather than fading in as a block.
+      const EM_PER_SEC = 11;
+      let delay = 0;
+      lines.forEach(function (l, i) {
+        const em = parseFloat(getComputedStyle(l).fontSize) || 16;
+        const dur = l.getBoundingClientRect().width / (em * EM_PER_SEC);
+        if (i === 1) delay += 0.5;
+        [l, reflLines[i]].forEach(function (el) {
+          if (!el) return;
+          el.style.transitionDelay = delay + 's';
+          el.style.transitionDuration = '0.14s, ' + dur + 's';
+          el.style.opacity = '1';
+          el.style.setProperty('--reveal', '100%');
+        });
+        delay += dur;
+      });
+    };
 
     const play = () => {
       if (this.heroPlayed) return;
       this.heroPlayed = true;
       if (ghost) ghost.style.opacity = '0.35';
+
       if (this.reduced) {
         lines.forEach(function (l) { l.style.transition = 'opacity .4s ease'; l.style.opacity = '1'; l.style.setProperty('--reveal', '100%'); });
+        line.style.opacity = '1'; line.style.transform = 'scaleX(1)';
+        reflLines.forEach(function (el) { el.style.transition = 'opacity .4s ease'; el.style.opacity = '1'; el.style.setProperty('--reveal', '100%'); });
         return;
       }
-      // Constant pace in ems, so the sweep reads the same regardless of line width or size.
-      const EM_PER_SEC = 10, PHRASE_PAUSE = 0.6;
-      let delay = 0.6, prev = null;
-      lines.forEach(function (line) {
-        const phrase = line.dataset.line;
-        const em = parseFloat(getComputedStyle(line).fontSize) || 16;
-        const dur = line.getBoundingClientRect().width / (em * EM_PER_SEC);
-        if (prev !== null && phrase !== prev) delay += PHRASE_PAUSE;
-        line.style.transitionDelay = delay + 's';
-        line.style.transitionDuration = '0.15s, ' + dur + 's';
+
+      const wrap = stage.querySelector('[data-drop-wrap]');
+      const flash = stage.querySelector('[data-flash]');
+      const dist = Math.round(window.innerHeight * 0.6);
+      wrap.style.transition = 'none';
+      wrap.style.transform = 'translate(-50%,' + -dist + 'px) scaleY(1)';
+      wrap.style.opacity = '0';
+      wrap.style.filter = 'blur(0px)';
+      void wrap.offsetHeight;
+      wrap.style.transition = 'transform ' + this.fall + 's cubic-bezier(.36,.06,.29,.99), opacity .22s ease';
+      wrap.style.transform = 'translate(-50%,0px) scaleY(1.45)';
+      wrap.style.opacity = '1';
+
+      const impact = () => {
+        // Flattens into the surface and is gone in about a sixth of a second, at the same
+        // moment the first ring is born.
+        wrap.style.transition = 'transform .17s cubic-bezier(.22,.9,.3,1), opacity .15s ease-out .04s, filter .17s ease-out';
+        wrap.style.transform = 'translate(-50%,4px) scale(2.4,0.06)';
+        wrap.style.opacity = '0';
+        wrap.style.filter = 'blur(1px)';
+        flash.style.transition = 'transform .38s cubic-bezier(.16,1,.3,1), opacity .36s ease-out';
+        flash.style.opacity = '1'; void flash.offsetWidth;
+        flash.style.transform = 'translate(-50%,-50%) scale(9)';
+        flash.style.opacity = '0';
+
         line.style.opacity = '1';
-        line.style.setProperty('--reveal', '100%');
-        delay += dur;
-        prev = phrase;
+        line.style.transform = 'scaleX(1)';
+        this.ripples(stage, 3, 560, 0);
+        wipe();
+        // The reflection surfaces disturbed, then settles.
+        refl.style.animation = 'reflWobble 2.1s cubic-bezier(.22,1,.36,1)';
+        this.wait(function () { refl.style.animation = 'reflIdle 9s ease-in-out infinite'; }, 2100);
+      };
+
+      this.pendingHero = impact;
+      this.heroTimer = setTimeout(() => { this.pendingHero = null; impact(); }, this.fall * 1000 + 260);
+      this.timers.push(this.heroTimer);
+      // Clicking mid-fall lands it now rather than making anyone wait.
+      document.getElementById('hero').addEventListener('click', e => {
+        if (!this.pendingHero || e.target.closest('a')) return;
+        clearTimeout(this.heroTimer);
+        const fn = this.pendingHero;
+        this.pendingHero = null;
+        fn();
       });
     };
     this.heroPlay = play;
-    this.observe(hero, 0.4, play, null);
-    // Safety net: if the observer never fires, the headline must not stay invisible.
-    this.wait(play, 2500);
+    play();
   }
 
   // --- Work: one drop works its way down the list. It lands on each project in turn, and
@@ -355,6 +411,21 @@ class Portfolio {
       void l.offsetWidth;
       l.style.transition = 'opacity .15s ease, --reveal 2s linear';
     });
+    const wl = document.getElementById('waterline');
+    const rf = document.getElementById('reflection');
+    if (wl) { wl.style.transition = 'none'; wl.style.opacity = '0'; wl.style.transform = 'scaleX(0)'; void wl.offsetWidth; wl.style.transition = 'opacity .5s ease, transform 1.5s cubic-bezier(.19,1,.22,1)'; }
+    if (rf) {
+      rf.style.animation = 'none';
+      rf.querySelectorAll('[data-refl]').forEach(function (el) {
+        el.style.transition = 'none';
+        el.style.opacity = '0';
+        el.style.setProperty('--reveal', '0%');
+        el.style.transitionDelay = '0s';
+        void el.offsetWidth;
+        el.style.transition = 'opacity .14s ease, --reveal 2s linear';
+      });
+    }
+    document.querySelectorAll('#heroDropStage div[style*="border-radius:4"]').forEach(function (r) { r.remove(); });
     this.heroPlayed = false;
 
     this.workRevealed = false;
