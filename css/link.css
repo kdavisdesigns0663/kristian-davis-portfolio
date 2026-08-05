@@ -1,0 +1,19 @@
+/* Mobile-only links screen reached by QR code. Fluid from ~320px through tablet; there is
+   deliberately no desktop breakpoint. */
+:root{ --accent:#a06bff; --accent-rgb:160,107,255; }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  body{ background:#050505; color:#e9e7df; font-family:'Inter',sans-serif; line-height:1.6; -webkit-font-smoothing:antialiased; overflow-x:hidden; }
+  a{ color:inherit; text-decoration:none; -webkit-tap-highlight-color:transparent; }
+  a:hover{ color:var(--accent); }
+  ::selection{ background:rgba(var(--accent-rgb),.35); color:#fff; }
+  :focus-visible{ outline:2px solid var(--accent); outline-offset:4px; border-radius:4px; }
+
+/* --- interactive states --- */
+.l1:active{ transform:scale(.975) !important; background:rgba(var(--accent-rgb),.2) !important; }
+.l2:active{ transform:scale(.975) !important; background:rgba(var(--accent-rgb),.2) !important; }
+.l3:active{ transform:scale(.975) !important; background:rgba(var(--accent-rgb),.2) !important; }
+.l4:active{ transform:scale(.975) !important; background:rgba(255,255,255,.05) !important; }
+
+@media (prefers-reduced-motion: reduce){
+  *, *::before, *::after{ animation-duration:.01ms !important; transition-duration:.01ms !important; }
+}

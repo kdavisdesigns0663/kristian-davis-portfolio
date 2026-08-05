@@ -1,692 +1,607 @@
-// --- Hero: headline reveals as ONE continuous left-to-right WIPE per LINE -- letters flow past
-// the reveal edge in a single fluid motion, not word-by-word pulses. A per-word version of this
-// (each word its own separate --reveal sweep, chained with zero time-gap) was tried and rejected
-// -- even with no time-gap, each word was still its own independent masked element, so the reveal
-// edge visually JUMPED from the end of one word to the start of the next instead of continuously
-// advancing through the space between them. A single mask sweep across a WHOLE LINE has no such
-// jump -- the edge moves through every character, including spaces, at a steady rate.
-// Markup is however many `.headline > div` lines make up each PHRASE (currently 2 lines for
-// "People don't experience" / "your design.", 2 more for "They experience" / "your decisions." --
-// this used to be 1+2 lines; the owner edited the HTML directly to make it 2+2, so phrase
-// membership is read from each line's own class (.l1 vs .l3) rather than a hardcoded line index,
-// specifically so this doesn't silently break again if the line count per phrase changes). Lines
-// sharing a phrase chain with ZERO gap (next line's delay = this line's delay + its own duration)
-// so a multi-line phrase reads as one continuous sweep straight through its own line wrap, same
-// as within a single line. The one real break in that flow is PHRASE_PAUSE, a deliberately longer
-// pause inserted only where the phrase class actually changes -- an actual change of phrase, not
-// just a line wrap. Each line's duration is its own character count * CHAR_RATE, so the sweep
-// SPEED (not just total time) stays consistent across lines of different lengths. Fires once via
-// IntersectionObserver (hero is the first section, so this effectively means "on load") and never
-// resets — this is not a scroll-repeat effect like the work-section ripple.
-const heroSection = document.getElementById('hero');
-if (heroSection) {
-  const heroLines = heroSection.querySelectorAll('.headline > div');
-  // Seconds per PIXEL of sweep, not per character. Character count was the old basis and it made
-  // the speed inconsistent: the mask travels the line box's width, but every box was the same
-  // full-container width, so a 12-character line got a short duration for exactly the same
-  // distance a 23-character line crossed -- measured at 428 / 820 / 639 / 639 px per second
-  // across the four lines. Pixels are what the eye actually reads as speed, so pacing off them
-  // makes all four identical by construction, and it self-adjusts at every breakpoint (narrower
-  // viewport -> shorter lines -> proportionally shorter durations, same speed) with no per-
-  // breakpoint tuning. The sequencing (order, phrase pause placement) was already right -- this
-  // only tunes the sweep itself, ~250px/s now (was 222px/s one pass ago, 556px/s originally,
-  // 333px/s two passes ago) for a more deliberate, cinematic pace; total sequence time scales up
-  // with it since later starts are still chained off earlier durations, not held to a fixed clock.
-  const PX_RATE = 0.004;
-  const PHRASE_PAUSE = 1.2; // the ONE deliberate gap: between the two sentences, nowhere else
-  const OPENING_DELAY = 1; // a beat of stillness before line 0 starts -- without it the reveal
-                            // fires the instant the page loads, which read as motion starting
-                            // too abruptly rather than settling in first.
+const PROJ = {
+  nitefind:   { rgb:'176,74,214', hook:'too many options, not enough certainty', img:'img/previews/nitefind-preview.jpg',   href:'case-studies/nitefind.html', angle:-45 },
+  smiteforge: { rgb:'224,184,74', hook:'one brand, two very different platforms', img:'img/previews/smiteforge-preview.jpg', href:'case-studies/smiteforge.html', angle:45 },
+  zentra:     { rgb:'79,191,130', hook:'saving money without losing motivation',  img:'img/previews/zentra-preview.jpg',     href:'case-studies/zentra.html', angle:135 },
+  amun:       { rgb:'143,143,143',hook:'in progress, launching later this year',  img:'img/previews/amun-preview.jpg',       href:'case-studies/amun.html', angle:225 },
+};
 
-  let heroPlayed = false;
-  function playHeroReveal() {
-    if (heroPlayed) return;
-    heroPlayed = true;
-    let delay = OPENING_DELAY;
-    let prevPhrase = null;
-    heroLines.forEach((line) => {
-      // Read phrase membership from the class itself (not classList.add('placed') below, which
-      // would otherwise make every line after the first look "different" from the one before it
-      // once .placed is mixed into the className string).
-      const phrase = line.classList.contains('l3') ? 'l3' : 'l1';
-      // Measured after layout, so it already accounts for font, viewport and any wrapping.
-      const duration = line.getBoundingClientRect().width * PX_RATE;
-      if (prevPhrase !== null && phrase !== prevPhrase) delay += PHRASE_PAUSE; // real phrase change
-      line.style.transitionDelay = delay + 's';
-      // Two values, matching the CSS `transition` list order (opacity, then --reveal) --
-      // opacity keeps its fixed fast 0.15s from style.css, only --reveal's duration is
-      // overridden per line. See the CSS comment above .hero .headline > div for why these
-      // are deliberately different durations instead of one shared value.
-      line.style.transitionDuration = '0.15s, ' + duration + 's';
-      line.classList.add('placed');
-      delay += duration; // a line continuing the SAME phrase starts exactly when this one
-                          // finishes -- zero gap, one continuous motion across the wrap
-      prevPhrase = phrase;
-    });
-    heroSection.classList.add('revealed');
+class Portfolio {
+  constructor() { this.props = {}; }
+
+  init() {
+    this.timers = [];
+    this.reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    this.applyProps();
+    this.initHero();
+    this.initWork();
+    this.initMobile();
+    this.initContact();
+    this.initDropdown();
+    this.initAnchors();
+    this.onResize = () => { this.layoutNodes(); this.syncLayout(); };
+    window.addEventListener('resize', this.onResize);
+    this.syncLayout();
+    this.applyIncomingHash();
   }
-  const heroObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => { if (entry.isIntersecting) playHeroReveal(); });
-  }, { threshold: 0.5 });
-  heroObserver.observe(heroSection);
-}
 
-// --- Work section: raindrop fall + ripple reveal, scroll-triggered, center-anchored hover preview ---
-// 4 projects currently, arranged in an X (angles 45deg apart from cardinal).
-// To add another, just add one object here — position/animation are computed from this list.
-// radiusX/radiusY (not a single shared radius) since the stage is now a wide/short landscape
-// panel rather than a square -- an even circular spread would either overflow the card's short
-// height or leave the wide axis under-used. Tuned so the widest hook label still clears the
-// card edge with padding to spare down to the smallest desktop width the stage's own min()
-// sizing allows.
-const projects = [
-  { key:'nitefind', name:'Nitefind', hook:'too many options, not enough certainty', href:'case-studies/nitefind.html', angle:-45, radiusX:440, radiusY:240, img:'img/previews/nitefind-preview.jpg' },
-  { key:'smiteforge', name:'SmiteForge', hook:'one brand, two very different platforms', href:'case-studies/smiteforge.html', angle:45, radiusX:440, radiusY:240, img:'img/previews/smiteforge-preview.jpg' },
-  { key:'zentra', name:'Zentra', hook:'saving money without losing motivation', href:'case-studies/zentra.html', angle:135, radiusX:440, radiusY:240, img:'img/previews/zentra-preview.jpg' },
-  { key:'amun', name:'Amun', hook:'still being built', href:'case-studies/amun.html', angle:225, radiusX:440, radiusY:240, img:'img/previews/amun-preview.jpg', isPlaceholder:true },
-];
+  wait(fn, ms) { this.timers.push(setTimeout(fn, ms)); }
 
-// Shared drop-fall + ripple mechanic, used by both the desktop stage and the
-// mobile entrance (just at different scale/timing). `container` must have a
-// .drop-wrap > .drop-shape, an .impact-flash, and is where .ring elements get
-// inserted. Correctness notes carried over from getting this working:
-// - falling must be REMOVED before impact is added — leaving both classes on
-//   at once means two same-specificity rules fight over `transition`/`opacity`,
-//   which is what silently broke the drop on desktop.
-// - rings must start at explicit width/height:0 (in CSS) and get a forced
-//   reflow (ring.offsetHeight) between setting the transition and setting the
-//   target size, or the browser won't animate the change at all.
-function playRaindrop(opts) {
-  const { container, holdBeforeImpact, ringCount, ringStagger, ringDuration, ringMaxSize, glowDuration, glowMaxSize, glowFadeDelay, onImpact, registerTimer } = opts;
-  const reg = registerTimer || function(id){ return id; };
-
-  const dropWrap = container.querySelector('.drop-wrap');
-  const flash = container.querySelector('.impact-flash');
-  const glow = container.querySelector('.impact-glow');
-  container.querySelectorAll('.ring').forEach(r => r.remove());
-  dropWrap.classList.remove('impact', 'falling');
-  // Clear any inline opacity left over from a previous run rather than setting
-  // one — an inline value has higher specificity than .falling's CSS opacity:1
-  // and would silently block it from ever becoming visible.
-  dropWrap.style.opacity = '';
-  dropWrap.offsetHeight;
-  dropWrap.classList.add('falling');
-
-  reg(setTimeout(() => {
-    dropWrap.classList.remove('falling');
-    dropWrap.classList.add('impact');
-    flash.classList.add('flash');
-
-    // Soft diffuse splash right at the landing point, distinct from the crisp
-    // rings tracing outward — reads as the "liquid" reacting to the drop.
-    if (glow) {
-      const fadeDelay = glowFadeDelay || 0;
-      glow.style.transition = 'none';
-      glow.style.width = glow.style.height = '0px';
-      glow.style.opacity = '0';
-      glow.offsetHeight;
-      // Width/height start expanding immediately (no delay) so the glow visibly swells right
-      // away, but opacity's fade is held at its peak (0.4) for glowFadeDelay before it starts
-      // dropping toward 0 -- tuned per call site so that hold roughly spans how long the drop
-      // itself takes to fully fade after impact (see .drop-wrap.impact in style.css), so the
-      // glow is still near-peak-bright at the moment the drop disappears rather than already
-      // most of the way faded. That's what's supposed to sell "something absorbed it" instead
-      // of the drop just vanishing on its own.
-      glow.style.transition = `width ${glowDuration}s cubic-bezier(.16,1,.3,1), height ${glowDuration}s cubic-bezier(.16,1,.3,1), opacity ${glowDuration}s ease-out ${fadeDelay}s`;
-      glow.style.opacity = '0.4';
-      glow.offsetHeight;
-      glow.style.width = glow.style.height = glowMaxSize + 'px';
-      glow.style.opacity = '0';
+  applyProps() {
+    const hex = this.props.accent;
+    if (hex && /^#[0-9a-f]{6}$/i.test(hex)) {
+      const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+      document.documentElement.style.setProperty('--accent', hex);
+      document.documentElement.style.setProperty('--accent-rgb', r+','+g+','+b);
     }
-
-    let delay = 0;
-    for (let i = 0; i < ringCount; i++) {
-      const ring = document.createElement('div');
-      ring.className = 'ring';
-      const jitter = () => 48 + Math.random() * 6;
-      ring.style.borderRadius = `${jitter()}% ${jitter()}% ${jitter()}% ${jitter()}%`;
-      container.insertBefore(ring, container.firstChild);
-      reg(setTimeout(() => {
-        // cubic-bezier(.16,1,.3,1) -- a slow, decelerating "expo out" curve reused from the
-        // hero/header-text liquid-reveal transitions elsewhere in this file -- reads as the
-        // ring dissipating into the surface rather than mechanically shrinking to nothing,
-        // which plain ease-out did.
-        ring.style.transition = `width ${ringDuration}s cubic-bezier(.16,1,.3,1), height ${ringDuration}s cubic-bezier(.16,1,.3,1), opacity ${ringDuration}s ease-out, filter ${ringDuration}s ease-out, border-width ${ringDuration}s ease-out`;
-        ring.style.opacity = '0.55';
-        ring.offsetHeight;
-        const size = ringMaxSize + Math.random() * ringMaxSize * 0.15;
-        ring.style.width = ring.style.height = size + 'px';
-        ring.style.opacity = '0';
-        ring.style.filter = 'blur(5px)';
-        ring.style.borderWidth = '0.5px';
-      }, delay));
-      reg(setTimeout(() => ring.remove(), delay + ringDuration * 1000 + 100));
-      delay += ringStagger;
+    this.fall = Math.max(0.5, Number(this.props.fallSpeed) || 1);
+    if (this.props.showGhostWords === false) {
+      document.querySelectorAll('#page [aria-hidden="true"]').forEach(el => {
+        if (el.style.webkitTextStroke || el.style.getPropertyValue('-webkit-text-stroke')) el.style.display = 'none';
+      });
     }
-
-    reg(setTimeout(() => { flash.classList.remove('flash'); }, 400));
-    if (onImpact) onImpact();
-  }, holdBeforeImpact));
-}
-
-// --- Section background bloom: shared by the work section (desktop + mobile) and Contact ---
-// A black-to-violet wash that expands (clip-path circle, see .section-bloom in style.css) from
-// the exact point that triggered it -- the raindrop's impact for Work, the listening-pulse's
-// position for Contact -- so the section's own background reads as caused by whatever's already
-// animating there, not a separate effect layered on top. sectionEl gets --bloom-x/--bloom-y
-// custom properties (inherited down to bloomEl) computed from originEl's real on-screen
-// position, so this works whether the origin sits dead-center (the work-section raindrop) or
-// off to one side (Contact's pulse, which sits left of the CTA button).
-function triggerSectionBloom(sectionEl, bloomEl, originEl) {
-  if (!sectionEl || !bloomEl || !originEl) return;
-  const secRect = sectionEl.getBoundingClientRect();
-  const oRect = originEl.getBoundingClientRect();
-  const xPct = ((oRect.left + oRect.width / 2 - secRect.left) / secRect.width) * 100;
-  const yPct = ((oRect.top + oRect.height / 2 - secRect.top) / secRect.height) * 100;
-  sectionEl.style.setProperty('--bloom-x', xPct + '%');
-  sectionEl.style.setProperty('--bloom-y', yPct + '%');
-  bloomEl.classList.add('bloomed');
-}
-function resetSectionBloom(bloomEl) {
-  if (bloomEl) bloomEl.classList.remove('bloomed');
-}
-
-// Looked up once here rather than re-queried in each of the three places that need them (the
-// desktop ripple sequence, the mobile entrance, and the mobile preview's visibility observer).
-const workSectionEl = document.getElementById('work');
-const workBloomEl = document.getElementById('workBloom');
-const stage = document.getElementById('rippleStage');
-
-if (stage) {
-  projects.forEach(p => {
-    const el = document.createElement('a');
-    // Key class gives .node access to --proj-rgb (see that custom-property block in style.css)
-    // so its hover color can match the project's own preview/glow color instead of one shared
-    // accent for all four.
-    el.className = 'node ' + p.key;
-    el.href = p.href;
-    el.tabIndex = 0;
-    el.innerHTML = `<span class="node-inner"><div>${p.name}</div><div class="hook">${p.hook}</div></span>`;
-    stage.appendChild(el);
-    p.el = el;
-
-    // .preview-wrap carries position/size/the active toggle; .preview inside it is just the
-    // clipped image box. Split this way so the ring (a sibling of .preview, not a child) can
-    // extend past the image's own rounded corners instead of being clipped by the
-    // overflow:hidden that the image itself needs. See style.css for the visual detail.
-    const previewWrap = document.createElement('div');
-    previewWrap.className = 'preview-wrap ' + p.key;
-    previewWrap.innerHTML = `
-      <div class="preview-ring"></div>
-      <div class="preview">
-        <img src="${p.img}" alt="${p.isPlaceholder ? '' : p.name + ' preview'}" loading="lazy">
-        <span class="preview-shimmer"></span>
-      </div>
-    `;
-    stage.appendChild(previewWrap);
-
-    const on = () => { stage.classList.add('hovering'); previewWrap.classList.add('active'); };
-    const off = () => { stage.classList.remove('hovering'); previewWrap.classList.remove('active'); };
-    el.addEventListener('mouseenter', on);
-    el.addEventListener('mouseleave', off);
-    el.addEventListener('focus', on);
-    el.addEventListener('blur', off);
-  });
-
-  function targetTransform(angle, radiusX, radiusY) {
-    const rad = angle * Math.PI / 180;
-    const x = radiusX * Math.cos(rad);
-    const y = radiusY * Math.sin(rad);
-    return `translate(${x}px, ${y}px)`;
   }
 
-  let played = false;
-  let timers = [];
-  function clearTimers() { timers.forEach(t => clearTimeout(t)); timers = []; }
+  // --- Hero: one continuous left-to-right wipe per line, chained within a phrase ---
+  initHero() {
+    const hero = document.getElementById('hero');
+    const ghost = document.getElementById('heroGhost');
+    const lines = Array.from(document.querySelectorAll('#heroHeadline [data-line]'));
+    if (!hero || !lines.length) return;
 
-  function resetSequence() {
-    played = false;
-    clearTimers();
-    const dropWrap = stage.querySelector('.drop-wrap');
-    const flash = stage.querySelector('.impact-flash');
-    const card = stage.querySelector('.stage-card');
-    dropWrap.classList.remove('falling', 'impact');
-    dropWrap.style.opacity = '0';
-    flash.classList.remove('flash');
-    if (card) card.classList.remove('active');
-    stage.querySelectorAll('.ring').forEach(r => r.remove());
-    projects.forEach(p => {
-      p.el.classList.remove('placed');
-      p.el.style.transform = 'translate(-50%,-50%) scale(0.3)';
-    });
-    resetSectionBloom(workBloomEl);
+    const play = () => {
+      if (this.heroPlayed) return;
+      this.heroPlayed = true;
+      ghost.style.opacity = '0.35';
+      if (this.reduced) {
+        lines.forEach(l => { l.style.transition = 'opacity .4s ease'; l.style.opacity = '1'; l.style.setProperty('--reveal','100%'); });
+        return;
+      }
+      // One phrase is one thought: the reveal edge holds a constant pace measured in ems, so
+      // it reads as a single continuous sweep across both lines regardless of their length or
+      // type size. The only break is the deliberate pause between the two phrases.
+      const EM_PER_SEC = 8, PHRASE_PAUSE = 1.2;
+      let delay = 1, prev = null;
+      lines.forEach(line => {
+        const phrase = line.dataset.line;
+        const em = parseFloat(getComputedStyle(line).fontSize) || 16;
+        const dur = line.getBoundingClientRect().width / (em * EM_PER_SEC);
+        if (prev !== null && phrase !== prev) delay += PHRASE_PAUSE;
+        line.style.transitionDelay = delay + 's';
+        line.style.transitionDuration = '0.15s, ' + dur + 's';
+        line.style.opacity = '1';
+        line.style.setProperty('--reveal', '100%');
+        delay += dur;
+        prev = phrase;
+      });
+    };
+    this.heroPlay = play;
+    this.observe(hero, 0.4, play, null);
+    // Safety net: if the observer never fires, the headline must not stay invisible.
+    this.wait(play, 2500);
   }
 
-  function playSequence() {
-    if (played) return;
-    played = true;
-    // holdBeforeImpact matches the .falling transition duration in CSS (3.2s) -- slowed from an
-    // earlier 2.2s/2.3s/580ms/1s (fall/ring/stagger/glow) across the board for a more fluid,
-    // liquid feel; the fix for "nothing happens" was starting the sequence earlier (see the
-    // observer's rootMargin below), not making the fall itself faster, so that stays untouched.
-    playRaindrop({
-      container: stage,
-      holdBeforeImpact: 3200,
-      ringCount: 4,
-      ringStagger: 720,
-      ringDuration: 3.4,
-      ringMaxSize: 420,
-      glowDuration: 1.6,
-      glowMaxSize: 260,
-      // Matches roughly how long .drop-wrap.impact takes to fully fade (0.22s delay + 0.5s
-      // fade = 0.72s) -- see the glowFadeDelay comment in playRaindrop() above.
-      glowFadeDelay: 0.3,
-      registerTimer: (id) => timers.push(id),
-      onImpact: () => {
-        triggerSectionBloom(workSectionEl, workBloomEl, stage);
-        const card = stage.querySelector('.stage-card');
-        if (card) card.classList.add('active');
-        projects.forEach((p, i) => {
-          timers.push(setTimeout(() => {
-            p.el.style.transform = `translate(-50%,-50%) ${targetTransform(p.angle, p.radiusX, p.radiusY)} scale(1)`;
-            p.el.classList.add('placed');
-          }, i * 130));
-        });
-      },
-    });
+  observe(el, threshold, onIn, onOut) {
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) { if (onIn) onIn(); } else if (onOut) onOut(); });
+    }, { threshold });
+    io.observe(el);
+    (this.observers = this.observers || []).push(io);
+    return io;
   }
 
-  // Watch the SECTION (guaranteed full-viewport via scroll-snap) so the trigger
-  // is reliable, and reset on exit so scrolling back replays the sequence. Threshold
-  // dropped from 0.9 (had to nearly finish the scroll into the section before anything
-  // happened, reading as "blank") to 0.15 -- low enough that the fall starts within the
-  // first ~80px of scrolling away from the hero, so the scroll itself reads as what
-  // triggers the drop, but still above the section's small natural peek at rest (hero is
-  // a hair shorter than the viewport) so it doesn't fire before any scrolling happens.
-  const rippleObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) playSequence();
-      else resetSequence();
-    });
-  }, { threshold: 0.15 });
-  if (workSectionEl) rippleObserver.observe(workSectionEl);
-}
+  // --- Work (desktop): names and card land with the section; the drop passes THROUGH them ---
+  initWork() {
+    const stage = document.getElementById('rippleStage');
+    const section = document.getElementById('work');
+    if (!stage || !section) return;
+    this.stage = stage;
+    this.nodes = Array.from(stage.querySelectorAll('[data-node]'));
+    this.card = document.getElementById('stageCard');
+    this.cta = document.getElementById('stageCta');
+    this.layoutNodes();
 
-// --- Work section: mobile pill selector (below ~700px, see style.css) ---
-// Same `projects` array as the desktop raindrop layout, rendered as a row of pills next to one
-// shared preview container (#mobilePreviewWrap). Tapping a pill only swaps that container's
-// image/label/color/href -- the container itself never moves or resizes. An earlier version used
-// a tap-to-expand accordion with its own per-tap scroll-recentering logic; that logic is gone
-// entirely here, not just disabled, because pills never change any element's height or the
-// page's scroll position, so there's nothing left needing recentering.
-const pillsWrap = document.getElementById('workPillsWrap');
-const pillsContainer = document.getElementById('workPills');
-const previewLink = document.getElementById('workPreviewLink');
-const mobileStage = document.getElementById('workMobileStage');
-const mobileStageCard = document.getElementById('mobileStageCard');
-if (pillsWrap && pillsContainer) {
-  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const bloom = document.getElementById('workBloom');
 
-  // Single shared preview -- setMobilePreview() just updates this one element's content and
-  // toggles .active, never its position (see the CSS comment above .mobile-preview-wrap).
-  const mobilePreviewWrap = document.getElementById('mobilePreviewWrap');
-  const mobilePreviewImg = document.getElementById('mobilePreviewImg');
-  // Description block sits below the preview (see .mobile-preview-copy in style.css), toggled
-  // and cross-faded in lockstep with the image above rather than as a separate update --
-  // same isFreshOpen/swap-timer logic, just one more piece of content. Reuses each project's
-  // existing `hook` copy (already short, already project-specific, not shown anywhere else on
-  // mobile) as a placeholder description -- swap in dedicated copy per project once it's
-  // written, this just needs `desc` (or however it ends up named) added to the `projects` array.
-  const mobilePreviewCopy = document.getElementById('mobilePreviewCopy');
-  const mobilePreviewDesc = document.getElementById('mobilePreviewDesc');
-  const mobilePreviewRing = mobilePreviewWrap.querySelector('.preview-ring');
-  let mobilePreviewSwapTimer = null;
-  let activePill = null;
+    // The drop causes the reveal: nothing blooms until impact.
+    // One tempo across the whole reveal: card, wash and rings all resolve inside ~1.6s of
+    // impact, so it reads as a single spreading event rather than four overlapping ones.
+    const openCard = () => {
+      this.card.style.transition = 'clip-path 1s cubic-bezier(.19,1,.22,1), filter .5s ease';
+      this.card.style.clipPath = 'circle(150% at 50% 50%)';
+      bloom.style.transition = 'clip-path 1.6s cubic-bezier(.19,1,.22,1)';
+      bloom.style.clipPath = 'circle(150% at 50% 50%)';
+    };
+    const showNodes = base => this.nodes.forEach((n, i) => this.wait(() => { n.style.opacity = '1'; }, base + i * 70));
 
-  function setMobilePreview(p, isFreshOpen) {
-    clearTimeout(mobilePreviewSwapTimer);
-    const applyContent = () => {
-      mobilePreviewImg.src = p.img;
-      mobilePreviewImg.alt = p.isPlaceholder ? '' : p.name + ' preview';
-      mobilePreviewWrap.className = 'mobile-preview-wrap active ' + p.key;
-      if (mobilePreviewDesc) mobilePreviewDesc.textContent = p.desc || p.hook;
-      if (mobilePreviewCopy) mobilePreviewCopy.classList.add('active');
-      // previewRingSpin (style.css) plays once per class match, not once per selection -- .active
-      // stays on mobilePreviewWrap continuously across pill switches (only the content cross-fades,
-      // see the isFreshOpen branch below), so without this the ring would only ever spin on the
-      // very first project you open and sit frozen at rest for every switch after, including
-      // switching back to a project you'd already viewed. Setting animation to none and reading
-      // offsetWidth forces a style recalc in between, which is what makes the browser treat the
-      // next assignment as a genuinely new animation instead of a no-op on an unchanged value.
-      if (mobilePreviewRing) {
-        mobilePreviewRing.style.animation = 'none';
-        void mobilePreviewRing.offsetWidth;
-        mobilePreviewRing.style.animation = '';
+    const play = () => {
+      if (this.workPlayed) return;
+      this.workPlayed = true;
+      if (this.reduced) { openCard(); showNodes(0); return; }
+      this.playDrop(stage, {
+        fall: this.fall, ringCount: 3, ringStagger: 170, ringDuration: 1.5, ringMax: 470,
+        glowDuration: 1, glowMax: 280,
+        onImpact: () => {
+          openCard();
+          this.card.style.animation = 'none';
+          void this.card.offsetWidth;
+          this.card.style.animation = 'cardRippleD 1.2s cubic-bezier(.22,1,.36,1)';
+          showNodes(100);
+          this.nodes.forEach((n, i) => this.wait(() => {
+            const inner = n.querySelector('[data-inner]');
+            inner.style.animation = 'none';
+            void inner.offsetWidth;
+            inner.style.animation = 'textRipple 1.1s cubic-bezier(.22,1,.36,1)';
+          }, 170 + i * 70));
+        },
+      });
+    };
+    this.workPlay = play;
+    this.observe(section, 0.15, play, null);
+    // An intersection callback only fires on an edge, which a reset-then-scroll-back can
+    // miss. A cheap scroll check makes the replay deterministic.
+    this.onWorkScroll = () => {
+      if (this.isMobile ? this.mobilePlayed : this.workPlayed) return;
+      const r = section.getBoundingClientRect();
+      if (r.top < window.innerHeight * 0.85 && r.bottom > 0) {
+        if (this.isMobile) { if (this.playMobile) this.playMobile(); }
+        else play();
       }
     };
-    if (isFreshOpen) {
-      // Nothing was showing -- play the full bloom-in from scratch.
-      applyContent();
-    } else {
-      // Already open, switching directly to a different project. Replaying the whole
-      // retract-then-rebloom clip-path cycle here would either swap the image while still
-      // partially visible (looks broken) or force an ~1.1s wait before anything happens
-      // (feels sluggish) -- instead, cross-fade just the image/label/description in place while
-      // the bloom shape/card/ring stay fully expanded throughout.
-      mobilePreviewImg.style.transition = 'opacity .18s ease';
-      mobilePreviewImg.style.opacity = '0';
-      if (mobilePreviewDesc) mobilePreviewDesc.style.opacity = '0';
-      mobilePreviewSwapTimer = setTimeout(() => {
-        applyContent();
-        mobilePreviewImg.style.opacity = '1';
-        if (mobilePreviewDesc) mobilePreviewDesc.style.opacity = '1';
-      }, 180);
-    }
-  }
+    window.addEventListener('scroll', this.onWorkScroll, { passive: true });
+    section.addEventListener('click', e => {
+      if (this.fastForward()) e.preventDefault();
+    }, true);
 
-  function selectProject(p, pillEl, isFreshOpen) {
-    if (activePill === pillEl) return;
-    if (activePill) {
-      activePill.classList.remove('active');
-      activePill.setAttribute('aria-pressed', 'false');
-    }
-    pillEl.classList.add('active');
-    pillEl.setAttribute('aria-pressed', 'true');
-    activePill = pillEl;
-    if (previewLink) previewLink.href = p.href;
-    setMobilePreview(p, isFreshOpen);
-  }
-
-  projects.forEach(p => {
-    const pill = document.createElement('button');
-    pill.type = 'button';
-    pill.className = 'work-pill ' + p.key;
-    pill.textContent = p.name;
-    pill.setAttribute('aria-pressed', 'false');
-    pill.addEventListener('click', () => {
-      selectProject(p, pill, !mobilePreviewWrap.classList.contains('active'));
-    });
-    pillsContainer.appendChild(pill);
-    p.pillEl = pill;
-  });
-
-  let mobilePlayed = false;
-  let mobileTimers = [];
-  function clearMobileTimers() { mobileTimers.forEach(t => clearTimeout(t)); mobileTimers = []; }
-
-  function resetMobileEntrance() {
-    mobilePlayed = false;
-    clearMobileTimers();
-    clearTimeout(mobilePreviewSwapTimer);
-    pillsWrap.classList.remove('revealed');
-    projects.forEach(p => {
-      p.pillEl.classList.remove('placed', 'active');
-      p.pillEl.setAttribute('aria-pressed', 'false');
-    });
-    activePill = null;
-    mobilePreviewWrap.className = 'mobile-preview-wrap';
-    mobilePreviewImg.style.opacity = '';
-    if (mobilePreviewDesc) mobilePreviewDesc.style.opacity = '';
-    if (mobilePreviewCopy) mobilePreviewCopy.classList.remove('active');
-    if (mobileStageCard) mobileStageCard.classList.remove('active');
-    if (mobileStage) {
-      const dropWrap = mobileStage.querySelector('.drop-wrap');
-      const flash = mobileStage.querySelector('.impact-flash');
-      dropWrap.classList.remove('falling', 'impact');
-      dropWrap.style.opacity = '0';
-      flash.classList.remove('flash');
-    }
-    resetSectionBloom(workBloomEl);
-  }
-
-  function playMobileEntrance() {
-    if (mobilePlayed) return;
-    mobilePlayed = true;
-
-    const revealPills = () => {
-      pillsWrap.classList.add('revealed');
-      // Ripples through the pills one at a time rather than all appearing together the
-      // instant the wrap's own clip-path finishes expanding.
-      projects.forEach((p, i) => {
-        mobileTimers.push(setTimeout(() => p.pillEl.classList.add('placed'), 160 + i * 120));
+    // Hover / focus, delegated. The active item is never dimmed, including when it is the
+    // focused one — the old CSS :not(:hover) rule dimmed exactly the element it was showing.
+    const set = key => {
+      if (this.activeKey === key) return;
+      this.activeKey = key;
+      this.nodes.forEach(n => {
+        const k = n.dataset.node;
+        n.style.opacity = (key && k !== key) ? '0.25' : '1';
+        n.style.color = (key && k === key) ? 'rgb(' + PROJ[k].rgb + ')' : '#e9e7df';
+        const inner = n.querySelector('[data-inner]');
+        if (inner) inner.style.transform = (key && k === key) ? 'scale(1.08)' : 'scale(1)';
       });
-      // First project previews automatically -- with no hover on touch, an empty preview box
-      // would just look broken until the first tap. Delay matches the last pill's own stagger
-      // so this reads as the sequence settling into a default, not racing it.
-      mobileTimers.push(setTimeout(() => {
-        selectProject(projects[0], projects[0].pillEl, true);
-      }, 160 + projects.length * 120 + 250));
+      this.card.style.filter = key ? 'brightness(0.75)' : 'none';
+      if (this.cta) {
+        const p = key ? PROJ[key] : null;
+        this.cta.style.opacity = key ? '1' : '0';
+        this.cta.style.pointerEvents = key ? 'auto' : 'none';
+        this.cta.style.transform = 'translate(-50%,' + (key ? this.ctaOffset : this.ctaOffset + 12) + 'px)';
+        if (p) {
+          this.cta.href = p.href;
+          this.cta.style.borderColor = 'rgba(' + p.rgb + ',0.85)';
+          this.cta.setAttribute('aria-label', 'View the ' + key + ' case study');
+        }
+      }
+      stage.querySelectorAll('[data-preview]').forEach(p => {
+        const on = p.dataset.preview === key;
+        const shot = p.querySelector('[data-shot]');
+        const ring = p.querySelector('[data-ring]');
+        const shim = p.querySelector('[data-shimmer]');
+        const glow = p.querySelector('[data-glowback]');
+        const rgb = PROJ[p.dataset.preview].rgb;
+        if (glow) glow.style.opacity = on ? '1' : '0';
+        p.style.opacity = on ? '1' : '0';
+        p.style.transform = 'translate(-50%,-50%) translateY(' + (on ? this.groupShift : this.groupShift + 16) + 'px) scale(' + (on ? 1 : 0.92) + ')';
+        p.style.width = on ? this.previewW + 'px' : '56px';
+        p.style.height = on ? this.previewH + 'px' : '121px';
+        shot.style.boxShadow = on ? '0 0 90px 14px rgba(' + rgb + ',0.4)' : '0 0 0 0 rgba(' + rgb + ',0)';
+        ring.style.opacity = on ? '1' : '0';
+        if (on) {
+          ring.style.animation = 'none'; void ring.offsetWidth;
+          ring.style.animation = 'ringSpin 1.3s cubic-bezier(.19,1,.22,1) 1 forwards';
+          shim.style.animation = 'none'; void shim.offsetWidth;
+          shim.style.animation = 'previewShimmer 1.1s cubic-bezier(.19,1,.22,1) .2s 1';
+        }
+      });
+    };
+    // The active preview persists: it only changes when another project takes over.
+    this.nodes.forEach(n => {
+      const k = n.dataset.node;
+      n.addEventListener('mouseenter', () => set(k));
+      n.addEventListener('focus', () => set(k));
+    });
+  }
+
+  initDropdown() {
+    const det = document.querySelector('nav details');
+    if (!det) return;
+    const menu = det.querySelector('ul');
+    const summary = det.querySelector('summary');
+    const caret = summary && summary.querySelector('span');
+
+    det.addEventListener('toggle', () => {
+      if (caret) caret.style.transform = det.open ? 'translateY(1px) rotate(180deg)' : 'translateY(1px)';
+      if (!det.open || !menu) return;
+      menu.style.transition = 'none';
+      menu.style.opacity = '0';
+      menu.style.transform = 'translateY(-10px) scale(.97)';
+      void menu.offsetHeight;
+      menu.style.transition = 'opacity .2s ease, transform .32s cubic-bezier(.19,1,.22,1)';
+      menu.style.opacity = '1';
+      menu.style.transform = 'translateY(0) scale(1)';
+    });
+    if (caret) caret.style.transition = 'transform .3s cubic-bezier(.19,1,.22,1)';
+
+    const close = () => { if (det.open) det.open = false; };
+    // Pointerdown covers mouse, touch and pen, so tapping out closes it on every device.
+    this.onDocPointer = e => { if (det.open && !det.contains(e.target)) close(); };
+    document.addEventListener('pointerdown', this.onDocPointer, true);
+    this.onDocKey = e => {
+      if (e.key === 'Escape' && det.open) { close(); if (summary) summary.focus(); }
+    };
+    document.addEventListener('keydown', this.onDocKey);
+    menu.addEventListener('click', e => { if (e.target.closest('a')) close(); });
+    this.onDocScrollClose = () => close();
+    window.addEventListener('scroll', this.onDocScrollClose, { passive: true });
+  }
+
+  layoutNodes() {
+    if (!this.stage || !this.nodes) return;
+    const r = this.stage.getBoundingClientRect();
+    if (!r.width) return;
+    const rx = r.width * 0.373, ry = r.height * 0.428;
+    this.nodes.forEach(n => {
+      const a = PROJ[n.dataset.node].angle * Math.PI / 180;
+      n.style.transform = 'translate(-50%,-50%) translate(' + (rx * Math.cos(a)) + 'px,' + (ry * Math.sin(a)) + 'px)';
+    });
+    // The preview and its CTA read as one group, so the image sits above centre to make
+    // room for the button underneath it.
+    this.previewW = Math.round(Math.min(190, r.height * 0.32));
+    this.previewH = Math.round(this.previewW * 498 / 230);
+    this.groupShift = -30;
+    this.ctaOffset = this.groupShift + Math.round(this.previewH / 2) + 18;
+    if (this.cta && this.activeKey) this.cta.style.transform = 'translate(-50%,' + this.ctaOffset + 'px)';
+  }
+
+  // Shared drop + ripple. Rings must start at an explicit 0 size and get a forced reflow
+  // between setting the transition and the target size, or the browser will not animate them.
+  playDrop(container, o) {
+    const wrap = container.querySelector('[data-drop-wrap]');
+    const flash = container.querySelector('[data-flash]');
+    const glow = container.querySelector('[data-glow]');
+    if (!wrap) return;
+    container.querySelectorAll('[data-ring]').forEach(r => { if (!r.closest('[data-preview]') && r.id !== 'mobileRing') r.remove(); });
+
+    // The fall is a transform, not `top`: transitioning `top` between a viewport unit and a
+    // percentage is not interpolable, and the drop teleported to the centre instead of falling.
+    const endTop = Math.round(container.getBoundingClientRect().height / 2);
+    const dist = Math.round(window.innerHeight * 0.9) + endTop;
+    this.dropEndTop = endTop;
+    wrap.style.transition = 'none';
+    wrap.style.top = endTop + 'px';
+    wrap.style.opacity = '0';
+    wrap.style.transform = 'translateX(-50%) translateY(' + -dist + 'px) scaleY(1)';
+    wrap.style.filter = 'blur(0px)';
+    void wrap.offsetHeight;
+    wrap.style.transition = 'transform ' + o.fall + 's cubic-bezier(.36,.06,.29,.99), opacity .25s ease';
+    wrap.style.transform = 'translateX(-50%) translateY(0px) scaleY(1.4)';
+    wrap.style.opacity = '1';
+    wrap.style.transform = 'translateX(-50%) scaleY(1.4)';
+
+    const impact = () => {
+      // A real drop does not drift away, it flattens into the surface and is gone in about a
+      // sixth of a second. It has to vanish as the first ring is born, or the ring stops
+      // reading as something the drop caused.
+      wrap.style.transition = 'transform .17s cubic-bezier(.22,.9,.3,1), opacity .15s ease-out .04s, filter .17s ease-out';
+      wrap.style.transform = 'translateX(-50%) translateY(5px) scale(2.2,0.06)';
+      wrap.style.opacity = '0';
+      wrap.style.filter = 'blur(1px)';
+
+      flash.style.transition = 'transform .36s cubic-bezier(.16,1,.3,1), opacity .34s ease-out';
+      flash.style.opacity = '1'; void flash.offsetWidth;
+      flash.style.transform = 'translate(-50%,-50%) scale(7)';
+      flash.style.opacity = '0';
+
+      if (glow) {
+        glow.style.transition = 'none';
+        glow.style.width = glow.style.height = '0px';
+        glow.style.opacity = '0';
+        void glow.offsetHeight;
+        glow.style.transition = 'width ' + o.glowDuration + 's cubic-bezier(.16,1,.3,1), height ' + o.glowDuration + 's cubic-bezier(.16,1,.3,1), opacity ' + o.glowDuration + 's ease-out .3s';
+        glow.style.opacity = '0.4'; void glow.offsetHeight;
+        glow.style.width = glow.style.height = o.glowMax + 'px';
+        glow.style.opacity = '0';
+      }
+
+      let d = 0;
+      for (let i = 0; i < o.ringCount; i++) {
+        const ring = document.createElement('div');
+        const j = () => 48 + Math.random() * 6;
+        ring.setAttribute('data-ring', 'ripple');
+        // Each successive ring carries less of the impact: thinner, fainter, shorter reach.
+        const strength = 1 - i * 0.26;
+        const dur = o.ringDuration * (1 + i * 0.12);
+        ring.style.cssText = 'position:absolute;top:50%;left:50%;z-index:2;width:0;height:0;border:' + (1 + 2.2 * strength).toFixed(2) + 'px solid var(--accent);transform:translate(-50%,-50%);opacity:0;filter:blur(0px);border-radius:' + j() + '% ' + j() + '% ' + j() + '% ' + j() + '%';
+        container.insertBefore(ring, container.firstChild);
+        this.wait(() => {
+          ring.style.transition = 'width ' + dur + 's cubic-bezier(.16,1,.3,1), height ' + dur + 's cubic-bezier(.16,1,.3,1), opacity ' + dur + 's ease-out, filter ' + dur + 's ease-out, border-width ' + dur + 's ease-out';
+          ring.style.opacity = (0.6 * strength).toFixed(2); void ring.offsetHeight;
+          const size = o.ringMax * (1 - i * 0.16) + Math.random() * o.ringMax * 0.1;
+          ring.style.width = ring.style.height = size + 'px';
+          ring.style.opacity = '0';
+          ring.style.filter = 'blur(5px)';
+          ring.style.borderWidth = '0.5px';
+        }, d);
+        this.wait(() => ring.remove(), d + dur * 1000 + 100);
+        d += o.ringStagger;
+      }
+      if (o.onImpact) o.onImpact();
+    };
+    // Held so a click can land the drop early instead of waiting out the fall.
+    this.pendingImpact = impact;
+    this.impactTimer = setTimeout(() => {
+      this.pendingImpact = null;
+      this.impactTimer = null;
+      impact();
+    }, o.fall * 1000);
+    this.timers.push(this.impactTimer);
+  }
+
+  // Clicking mid-fall lands the drop now; the reveal it causes runs at full speed.
+  fastForward() {
+    if (!this.pendingImpact) return false;
+    clearTimeout(this.impactTimer);
+    const fn = this.pendingImpact;
+    this.pendingImpact = null;
+    this.impactTimer = null;
+    const wrap = document.querySelector((this.isMobile ? '#mobileDropStage' : '#rippleStage') + ' [data-drop-wrap]');
+    if (wrap) {
+      wrap.style.transition = 'none';
+      wrap.style.top = (this.dropEndTop || 0) + 'px';
+      wrap.style.transform = 'translateX(-50%) translateY(0px) scaleY(1.4)';
+      wrap.style.opacity = '1';
+      void wrap.offsetHeight;
+    }
+    fn();
+    return true;
+  }
+
+  // --- Work (mobile): pills + one shared preview. The drop anchor lives inside the card,
+  // so it lands on the card's real centre instead of the section's geometric centre. ---
+  initMobile() {
+    const wrap = document.getElementById('workMobile');
+    const pills = Array.from(document.querySelectorAll('[data-pill]'));
+    if (!wrap || !pills.length) return;
+    this.mobileWrap = wrap;
+
+    const img = document.getElementById('mobilePreviewImg');
+    const shot = document.getElementById('mobileShot');
+    const ring = document.getElementById('mobileRing');
+    const desc = document.getElementById('mobileDesc');
+    const link = document.getElementById('mobileLink');
+    const copy = document.getElementById('mobileCopy');
+
+    const select = key => {
+      if (this.mobileKey === key) return;
+      const fresh = !this.mobileKey;
+      this.mobileKey = key;
+      const p = PROJ[key];
+      pills.forEach(b => {
+        const on = b.dataset.pill === key;
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        b.style.color = on ? '#e9e7df' : '#a09c92';
+        b.style.borderColor = on ? 'rgba(' + p.rgb + ',0.9)' : '#3a3a38';
+        b.style.background = on ? 'rgba(' + p.rgb + ',0.14)' : 'none';
+        b.style.boxShadow = on ? '0 0 20px -4px rgba(' + p.rgb + ',0.55)' : 'none';
+      });
+      link.href = p.href;
+      const apply = () => {
+        img.src = p.img;
+        desc.textContent = p.hook;
+        img.style.opacity = '1';
+        desc.style.opacity = '1';
+        shot.style.opacity = '1';
+        shot.style.transform = 'scale(1)';
+        shot.style.boxShadow = '0 0 50px 6px rgba(' + p.rgb + ',0.3)';
+        ring.style.background = 'conic-gradient(from 0deg, transparent 0%, rgba(' + p.rgb + ',.9) 10%, #fff 18%, rgba(' + p.rgb + ',.9) 26%, transparent 42%, transparent 100%)';
+        ring.style.opacity = '1';
+        ring.style.animation = 'none'; void ring.offsetWidth;
+        ring.style.animation = 'ringSpin 1.3s cubic-bezier(.19,1,.22,1) 1 forwards';
+        copy.style.opacity = '1';
+      };
+      if (fresh) { apply(); }
+      else {
+        img.style.opacity = '0';
+        desc.style.opacity = '0';
+        clearTimeout(this.swapTimer);
+        this.swapTimer = setTimeout(apply, 180);
+      }
+    };
+    pills.forEach(b => b.addEventListener('click', () => select(b.dataset.pill)));
+
+    const card = document.getElementById('mobileCard');
+    const dropStage = document.getElementById('mobileDropStage');
+    const bloom = document.getElementById('workBloom');
+    const section = document.getElementById('work');
+
+    const openMobileCard = () => {
+      card.style.transition = 'clip-path 1s cubic-bezier(.19,1,.22,1)';
+      card.style.clipPath = 'circle(150% at 50% 50%)';
+      bloom.style.transition = 'clip-path 1.6s cubic-bezier(.19,1,.22,1)';
+      bloom.style.clipPath = 'circle(150% at 50% 50%)';
     };
 
-    if (prefersReducedMotion || !mobileStage) {
-      if (mobileStageCard) mobileStageCard.classList.add('active');
-      revealPills();
-      return;
-    }
-
-    // holdBeforeImpact must match the .falling transition duration in CSS (2.2s) so
-    // impact/ripple/reveal all trigger the instant the drop lands -- slowed from an earlier
-    // 1.6s/0.95s/380ms/0.85s (fall/ring/stagger/glow) alongside the desktop stage, for the same
-    // more fluid, liquid feel.
-    playRaindrop({
-      container: mobileStage,
-      holdBeforeImpact: 2200,
-      ringCount: 2,
-      ringStagger: 480,
-      ringDuration: 1.5,
-      ringMaxSize: 300,
-      glowDuration: 1.3,
-      glowMaxSize: 230,
-      // Matches roughly how long .drop-wrap.impact takes to fully fade (0.2s delay + 0.55s
-      // fade = 0.75s) -- see the glowFadeDelay comment in playRaindrop() above.
-      glowFadeDelay: 0.3,
-      registerTimer: (id) => mobileTimers.push(id),
-      onImpact: () => {
-        triggerSectionBloom(workSectionEl, workBloomEl, mobileStage);
-        if (mobileStageCard) mobileStageCard.classList.add('active');
-        revealPills();
-      },
-    });
-  }
-
-  // Same shape as desktop's rippleObserver: play on enter, reset on exit, so scrolling out of
-  // #work and back in replays the whole raindrop-and-reveal sequence from scratch instead of
-  // leaving it played-once-forever. isMobileLayout() is what actually gates this to mobile --
-  // watching #work directly (not the pills wrap) means this observer still fires on desktop
-  // viewports too, same as it always has, just a no-op there. Threshold 0.15 matches desktop's
-  // rippleObserver for the same reason: low enough that the sequence starts within the first
-  // stretch of scrolling into the section rather than waiting for it to almost fully arrive.
-  const isMobileLayout = () => window.matchMedia('(max-width:700px)').matches;
-  if (workSectionEl) {
-    const mobileEntranceObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (!isMobileLayout()) return;
-        if (entry.isIntersecting) playMobileEntrance();
-        else resetMobileEntrance();
+    this.playMobile = () => {
+      if (this.mobilePlayed) return;
+      this.mobilePlayed = true;
+      if (this.reduced) { openMobileCard(); select('nitefind'); return; }
+      this.playDrop(dropStage, {
+        fall: Math.min(this.fall, 1.1), ringCount: 3, ringStagger: 160, ringDuration: 1.2,
+        ringMax: 340, glowDuration: 1, glowMax: 240,
+        onImpact: () => {
+          openMobileCard();
+          card.style.animation = 'none';
+          void card.offsetWidth;
+          card.style.animation = 'cardRippleM 1.2s cubic-bezier(.22,1,.36,1)';
+          this.wait(() => select('nitefind'), 120);
+        },
       });
-    }, { threshold: 0.15 });
-    mobileEntranceObserver.observe(workSectionEl);
+    };
+    if (section) this.observe(section, 0.15, () => { if (this.isMobile) this.playMobile(); }, null);
+  }
+
+  // One layout switch, so the desktop sequence never runs behind display:none on a phone.
+  syncLayout() {
+    const mobile = window.matchMedia('(max-width:700px)').matches;
+    if (mobile === this.isMobile) return;
+    this.isMobile = mobile;
+    if (this.stage) this.stage.style.display = mobile ? 'none' : 'block';
+    if (this.mobileWrap) this.mobileWrap.style.display = mobile ? 'flex' : 'none';
+    if (mobile && this.playMobile) {
+      const r = document.getElementById('work').getBoundingClientRect();
+      if (r.top < window.innerHeight && r.bottom > 0) this.playMobile();
+    }
+    if (!mobile) this.layoutNodes();
+  }
+
+  initContact() {
+    const pulse = document.getElementById('listenPulse');
+    const section = document.getElementById('contact');
+    if (!pulse || !section || this.reduced) return;
+    this.observe(section, 0.2, () => { pulse.style.opacity = '1'; }, () => { pulse.style.opacity = '0'; });
+  }
+
+  // Arriving from a project page with #about or #contact: the DC mounts after the browser
+  // has already given up on the hash, so the jump has to be re-applied once laid out.
+  applyIncomingHash() {
+    const id = (window.location.hash || '').slice(1);
+    if (!id) return;
+    const t = document.getElementById(id);
+    if (!t) return;
+    // 'auto' resolves to the CSS scroll-behavior (smooth here), which lands mid-animation.
+    const jump = () => { this.suspendSnap(); window.scrollTo({ top: t.offsetTop, behavior: 'instant' }); };
+    jump();
+    requestAnimationFrame(jump);
+    this.wait(jump, 120);
+    this.wait(jump, 400);
+  }
+
+  // Every section snaps, which means a programmatic jump can be dragged to the wrong
+  // section's snap point mid-flight. Snapping is lifted for the duration of the jump only.
+  suspendSnap(restoreAfter) {
+    const html = document.documentElement;
+    html.style.scrollSnapType = 'none';
+    clearTimeout(this.snapTimer);
+    const restore = () => { html.style.scrollSnapType = ''; };
+    this.snapTimer = setTimeout(restore, restoreAfter || 260);
+    this.timers.push(this.snapTimer);
+  }
+
+  // KD in the nav returns the page to its opening state and replays every reveal.
+  resetAll() {
+    this.timers.forEach(clearTimeout);
+    this.timers = [];
+    this.pendingImpact = null;
+    this.impactTimer = null;
+    clearTimeout(this.swapTimer);
+
+    window.scrollTo({ top: 0, behavior: 'instant' });
+
+    // hero
+    const ghost = document.getElementById('heroGhost');
+    if (ghost) ghost.style.opacity = '0';
+    document.querySelectorAll('#heroHeadline [data-line]').forEach(l => {
+      l.style.transition = 'none';
+      l.style.opacity = '0';
+      l.style.setProperty('--reveal', '0%');
+      l.style.transitionDelay = '0s';
+      void l.offsetWidth;
+      l.style.transition = 'opacity .15s ease, --reveal 2s linear';
+    });
+    this.heroPlayed = false;
+
+    // work, both layouts
+    this.workPlayed = false;
+    this.mobilePlayed = false;
+    this.activeKey = null;
+    this.mobileKey = null;
+    const bloom = document.getElementById('workBloom');
+    [bloom, this.card, document.getElementById('mobileCard')].forEach(el => {
+      if (!el) return;
+      el.style.transition = 'none';
+      el.style.animation = 'none';
+      el.style.clipPath = 'circle(0% at 50% 50%)';
+      void el.offsetWidth;
+    });
+    if (this.card) this.card.style.filter = 'none';
+    if (this.nodes) this.nodes.forEach(n => {
+      n.style.opacity = '0';
+      n.style.color = '#e9e7df';
+      const inner = n.querySelector('[data-inner]');
+      if (inner) { inner.style.animation = 'none'; inner.style.transform = 'scale(1)'; }
+    });
+    if (this.cta) { this.cta.style.opacity = '0'; this.cta.style.pointerEvents = 'none'; }
+    document.querySelectorAll('#rippleStage [data-preview]').forEach(p => {
+      p.style.opacity = '0';
+      const g = p.querySelector('[data-glowback]');
+      const r = p.querySelector('[data-ring]');
+      if (g) g.style.opacity = '0';
+      if (r) r.style.opacity = '0';
+    });
+    document.querySelectorAll('[data-ring="ripple"]').forEach(r => r.remove());
+    ['#rippleStage', '#mobileDropStage'].forEach(sel => {
+      const w = document.querySelector(sel + ' [data-drop-wrap]');
+      if (!w) return;
+      w.style.transition = 'none';
+      w.style.top = -Math.round(window.innerHeight * 0.9) + 'px';
+      w.style.opacity = '0';
+      w.style.transform = 'translateX(-50%) translateY(0px) scaleY(1)';
+      w.style.filter = 'blur(0px)';
+      void w.offsetHeight;
+    });
+    // mobile stack
+    const shot = document.getElementById('mobileShot');
+    const mring = document.getElementById('mobileRing');
+    const copy = document.getElementById('mobileCopy');
+    if (shot) { shot.style.opacity = '0'; shot.style.transform = 'scale(.96)'; shot.style.boxShadow = 'none'; }
+    if (mring) mring.style.opacity = '0';
+    if (copy) copy.style.opacity = '0';
+    document.querySelectorAll('[data-pill]').forEach(b => {
+      b.setAttribute('aria-pressed', 'false');
+      b.style.color = '#a09c92';
+      b.style.borderColor = '#3a3a38';
+      b.style.background = 'none';
+      b.style.boxShadow = 'none';
+    });
+
+    // contact
+    const pulse = document.getElementById('listenPulse');
+    if (pulse) pulse.style.opacity = '0';
+
+    // replay from the top; the work observer re-fires when it next scrolls into view
+    this.wait(() => {
+      this.heroPlayed = false;
+      if (this.heroPlay) this.heroPlay();
+      // A reset that lands with the work section still on screen gets no fresh
+      // intersection callback, so replay it directly in that case.
+      const w = document.getElementById('work');
+      if (!w) return;
+      const r = w.getBoundingClientRect();
+      if (r.top < window.innerHeight * 0.85 && r.bottom > 0) {
+        if (this.isMobile) { if (this.playMobile) this.playMobile(); }
+        else if (this.workPlay) this.workPlay();
+      }
+    }, 60);
+  }
+
+  initAnchors() {
+    const brand = document.querySelector('nav a[aria-label="Kristian Davis, home"]');
+    if (brand) brand.addEventListener('click', e => { e.preventDefault(); this.resetAll(); });
+    window.addEventListener('hashchange', () => this.applyIncomingHash());
+    document.querySelectorAll('#page a[href^="#"]').forEach(a => {
+      a.addEventListener('click', e => {
+        const t = document.querySelector(a.getAttribute('href'));
+        if (!t) return;
+        e.preventDefault();
+        this.suspendSnap(this.reduced ? 260 : 1100);
+        window.scrollTo({ top: t.offsetTop, behavior: this.reduced ? 'instant' : 'smooth' });
+      });
+    });
   }
 }
 
-// --- Contact: listening-pulse visibility ---
-// Contact's background is plain black -- the pulse by the CTA is deliberately the only moving
-// thing in the section. (It briefly had a section-wide violet bloom like Work's, and before that
-// its own raindrop stage; both were removed on purpose. Don't reintroduce either without asking.)
-// The pulse animation itself is a plain CSS infinite loop (see .listen-ring in style.css) since
-// it never triggers/resets like the hero or work-section ripples do -- the only thing JS does
-// here is fade it in/out with the section, so it isn't burning cycles (and isn't visible
-// mid-fade into the section) while scrolled away.
-const listenPulse = document.getElementById('listenPulse');
-const contactSection = document.getElementById('contact');
-if (listenPulse && contactSection) {
-  const listenObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      listenPulse.classList.toggle('in-view', entry.isIntersecting);
-    });
-  }, { threshold: 0.2 });
-  listenObserver.observe(contactSection);
-}
-
-// Smooth scroll for in-page nav links
-document.querySelectorAll('a[href^="#"]').forEach(function(link){
-  link.addEventListener('click', function(e){
-    var target = document.querySelector(link.getAttribute('href'));
-    if(target){
-      e.preventDefault();
-      target.scrollIntoView({behavior:'smooth', block:'start'});
-    }
-  });
-});
-
-// --- Wheel-driven section resistance ---
-// CSS scroll-snap-type is binary (snap or don't) — there's no way to express "resist a little,
-// then commit" with it alone. This adds that on top: while scrolling freely INSIDE a section
-// (one taller than the viewport, like About can be) is untouched, the moment the wheel would
-// carry you PAST a section's edge, that transition is gated behind a small accumulated-delta
-// threshold instead of firing on the first tick. Small/accidental nudges at a boundary do
-// nothing; a sustained scroll crosses the threshold and commits to a smooth scroll into the
-// next section — that's the "resist, then yank through" feel.
-//
-// Wheel-driven resistance stays wheel-only: touch has no discrete "tick" to gate the same way.
-// Touch gets its own, separate mechanism below instead — see that block for why mandatory CSS
-// scroll-snap alone wasn't reliably "locking" on real touch devices.
-(function () {
-  var stops = Array.prototype.slice.call(document.querySelectorAll('.snap-section'));
-  if (stops.length < 2) return;
-
-  var THRESHOLD = 70;    // accumulated wheel delta (px) needed to commit to moving one stop —
-                         // 150 held sections too hard (too much scrolling needed to get out)
-  var IDLE_RESET = 220;  // ms of no wheel activity before the accumulator drops back to 0
-  var LOCK_MS = 1200;    // wheel-input lock + scroll-snap-restore fallback ceiling (scrollend
-                         // fires sooner in browsers that support it; this just has to safely
-                         // outlast the longest realistic section-to-section smooth scroll)
-  var EDGE_TOLERANCE = 2; // px slack for "is this section's edge at the viewport edge"
-
-  var accum = 0;
-  var idleTimer = null;
-  var lockUntil = 0;
-
-  function currentStopIndex() {
-    var idx = 0;
-    for (var i = 0; i < stops.length; i++) {
-      if (stops[i].offsetTop <= window.scrollY + EDGE_TOLERANCE) idx = i;
-    }
-    return idx;
-  }
-
-  function atEdge(direction) {
-    var rect = stops[currentStopIndex()].getBoundingClientRect();
-    return direction > 0
-      ? rect.bottom <= window.innerHeight + EDGE_TOLERANCE
-      : rect.top >= -EDGE_TOLERANCE;
-  }
-
-  function goToStop(index) {
-    index = Math.max(0, Math.min(stops.length - 1, index));
-    var target = stops[index];
-    // scroll-snap-stop:always on every .snap-section blocks ANY smooth scroll animation that
-    // leaves one, programmatic or not — confirmed by testing that even a plain
-    // window.scrollTo({top:500, behavior:'smooth'}) from mid-Work was fully rejected, not just
-    // partially resisted. Same fix as the mobile tap-to-reveal scroll elsewhere in this file:
-    // suspend snapping for the duration of this animation, then hand back control to CSS.
-    //
-    // Restoring on a fixed timeout alone isn't safe — a long hop (e.g. Work to Hero, ~820px)
-    // can still be mid-animation past LOCK_MS, and re-enabling mandatory snap while a scroll is
-    // still in flight yanks it back to wherever it was, undoing the whole move. `scrollend`
-    // (Chrome/Firefox) restores right when the animation actually finishes instead; the timeout
-    // is just the fallback for browsers without it (Safari), given a longer ceiling.
-    var html = document.documentElement;
-    html.style.scrollSnapType = 'none';
-    lockUntil = Date.now() + LOCK_MS;
-
-    var restored = false;
-    function restoreSnap() {
-      if (restored) return;
-      restored = true;
-      html.style.scrollSnapType = '';
-    }
-    window.addEventListener('scrollend', restoreSnap, { once: true });
-    setTimeout(restoreSnap, LOCK_MS);
-
-    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
-  window.addEventListener('wheel', function (e) {
-    if (Date.now() < lockUntil) { e.preventDefault(); return; }
-
-    var direction = e.deltaY > 0 ? 1 : -1;
-
-    if (!atEdge(direction)) {
-      // Room to scroll freely within the current section — get out of the way entirely.
-      accum = 0;
-      clearTimeout(idleTimer);
-      return;
-    }
-
-    e.preventDefault();
-    accum += Math.abs(e.deltaY);
-    clearTimeout(idleTimer);
-    idleTimer = setTimeout(function () { accum = 0; }, IDLE_RESET);
-
-    if (accum >= THRESHOLD) {
-      accum = 0;
-      goToStop(currentStopIndex() + direction);
-    }
-  }, { passive: false });
-})();
-
-// --- Touch: corrective section-snap safety net ---
-// CSS scroll-snap-type:mandatory + scroll-snap-stop:always is the whole mechanism on mobile (no
-// JS-driven resistance like the wheel controller above -- touch has no discrete tick to gate).
-// In practice a fast flick can still leave the page resting mid-section instead of snapped to a
-// section's start; some mobile browsers don't fully honor scroll-snap-stop against a high-
-// velocity fling, which reads as "sections aren't locking in" even though the CSS is correctly
-// configured. This corrects for it after the fact: once a touch-driven scroll settles, if the
-// resting position isn't already (within a couple px of) a section's top, finish the move with
-// one smooth scrollIntoView -- same suspend-snap-then-restore trick goToStop() above uses, since
-// scroll-snap-stop:always blocks programmatic smooth scrolls too, not just wheel-driven ones.
-(function () {
-  if (!('ontouchstart' in window)) return; // desktop's wheel controller already covers this
-  var stops = Array.prototype.slice.call(document.querySelectorAll('.snap-section'));
-  if (stops.length < 2) return;
-
-  var TOLERANCE = 2;
-  var SETTLE_MS = 140; // debounce after the last scroll event before treating the gesture as done
-  var correcting = false;
-
-  function nearestStop() {
-    var best = stops[0], bestDist = Infinity;
-    stops.forEach(function (s) {
-      var dist = Math.abs(s.offsetTop - window.scrollY);
-      if (dist < bestDist) { bestDist = dist; best = s; }
-    });
-    return best;
-  }
-
-  function correct() {
-    if (correcting) return;
-    var target = nearestStop();
-    if (Math.abs(target.offsetTop - window.scrollY) <= TOLERANCE) return;
-    correcting = true;
-    var html = document.documentElement;
-    html.style.scrollSnapType = 'none';
-    var restored = false;
-    function restoreSnap() {
-      if (restored) return;
-      restored = true;
-      html.style.scrollSnapType = '';
-      correcting = false;
-    }
-    window.addEventListener('scrollend', restoreSnap, { once: true });
-    setTimeout(restoreSnap, 1200);
-    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
-  var settleTimer = null;
-  window.addEventListener('scroll', function () {
-    if (correcting) return;
-    clearTimeout(settleTimer);
-    settleTimer = setTimeout(correct, SETTLE_MS);
-  }, { passive: true });
-})();
+document.addEventListener('DOMContentLoaded', () => new Portfolio().init());

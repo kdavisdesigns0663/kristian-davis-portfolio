@@ -3,77 +3,68 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="robots" content="noindex">
-<title>Kristian Davis</title>
+<title>Kristian Davis — Links</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Kristian Davis — portfolio, Behance, and LinkedIn.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500&display=swap">
-<link rel="stylesheet" href="css/style.css">
-<style>
-  /* This page is intentionally standalone and mobile-only (reached via a QR code, not site
-     nav) — everything below reuses css/style.css tokens/classes directly (--bg, --accent,
-     .ghost, .mono, the shared textRipple keyframe) rather than inventing a new look. The two
-     things that genuinely need page-specific rules: laying the ghost word out as a centered
-     focal element instead of its usual absolute-positioned background bleed, and giving it
-     the hero headline's liquid-reveal treatment instead of the ghost word's own usual quiet
-     fade — this page has no separate headline for that treatment to live on, so the ghost
-     word IS the headline here. */
-  body.link-page{
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    min-height:100vh; padding:32px 24px; text-align:center; gap:56px;
-  }
-
-  /* Overrides .ghost's absolute/bled-off-edge positioning (built for sitting behind other
-     content) with a centered, in-flow block, since here it's the only thing on screen.
-     Reveal values (transition + textRipple) are copied exactly from .hero .headline > div /
-     .line-inner in css/style.css, not retimed. */
-  .link-page .ghost.link-ghost{
-    position:static; top:auto; left:auto; z-index:auto;
-    display:block; width:100%;
-    font-size:clamp(56px, 16vw, 90px);
-    opacity:0; transform:scale(0.94); filter:blur(8px);
-    transition:opacity 2.2s ease, transform 3.2s cubic-bezier(.16,1,.3,1), filter 2.6s ease-out;
-  }
-  .link-page .ghost.link-ghost.placed{ opacity:1; transform:scale(1); filter:blur(0); }
-  .link-page .ghost.link-ghost .line-inner{ display:block; }
-  .link-page .ghost.link-ghost.placed .line-inner{ animation:textRipple 1.8s cubic-bezier(.22,1,.36,1) both; }
-
-  @media (prefers-reduced-motion: reduce){
-    .link-page .ghost.link-ghost{
-      transition:opacity .3s ease !important; filter:none !important; transform:none !important;
-    }
-    .link-page .ghost.link-ghost.placed .line-inner{ animation:none !important; }
-  }
-
-  /* Same visual language as .contact .cta (border box, JetBrains Mono, violet hover/focus),
-     just stacked as a full-width column instead of .cta's single inline-block usage. */
-  .link-actions{ display:flex; flex-direction:column; gap:14px; width:100%; max-width:300px; }
-  .link-actions a{
-    display:block; padding:16px 32px; border:1px solid var(--line-strong);
-    font-size:14px; color:var(--text); transition:border-color .3s ease, color .3s ease;
-  }
-  .link-actions a:hover, .link-actions a:focus-visible{ border-color:var(--accent); color:var(--accent); }
-</style>
+<link rel="stylesheet" href="css/link.css">
 </head>
-<body class="link-page">
+<body>
+<div style="position:relative;display:flex;flex-direction:column;min-height:100dvh;padding:clamp(26px,7vw,40px) clamp(22px,6vw,32px) clamp(28px,7vw,40px);overflow:hidden">
 
-  <div class="ghost link-ghost" id="linkGhost"><span class="line-inner">KRISTIAN</span></div>
+  <div style="position:relative;z-index:2;width:100%;max-width:520px;margin:0 auto;display:flex;flex-direction:column;flex:1">
 
-  <div class="link-actions">
-    <a class="mono" href="index.html">Portfolio</a>
-    <a class="mono" href="https://www.linkedin.com/in/kdavisdesigns/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-    <a class="mono" href="https://www.behance.net/kristiandavis3" target="_blank" rel="noopener noreferrer">Behance</a>
+    <div aria-hidden="true" style="position:absolute;top:0;left:clamp(-20px,-4.5vw,-9px);z-index:-1;pointer-events:none;user-select:none;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(76px,22vw,132px);line-height:1;color:transparent;-webkit-text-stroke:1px var(--accent);letter-spacing:-.02em;opacity:.3">KD</div>
+
+    <header style="margin-top:clamp(86px,24vw,146px)">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:clamp(11px,3vw,13px);letter-spacing:.02em;color:#a09c92">// <b style="color:var(--accent);font-weight:500">ux/ui_design</b> · product_design</div>
+      <h1 style="margin-top:clamp(16px,4.5vw,22px);font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(38px,11.5vw,58px);line-height:1;letter-spacing:-.02em">Kristian<br>Davis</h1>
+      <p style="margin-top:clamp(18px,5vw,26px);padding-left:18px;border-left:2px solid var(--accent);font-size:clamp(14px,3.9vw,16px);line-height:1.65;color:#a09c92;text-wrap:pretty">People don't experience your design. They experience your decisions.</p>
+    </header>
+
+    <nav aria-label="Links" style="display:flex;flex-direction:column;gap:12px;margin-top:clamp(36px,9vw,52px)">
+
+      <a class="l1" href="index.html" style="display:flex;align-items:center;gap:15px;min-height:72px;padding:16px 18px;border:1px solid rgba(var(--accent-rgb),.5);border-radius:14px;background:rgba(var(--accent-rgb),.1);transition:background .18s ease,transform .18s ease">
+        <span aria-hidden="true" style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;width:40px;height:40px;border:1px solid rgba(var(--accent-rgb),.5);border-radius:11px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:14px;letter-spacing:-.01em;color:var(--accent)">KD</span>
+        <span style="flex:1;min-width:0">
+          <span style="display:block;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(16px,4.5vw,19px);line-height:1.2">Portfolio</span>
+          <span style="display:block;margin-top:3px;font-family:'JetBrains Mono',monospace;font-size:clamp(10px,3vw,11px);letter-spacing:.04em;color:#a09c92">selected work and case studies</span>
+        </span>
+        <span aria-hidden="true" style="flex-shrink:0;font-family:'JetBrains Mono',monospace;font-size:16px;color:var(--accent)">→</span>
+      </a>
+
+      <a class="l2" href="https://www.behance.net/kristiandavis3" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:15px;min-height:72px;padding:16px 18px;border:1px solid rgba(var(--accent-rgb),.5);border-radius:14px;background:rgba(var(--accent-rgb),.1);transition:background .18s ease,transform .18s ease">
+        <span aria-hidden="true" style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;width:40px;height:40px;border:1px solid rgba(var(--accent-rgb),.5);border-radius:11px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;color:var(--accent)">Bē</span>
+        <span style="flex:1;min-width:0">
+          <span style="display:block;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(16px,4.5vw,19px);line-height:1.2">Behance</span>
+          <span style="display:block;margin-top:3px;font-family:'JetBrains Mono',monospace;font-size:clamp(10px,3vw,11px);letter-spacing:.04em;color:#a09c92">visual work</span>
+        </span>
+        <span aria-hidden="true" style="flex-shrink:0;font-family:'JetBrains Mono',monospace;font-size:16px;color:var(--accent)">↗</span>
+      </a>
+
+      <a class="l3" href="https://www.linkedin.com/in/kdavisdesigns/" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:15px;min-height:72px;padding:16px 18px;border:1px solid rgba(var(--accent-rgb),.5);border-radius:14px;background:rgba(var(--accent-rgb),.1);transition:background .18s ease,transform .18s ease">
+        <span aria-hidden="true" style="display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;width:40px;height:40px;border:1px solid rgba(var(--accent-rgb),.5);border-radius:11px;color:var(--accent)">
+          <svg viewBox="0 0 24 24" fill="currentColor" style="width:19px;height:19px"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452z"/></svg>
+        </span>
+        <span style="flex:1;min-width:0">
+          <span style="display:block;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(16px,4.5vw,19px);line-height:1.2">LinkedIn</span>
+          <span style="display:block;margin-top:3px;font-family:'JetBrains Mono',monospace;font-size:clamp(10px,3vw,11px);letter-spacing:.04em;color:#a09c92">experience and background</span>
+        </span>
+        <span aria-hidden="true" style="flex-shrink:0;font-family:'JetBrains Mono',monospace;font-size:16px;color:var(--accent)">↗</span>
+      </a>
+
+      <a class="l4" href="mailto:kdavisdesigns94@gmail.com" style="display:flex;align-items:center;justify-content:center;gap:10px;min-height:52px;margin-top:6px;padding:14px 18px;border:1px solid #1c1c1a;border-radius:14px;font-family:'JetBrains Mono',monospace;font-size:clamp(12px,3.4vw,13px);color:#a09c92;transition:background .18s ease,transform .18s ease">kdavisdesigns94@gmail.com</a>
+    </nav>
+
+    <footer style="margin-top:auto;padding-top:clamp(32px,9vw,48px);display:flex;justify-content:space-between;gap:10px;font-family:'JetBrains Mono',monospace;font-size:clamp(10px,3vw,11px);color:#7d786f">
+      <span>Denver, CO</span>
+      <span>© 2026</span>
+    </footer>
+
   </div>
-
-  <script>
-    // Single-element version of playHeroReveal() from js/main.js — no stagger needed, just
-    // one liquid reveal firing once on load.
-    var ghost = document.getElementById('linkGhost');
-    requestAnimationFrame(function () {
-      requestAnimationFrame(function () {
-        ghost.classList.add('placed');
-      });
-    });
-  </script>
-
+</div>
+<script src="js/link.js"></script>
 </body>
 </html>

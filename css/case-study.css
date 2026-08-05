@@ -1,0 +1,32 @@
+/* Case study pages. Each page sets its own --accent in an inline block; everything else
+   is shared. Layout and colour are inline on the elements. */
+*{ margin:0; padding:0; box-sizing:border-box; }
+  body{ background:#050505; color:#e9e7df; font-family:'Inter',sans-serif; line-height:1.6; -webkit-font-smoothing:antialiased; }
+  summary{ list-style:none; }
+  summary::-webkit-details-marker{ display:none; }
+  a{ color:inherit; text-decoration:none; }
+  a:hover{ color:var(--accent); }
+  ::selection{ background:rgba(var(--accent-rgb),.35); color:#fff; }
+  :focus-visible{ outline:2px solid var(--accent); outline-offset:4px; border-radius:2px; }
+
+/* --- interactive states --- */
+.c1:hover, .c1:focus-visible{ top:16px !important; }
+.c2:hover{ color:var(--accent) !important; letter-spacing:.06em !important; }
+.c3:hover{ color:#e9e7df !important; }
+.c4:hover{ color:#e9e7df !important; }
+.c5:hover{ color:#e9e7df !important; background:rgba(255,255,255,.06) !important; }
+.c6:hover{ color:#e9e7df !important; background:rgba(255,255,255,.06) !important; }
+.c7:hover{ color:#e9e7df !important; background:rgba(255,255,255,.06) !important; }
+.c8:hover{ color:#e9e7df !important; background:rgba(255,255,255,.06) !important; }
+.c9:hover{ color:#e9e7df !important; }
+.c10:hover{ color:#e9e7df !important; }
+.c11:hover{ color:#e9e7df !important; }
+.c12:hover{ color:var(--accent) !important; gap:14px !important; }
+.c13:hover{ border-color:#3a3a38 !important; }
+.c14:hover{ border-color:#3a3a38 !important; }
+.c15:hover{ border-color:var(--accent) !important; background:rgba(var(--accent-rgb),.05) !important; }
+.c16:hover{ color:var(--accent) !important; }
+
+@media (prefers-reduced-motion: reduce){
+  *, *::before, *::after{ animation-duration:.01ms !important; transition-duration:.01ms !important; }
+}
