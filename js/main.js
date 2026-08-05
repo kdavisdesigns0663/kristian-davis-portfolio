@@ -22,7 +22,6 @@ class Portfolio {
     window.addEventListener('resize', this.onResize);
     this.syncLayout();
     this.applyIncomingHash();
-    this.initScrollLock();
   }
 
   wait(fn, ms) { this.timers.push(setTimeout(fn, ms)); }
@@ -490,98 +489,6 @@ class Portfolio {
     const restore = () => { html.style.scrollSnapType = ''; };
     this.snapTimer = setTimeout(restore, restoreAfter || 260);
     this.timers.push(this.snapTimer);
-  }
-
-  // --- Forced section-to-section scroll, wheel (desktop) and touch (mobile) ---
-  // CSS scroll-snap-type:mandatory was tried here and measurably broke scrolling instead of
-  // fixing it: A/B tested against proximity with identical synthetic wheel input, mandatory got
-  // permanently stuck at the first section boundary (0px of further scroll across 40+ events)
-  // while proximity scrolled the full page freely every time. Whatever the underlying engine
-  // reason, relying on native mandatory snap to "lock" mobile isn't safe here. This instead
-  // intercepts wheel/touch input directly, the same way the site used to handle desktop wheel
-  // scrolling: while there's room left to scroll WITHIN the current section, native scrolling is
-  // untouched (this is what lets #about, which runs to roughly 1800px tall on a phone, scroll
-  // through freely); the moment input would carry you PAST a section's own edge, that default is
-  // prevented and gated behind an accumulated-distance threshold instead of firing immediately,
-  // then committed with one scrollIntoView. Small/accidental nudges at a boundary do nothing; a
-  // sustained wheel spin or a real swipe crosses the threshold and locks the next section in.
-  initScrollLock() {
-    const stops = ['hero', 'work', 'about', 'contact'].map(id => document.getElementById(id)).filter(Boolean);
-    if (stops.length < 2) return;
-
-    const WHEEL_THRESHOLD = 70, TOUCH_THRESHOLD = 60, IDLE_RESET = 220, LOCK_MS = 1200, EDGE_TOL = 2;
-    let wheelAccum = 0, wheelIdleTimer = null, lockUntil = 0;
-
-    const currentStopIndex = () => {
-      let idx = 0;
-      for (let i = 0; i < stops.length; i++) if (stops[i].offsetTop <= window.scrollY + EDGE_TOL) idx = i;
-      return idx;
-    };
-    const atEdge = direction => {
-      const rect = stops[currentStopIndex()].getBoundingClientRect();
-      return direction > 0 ? rect.bottom <= window.innerHeight + EDGE_TOL : rect.top >= -EDGE_TOL;
-    };
-    // No animation on mobile (instant lock, per the owner's explicit ask) -- desktop keeps the
-    // smooth glide it already had.
-    const goToStop = index => {
-      this.suspendSnap(LOCK_MS);
-      lockUntil = Date.now() + LOCK_MS;
-      stops[index].scrollIntoView({ behavior: this.isMobile ? 'instant' : 'smooth', block: 'start' });
-    };
-
-    window.addEventListener('wheel', e => {
-      if (Date.now() < lockUntil) { e.preventDefault(); return; }
-      const direction = e.deltaY > 0 ? 1 : -1;
-      const target = currentStopIndex() + direction;
-      // Past the first/last stop: nothing to lock into, so don't intercept at all -- let the
-      // browser's own end-of-page behavior (or bounce) happen rather than forcing a re-commit to
-      // the section we're already resting in.
-      if (target < 0 || target >= stops.length || !atEdge(direction)) {
-        wheelAccum = 0; clearTimeout(wheelIdleTimer); return;
-      }
-      e.preventDefault();
-      wheelAccum += Math.abs(e.deltaY);
-      clearTimeout(wheelIdleTimer);
-      wheelIdleTimer = setTimeout(() => { wheelAccum = 0; }, IDLE_RESET);
-      if (wheelAccum >= WHEEL_THRESHOLD) { wheelAccum = 0; goToStop(target); }
-    }, { passive: false });
-
-    // Touch has no discrete "tick" to gate the way a wheel event does, so direction and distance
-    // both come from comparing the current touch point against where the gesture started.
-    // touchLockedDirection is decided once, on the gesture's first move, and held for the rest of
-    // it -- recomputing it every event let a finger that wavers mid-swipe reset atEdge() against
-    // the wrong direction and either drop the gesture or fight the user.
-    let touchStartY = null, touchLockedDirection = 0;
-    window.addEventListener('touchstart', e => {
-      if (Date.now() < lockUntil) return;
-      touchStartY = e.touches[0].clientY;
-      touchLockedDirection = 0;
-    }, { passive: true });
-
-    window.addEventListener('touchmove', e => {
-      // Locked (a stop was just committed): keep intercepting every remaining touchmove in THIS
-      // gesture, not just the one that triggered goToStop -- without this, the finger is still
-      // physically dragging and the browser resumes native scrolling on top of the programmatic
-      // jump the instant this handler stops calling preventDefault, overshooting past the section
-      // scrollIntoView just landed on.
-      if (Date.now() < lockUntil) { e.preventDefault(); return; }
-      if (touchStartY === null) return;
-      const delta = touchStartY - e.touches[0].clientY; // finger up = scrolling down = direction 1
-      const direction = delta > 0 ? 1 : -1;
-      if (!touchLockedDirection) touchLockedDirection = direction;
-      const target = currentStopIndex() + touchLockedDirection;
-      // Past the first/last stop, or room left in the current section: don't intercept, let it
-      // scroll natively (see the matching comment on the wheel handler above).
-      if (target < 0 || target >= stops.length || !atEdge(touchLockedDirection)) return;
-      e.preventDefault();
-      if (Math.abs(delta) >= TOUCH_THRESHOLD) {
-        touchStartY = null;
-        touchLockedDirection = 0;
-        goToStop(target);
-      }
-    }, { passive: false });
-
-    window.addEventListener('touchend', () => { touchStartY = null; touchLockedDirection = 0; }, { passive: true });
   }
 
   // KD in the nav returns the page to its opening state and replays every reveal.

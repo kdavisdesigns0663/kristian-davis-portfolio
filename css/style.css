@@ -5,17 +5,6 @@
 :root{ --accent:#a06bff; --accent-rgb:160,107,255; }
   *{ margin:0; padding:0; box-sizing:border-box; }
   html{ scroll-snap-type:y proximity; scroll-behavior:smooth; }
-  /* scroll-snap-type:mandatory was tried here for mobile and measurably broke scrolling instead
-     of fixing it -- confirmed by A/B testing identical wheel input against proximity: mandatory
-     got permanently stuck at the first section boundary (0px of further scroll across 40+ wheel
-     events), while proximity scrolled the full page freely every time. This is why the actual
-     forced-scroll-and-lock behavior below is JS-driven (initScrollLock in main.js), not a CSS
-     scroll-snap-type change -- it prevents native wheel/touch scrolling near a section edge and
-     drives the move itself via scrollIntoView, the same way the wheel controller already does.
-     #about is still excluded from being a snap target (it has no fixed viewport height and runs
-     to roughly 1800px tall on a phone -- measured -- well over 2x viewport height), so plain
-     native scrolling inside it is never fought by the browser's own snap engine either. */
-  #about{ scroll-snap-align:none !important; }
   body{ background:#050505; color:#e9e7df; font-family:'Inter',sans-serif; line-height:1.6; -webkit-font-smoothing:antialiased; overflow-x:hidden; }
   a{ color:inherit; text-decoration:none; }
   a:hover{ color:var(--accent); }
