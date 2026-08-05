@@ -152,14 +152,11 @@ a{ color:inherit; text-decoration:none; }
 }
 @media (max-width:720px){ .section-head h2{ font-size:30px; } }
 
-/* Work section. Background starts purple and animates back to black via .section-bloom,
+/* Work section. Background starts pure black and animates to a violet wash via .section-bloom,
    triggered the instant the drop impacts — same moment and origin as the ripple rings, and the
    same moment the pills/previews/CTAs reveal (see the onImpact callbacks in main.js for both the
-   desktop ripple and mobile raindrop). Purple lives on .work-section itself (color-mix over the
-   sitewide --bg so it stays a true, defined purple regardless of what's behind it, not an
-   alpha wash that depends on it); .section-bloom is what grows a solid black circle on top,
-   which reads as the section "returning to black" rather than "gaining color" -- the inverse of
-   the original black-to-violet version.
+   desktop ripple and mobile raindrop). A purple-default/black-on-impact version of this was tried
+   and reverted the same day -- back to the original black-to-violet direction.
    padding-top:300px is exactly the ghost word's own rendered height (20px offset + 280px at
    line-height:1), with NO extra buffer, so align-items:center splits the remaining space evenly
    and the gap above the card equals the gap below it. padding-bottom stays 0 — verified by
@@ -168,17 +165,8 @@ a{ color:inherit; text-decoration:none; }
 .work-section{
   position:relative; display:flex; align-items:center; justify-content:center;
   padding-top:300px;
-  background:color-mix(in srgb, var(--accent) 26%, var(--bg) 74%);
-  /* isolation:isolate forces this to establish its own stacking context. Without it,
-     .section-bloom's z-index:-1 (below) isn't scoped to "above this element's own background,
-     below its other children" the way it looks like it should -- position:relative with
-     z-index:auto doesn't create a stacking context on its own, so the negative z-index escapes
-     to whatever the nearest ACTUAL stacking context is instead, which put the bloom's black wash
-     BEHIND this section's own new purple background instead of on top of it, making it
-     effectively invisible once purple stopped being transparent. */
-  isolation:isolate;
 }
-/* Purple-to-black wash expanding from a clip-path circle, originating at the raindrop's impact
+/* Black-to-violet wash expanding from a clip-path circle, originating at the raindrop's impact
    point. Work only — Contact deliberately stays plain black with the CTA pulse as its single
    moving element, so don't extend this there again without asking. A real element rather than a
    ::before so JS can set --bloom-x/--bloom-y and toggle .bloomed — see triggerSectionBloom() in
@@ -187,15 +175,15 @@ a{ color:inherit; text-decoration:none; }
    animates" pattern, same trick .drop-wrap's falling/impact classes use. */
 .section-bloom{
   position:absolute; inset:0; z-index:-1; pointer-events:none;
-  background:var(--bg);
+  background:rgba(var(--accent-rgb), 0.14);
   clip-path:circle(0% at var(--bloom-x, 50%) var(--bloom-y, 50%));
 }
 .section-bloom.bloomed{
   clip-path:circle(150% at var(--bloom-x, 50%) var(--bloom-y, 50%));
   transition:clip-path 4.5s cubic-bezier(.19,1,.22,1);
 }
-/* White, not the sitewide violet: against the purple background a violet stroke nearly disappears
-   and black fails WCAG contrast. White clears AA's 3:1 large-text minimum with room to spare. */
+/* White, not the sitewide violet: against the violet wash a violet stroke nearly disappears and
+   black fails WCAG contrast. White clears AA's 3:1 large-text minimum with room to spare. */
 .work-section .ghost{ -webkit-text-stroke:1px #fff; opacity:0.45; }
 /* Deliberately landscape, so width and height are sized independently rather than sharing one
    min(). The vw/vh mix keeps the ratio around 2:1–2.3:1 instead of drifting square or too thin. */
@@ -267,12 +255,18 @@ a{ color:inherit; text-decoration:none; }
   transform:translate(-50%,-50%); opacity:0;
   background:#0a0a0a; border-radius:20px;
 }
+/* Same reveal mechanic and exact timing as .section-bloom (clip-path circle, 0% -> 150%, 4.5s
+   cubic-bezier(.19,1,.22,1)) rather than its own width/height scale-up -- the card and the
+   background used to bloom at visibly different speeds/curves, this makes them read as one
+   consistent motion. Width/height are set to their final 108% up front (no longer part of the
+   animation); clip-path controls visibility instead, same as the background does. */
 .ripple-stage .stage-card{
-  z-index:1;
+  z-index:1; width:108%; height:108%; opacity:1;
+  clip-path:circle(0% at 50% 50%);
   box-shadow:0 40px 100px -24px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.05);
-  transition:width .8s cubic-bezier(.19,1,.22,1), height .8s cubic-bezier(.19,1,.22,1), opacity .6s ease;
+  transition:clip-path 4.5s cubic-bezier(.19,1,.22,1);
 }
-.ripple-stage .stage-card.active{ width:108%; height:108%; opacity:1; }
+.ripple-stage .stage-card.active{ clip-path:circle(150% at 50% 50%); }
 /* Spotlight cue: the card dims behind the glowing preview, reinforcing the "stage" read. */
 .ripple-stage.hovering .stage-card{ filter:brightness(0.75); transition:filter .5s ease; }
 
@@ -698,8 +692,8 @@ a{ color:inherit; text-decoration:none; }
 /* All reduced-motion overrides collected in one place rather than scattered per component.
    Each reveal keeps its end state but loses the clip-path/blur/transform choreography. */
 @media (prefers-reduced-motion: reduce){
-  .section-bloom{ clip-path:none !important; opacity:0; transition:opacity .3s ease !important; }
-  .section-bloom.bloomed{ opacity:1; }
+  .section-bloom, .ripple-stage .stage-card{ clip-path:none !important; opacity:0; transition:opacity .3s ease !important; }
+  .section-bloom.bloomed, .ripple-stage .stage-card.active{ opacity:1; }
   .work-pills-wrap, .work-item-preview-bloom{
     clip-path:none !important; filter:none !important; transform:none !important;
     opacity:0; transition:opacity .3s ease !important;
