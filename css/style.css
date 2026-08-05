@@ -5,6 +5,12 @@
 :root{ --accent:#a06bff; --accent-rgb:160,107,255; }
   *{ margin:0; padding:0; box-sizing:border-box; }
   html{ scroll-snap-type:y proximity; scroll-behavior:smooth; }
+  /* Scrolling animation removed on mobile only -- section-to-section movement (and the native
+     snap settle) is instant there instead of gliding. scroll-snap-type stays proximity on both;
+     this touches nothing else -- no other animation, hero included, is affected. */
+  @media (max-width:700px){
+    html{ scroll-behavior:auto; }
+  }
   body{ background:#050505; color:#e9e7df; font-family:'Inter',sans-serif; line-height:1.6; -webkit-font-smoothing:antialiased; overflow-x:hidden; }
   a{ color:inherit; text-decoration:none; }
   a:hover{ color:var(--accent); }
