@@ -384,15 +384,18 @@ a{ color:inherit; text-decoration:none; }
      .in-view is toggled by main.js (an IntersectionObserver on #work, not CSS) so this hides
      itself once the section actually leaves the viewport instead of floating over About/Contact
      — see the comment above that observer in main.js for why threshold:0/rootMargin:-2px.
-     translateZ(0) + backface-visibility:hidden forces this onto its own compositor layer --
+     This element is ALSO deliberately placed in index.html as a sibling of the sections, not a
+     descendant of #work — see the HTML comment there for the scroll-snap + position:fixed WebKit
+     bug that was the real root cause of pills/preview visibly moving during scroll.
+     translate3d(...,0) + backface-visibility:hidden forces this onto its own compositor layer --
      without it, mobile Safari repaints a `position:fixed` element's screen position only once a
      touch-scroll gesture settles instead of every frame, so it visibly drags along with the page
-     mid-scroll and only snaps back into place once you lift your finger. That reads as "it's
-     scrolling with the site" even though getBoundingClientRect() (and desktop Chrome, which
-     doesn't have this bug) shows it never actually moved. */
+     mid-scroll and only snaps back into place once you lift your finger. One translate3d()
+     function, not a separate translate()+translateZ(0) pair — some older WebKit versions promote
+     a layer more reliably from a single 3D transform function than from two chained ones. */
   .work-mobile-fixed.in-view{
     display:flex; flex-direction:column; align-items:center; gap:16px;
-    position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) translateZ(0);
+    position:fixed; top:50%; left:50%; transform:translate3d(-50%,-50%,0);
     -webkit-backface-visibility:hidden; backface-visibility:hidden;
     z-index:4; width:100%; max-width:400px; padding:0 24px; text-align:center;
   }
