@@ -5,9 +5,9 @@ GitHub Pages at `https://kdavisdesigns0663.github.io/kristian-davis-portfolio/`.
 Repo: `github.com/kdavisdesigns0663/kristian-davis-portfolio`.
 
 **Before doing anything else, read `HANDOFF.md`** — specifically the last
-section ("MAJOR UPDATE 18 — mobile work section rebuilt to mirror desktop's
-architecture (mandatory snap, in-flow content, reset-on-exit); several
-smaller fixes"), which is a current, accurate summary of what's built and
+section ("MAJOR UPDATE 19 — mobile work section gets its own stage card +
+touch snap safety net; hero descender-clipping and ghost/eyebrow
+repositioning"), which is a current, accurate summary of what's built and
 how it works. Earlier sections in that
 file are historical (rejected directions, locked copy decisions, rationale)
 and still worth knowing, but their *technical* descriptions of what's built

@@ -323,6 +323,7 @@ const pillsWrap = document.getElementById('workPillsWrap');
 const pillsContainer = document.getElementById('workPills');
 const previewLink = document.getElementById('workPreviewLink');
 const mobileStage = document.getElementById('workMobileStage');
+const mobileStageCard = document.getElementById('mobileStageCard');
 if (pillsWrap && pillsContainer) {
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -427,6 +428,7 @@ if (pillsWrap && pillsContainer) {
     mobilePreviewImg.style.opacity = '';
     if (mobilePreviewDesc) mobilePreviewDesc.style.opacity = '';
     if (mobilePreviewCopy) mobilePreviewCopy.classList.remove('active');
+    if (mobileStageCard) mobileStageCard.classList.remove('active');
     if (mobileStage) {
       const dropWrap = mobileStage.querySelector('.drop-wrap');
       const flash = mobileStage.querySelector('.impact-flash');
@@ -457,6 +459,7 @@ if (pillsWrap && pillsContainer) {
     };
 
     if (prefersReducedMotion || !mobileStage) {
+      if (mobileStageCard) mobileStageCard.classList.add('active');
       revealPills();
       return;
     }
@@ -480,6 +483,7 @@ if (pillsWrap && pillsContainer) {
       registerTimer: (id) => mobileTimers.push(id),
       onImpact: () => {
         triggerSectionBloom(workSectionEl, workBloomEl, mobileStage);
+        if (mobileStageCard) mobileStageCard.classList.add('active');
         revealPills();
       },
     });
@@ -544,9 +548,9 @@ document.querySelectorAll('a[href^="#"]').forEach(function(link){
 // nothing; a sustained scroll crosses the threshold and commits to a smooth scroll into the
 // next section — that's the "resist, then yank through" feel.
 //
-// Wheel-only deliberately: touch has no discrete "wheel tick" to gate the same way, and mobile
-// already gets a clean single-gesture snap from the native CSS scroll-snap-type above. This
-// doesn't touch that — it only ever intervenes on an actual `wheel` event.
+// Wheel-driven resistance stays wheel-only: touch has no discrete "tick" to gate the same way.
+// Touch gets its own, separate mechanism below instead — see that block for why mandatory CSS
+// scroll-snap alone wasn't reliably "locking" on real touch devices.
 (function () {
   var stops = Array.prototype.slice.call(document.querySelectorAll('.snap-section'));
   if (stops.length < 2) return;
@@ -630,4 +634,59 @@ document.querySelectorAll('a[href^="#"]').forEach(function(link){
       goToStop(currentStopIndex() + direction);
     }
   }, { passive: false });
+})();
+
+// --- Touch: corrective section-snap safety net ---
+// CSS scroll-snap-type:mandatory + scroll-snap-stop:always is the whole mechanism on mobile (no
+// JS-driven resistance like the wheel controller above -- touch has no discrete tick to gate).
+// In practice a fast flick can still leave the page resting mid-section instead of snapped to a
+// section's start; some mobile browsers don't fully honor scroll-snap-stop against a high-
+// velocity fling, which reads as "sections aren't locking in" even though the CSS is correctly
+// configured. This corrects for it after the fact: once a touch-driven scroll settles, if the
+// resting position isn't already (within a couple px of) a section's top, finish the move with
+// one smooth scrollIntoView -- same suspend-snap-then-restore trick goToStop() above uses, since
+// scroll-snap-stop:always blocks programmatic smooth scrolls too, not just wheel-driven ones.
+(function () {
+  if (!('ontouchstart' in window)) return; // desktop's wheel controller already covers this
+  var stops = Array.prototype.slice.call(document.querySelectorAll('.snap-section'));
+  if (stops.length < 2) return;
+
+  var TOLERANCE = 2;
+  var SETTLE_MS = 140; // debounce after the last scroll event before treating the gesture as done
+  var correcting = false;
+
+  function nearestStop() {
+    var best = stops[0], bestDist = Infinity;
+    stops.forEach(function (s) {
+      var dist = Math.abs(s.offsetTop - window.scrollY);
+      if (dist < bestDist) { bestDist = dist; best = s; }
+    });
+    return best;
+  }
+
+  function correct() {
+    if (correcting) return;
+    var target = nearestStop();
+    if (Math.abs(target.offsetTop - window.scrollY) <= TOLERANCE) return;
+    correcting = true;
+    var html = document.documentElement;
+    html.style.scrollSnapType = 'none';
+    var restored = false;
+    function restoreSnap() {
+      if (restored) return;
+      restored = true;
+      html.style.scrollSnapType = '';
+      correcting = false;
+    }
+    window.addEventListener('scrollend', restoreSnap, { once: true });
+    setTimeout(restoreSnap, 1200);
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  var settleTimer = null;
+  window.addEventListener('scroll', function () {
+    if (correcting) return;
+    clearTimeout(settleTimer);
+    settleTimer = setTimeout(correct, SETTLE_MS);
+  }, { passive: true });
 })();

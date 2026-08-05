@@ -81,7 +81,13 @@ a{ color:inherit; text-decoration:none; }
    without scrolling, which also fired Work's entrance animations before you'd actually
    scrolled to it. max() keeps 820px only as a floor for short viewports, same original intent. */
 .hero{ position:relative; display:flex; flex-direction:column; justify-content:center; padding:40px 64px; min-height:820px; min-height:max(820px,100vh); min-height:max(820px,100dvh); }
-.hero .eyebrow{ position:relative; z-index:2; font-family:var(--font-mono); font-size:15px; margin-left:24px; color:var(--text-dim); }
+/* margin-top:150px is deliberate empty space, not a nudge -- it's what gives the ghost word
+   below room to sit mostly ABOVE this line while the block as a whole stays flex-centered (the
+   margin is part of what .hero's justify-content:center measures and centers, so adding it here
+   shifts the whole eyebrow-headline-sub block down as one still-centered unit, rather than
+   breaking centering). Reset to 0 on mobile -- see that media query -- where the shorter content
+   block already leaves enough natural clearance above the eyebrow without it. */
+.hero .eyebrow{ position:relative; z-index:2; font-family:var(--font-mono); font-size:15px; margin-left:24px; margin-top:150px; color:var(--text-dim); }
 .hero .eyebrow b{ color:var(--accent); font-weight:500; }
 .hero .headline{ position:relative; z-index:2; margin-top:32px; margin-left:24px; }
 .hero .headline .l1{ font-family:var(--font-display); font-weight:700; font-size:76px; line-height:1.15; color:var(--text); }
@@ -90,23 +96,28 @@ a{ color:inherit; text-decoration:none; }
 .hero .headline .l3{ font-family:var(--font-display); font-weight:700; font-size:100px; line-height:1.0; color:var(--accent); margin-left:56px; margin-top:6px; }
 .hero .sub{ position:relative; z-index:2; margin-top:76px; margin-left:400px; max-width:440px; font-size:15px; line-height:1.7; color:var(--text-dim); padding-left:24px; border-left:2px solid var(--accent); }
 /* Ghost fades in plainly (no blur/bounce) so it reads as a backdrop settling in behind the text,
-   not part of the headline's reveal. Fixed px top, back to how every other ghost word on the
-   site is positioned -- an earlier top:50%/translateY(-50%) version centred it on the whole
-   content column (eyebrow through sub), which pulled it down off the headline and read as
-   floating in the wrong spot relative to the actual text. This value instead centres it on just
-   the eyebrow+headline block (the "hero text" the ghost sits behind), measured at 194px so it
-   clears the nav by a full ~100px -- the earlier fixed value (118px, from before content was
-   vertically centred) sat only ~24px under the nav, which read as crowded. */
-.hero .ghost{ top:194px; opacity:0; transition:opacity 2.8s ease; }
+   not part of the headline's reveal. Two earlier fixed-px versions both centred the ghost ON the
+   eyebrow+headline block (first too close to nav, then recentred with more clearance) -- this is
+   a different relationship entirely: most of the ghost sits ABOVE the eyebrow line, only barely
+   overlapping into it, rather than centred behind the block. font-size is knocked down from the
+   sitewide 280px specifically for the hero (other sections' ghosts are untouched) -- at 280px
+   there's no top value that clears the nav AND leaves most of the glyph above a single line of
+   15px eyebrow text; 150px is small enough to mostly fit in that band. top:124px clears the nav
+   by 30px and puts roughly 70% of the glyph's height above the eyebrow's own margin-top:150px
+   position above (152.5+150/2=227.5) -- the two values were tuned together, not independently. */
+.hero .ghost{ top:124px; font-size:150px; opacity:0; transition:opacity 2.8s ease; }
 .hero.revealed .ghost{ opacity:0.35; }
 @media (max-width:900px){
   .hero{ padding:24px; }
-  .hero .eyebrow{ margin-left:0; }
+  .hero .eyebrow{ margin-left:0; margin-top:0; }
   .hero .headline{ margin-left:0; margin-top:26px; }
   .hero .headline .l1{ font-size:30px; }
   .hero .headline .l3{ font-size:38px; margin-left:20px; margin-top:4px; }
   .hero .sub{ margin-left:0; margin-top:40px; }
-  .hero .ghost{ top:284px; }
+  /* No margin-top needed on mobile's eyebrow (unlike desktop) -- mobile's shorter content block
+     relative to a typical phone viewport already leaves enough natural clearance above the
+     eyebrow for most of the (already-smaller, 110px mobile) ghost to sit above it. */
+  .hero .ghost{ top:130px; }
 }
 
 /* Each headline LINE wipes in as one continuous left-to-right sweep. A per-word version was
@@ -140,6 +151,15 @@ a{ color:inherit; text-decoration:none; }
      the letters it's passing over. */
   -webkit-mask-image:linear-gradient(90deg, #000 0%, #000 var(--reveal), transparent calc(var(--reveal) + 1.8em), transparent 100%);
   mask-image:linear-gradient(90deg, #000 0%, #000 var(--reveal), transparent calc(var(--reveal) + 1.8em), transparent 100%);
+  /* mask-size:auto (the default) sizes the rendered mask to exactly this box's own height -- a
+     descender that renders below a tight line-height (the .l3 lines below use 1.0, deliberately,
+     see that rule) falls outside the mask's own tile and gets treated as fully transparent by the
+     masking operation itself, which is a DIFFERENT, less obvious mechanism than overflow:hidden
+     but produces the same visual result: the bottom of lowercase y/g/p glyphs was flat-clipped.
+     130% height (anchored at the default 0% 0% mask-position, so the extra room extends downward
+     only) gives descenders room without changing line-height or the line's own layout height, so
+     the tight inter-line gap that line-height:1.0 exists for is untouched. */
+  mask-size:100% 130%; -webkit-mask-size:100% 130%;
   transition:opacity 0.15s ease, --reveal 2s linear;
 }
 .hero .headline > div.placed{ opacity:1; --reveal:100%; }
@@ -388,6 +408,13 @@ a{ color:inherit; text-decoration:none; }
 .work-mobile-stack, .work-mobile-stage, .mobile-preview-wrap, .mobile-preview-copy{ display:none; }
 @media (max-width:700px){
   .ripple-stage{ display:none; }
+  /* .work-section's padding-top:300px above is sized for the DESKTOP ghost word (280px font-size
+     + 20px offset); mobile's ghost is much smaller (110px font-size + 10px offset, see .ghost's
+     own max-width:900px override), so that same 300px was eating over a third of a typical phone
+     viewport and pushing the centred content (align-items:center only splits the space padding
+     LEAVES) visibly toward the bottom instead of true centre. 120px matches the mobile ghost the
+     same way 300px matches the desktop one. */
+  .work-section{ padding-top:120px; }
   /* Pills / preview / copy live in NORMAL DOCUMENT FLOW, centred by .work-section's own
      `display:flex; align-items:center; justify-content:center` -- the exact same mechanism
      .ripple-stage relies on for desktop. Two earlier versions used position:fixed instead (first
@@ -403,11 +430,31 @@ a{ color:inherit; text-decoration:none; }
      pills sit above the preview with no overlap, same as it would in a fixed container — that
      part was never the part that needed position:fixed. */
   .work-mobile-stack{
+    position:relative;
     display:flex; flex-direction:column; align-items:center; gap:22px;
-    width:100%; max-width:400px; padding:0 24px; text-align:center;
+    width:100%; max-width:400px; padding:32px 24px; text-align:center;
+  }
+  /* Same card the desktop nodes sit on (.stage-card), same reveal mechanic (clip-path circle,
+     0% -> 150%, 4.5s cubic-bezier(.19,1,.22,1)), toggled by the SAME onImpact callback that
+     reveals the pills in main.js -- one card behind pills+preview+copy together, not per-piece.
+     inset:0 fills exactly the stack's own padded box (the 32px padding above is what gives it
+     breathing room around the content, same role .stage-card's 108% overshoot plays for desktop's
+     X-layout). position:absolute makes this a positioned descendant of .work-mobile-stack; the
+     three content children below get position:relative + z-index so they stack in FRONT of it --
+     without that, plain in-flow (non-positioned) flex children paint BEHIND any positioned
+     sibling regardless of z-index value, which would bury the card on top of everything. */
+  .mobile-stage-card{
+    position:absolute; inset:0; z-index:0;
+    background:#0a0a0a; border-radius:20px;
+    box-shadow:0 24px 60px -16px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.05);
+    clip-path:circle(0% at 50% 50%);
+  }
+  .mobile-stage-card.active{
+    clip-path:circle(150% at 50% 50%);
+    transition:clip-path 4.5s cubic-bezier(.19,1,.22,1);
   }
   .work-pills-wrap{
-    width:100%;
+    position:relative; z-index:1; width:100%;
     clip-path:circle(0% at 50% 50%); filter:blur(6px); transform:scaleY(0.97);
     transition:clip-path 1.6s cubic-bezier(.19,1,.22,1), filter .9s ease, transform 1s cubic-bezier(.22,1,.36,1);
   }
@@ -442,8 +489,11 @@ a{ color:inherit; text-decoration:none; }
     width:150px; height:325px; z-index:1; pointer-events:none;
   }
   /* A sibling of the wrap rather than nested inside it, precisely because that wrap is
-     pointer-events:none and this link has to stay tappable. */
+     pointer-events:none and this link has to stay tappable. position:relative + z-index:1 so it
+     stacks in front of .mobile-stage-card, same reason .work-pills-wrap and .mobile-preview-wrap
+     both need it -- see the comment on .mobile-stage-card above. */
   .mobile-preview-copy{
+    position:relative; z-index:1;
     display:block; width:100%; text-align:center;
     opacity:0; transition:opacity .6s ease;
   }
@@ -686,8 +736,8 @@ a{ color:inherit; text-decoration:none; }
 /* All reduced-motion overrides collected in one place rather than scattered per component.
    Each reveal keeps its end state but loses the clip-path/blur/transform choreography. */
 @media (prefers-reduced-motion: reduce){
-  .section-bloom, .ripple-stage .stage-card{ clip-path:none !important; opacity:0; transition:opacity .3s ease !important; }
-  .section-bloom.bloomed, .ripple-stage .stage-card.active{ opacity:1; }
+  .section-bloom, .ripple-stage .stage-card, .mobile-stage-card{ clip-path:none !important; opacity:0; transition:opacity .3s ease !important; }
+  .section-bloom.bloomed, .ripple-stage .stage-card.active, .mobile-stage-card.active{ opacity:1; }
   .work-pills-wrap, .work-item-preview-bloom{
     clip-path:none !important; filter:none !important; transform:none !important;
     opacity:0; transition:opacity .3s ease !important;

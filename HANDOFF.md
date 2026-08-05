@@ -1590,3 +1590,81 @@ per explicit request. Its accompanying bottom-up dark fade
 (`.preview::after`) was removed alongside it -- that gradient's only
 documented purpose was label legibility, so keeping it with nothing
 to make legible would've left a purposeless dead gradient.
+
+## MAJOR UPDATE 19 — mobile work section gets its own stage card + touch snap safety net; hero descender-clipping and ghost/eyebrow repositioning, 2026-08-04
+
+**Mobile work section, three more fixes on top of UPDATE 18's
+rebuild**, all same-day:
+- **`.mobile-stage-card`** (new element, `#mobileStageCard`) sits
+  behind pills+preview+copy as one card, matching desktop's
+  `.stage-card` -- same clip-path-circle reveal mechanic, same 4.5s
+  `cubic-bezier(.19,1,.22,1)` timing, toggled by the same `onImpact`
+  callback that reveals the pills. `#workMobileStack` needed
+  `position:relative` and 32px vertical padding (room for the card to
+  show a border around the content, same role `.stage-card`'s 108%
+  overshoot plays for desktop); the three content children each
+  needed explicit `position:relative; z-index:1` -- plain in-flow flex
+  children paint BEHIND any positioned sibling regardless of z-index
+  value, which would've buried the new card on top of everything
+  without that.
+- **`.work-section`'s `padding-top:300px`** is sized for the desktop
+  ghost word (280px font-size + 20px offset) and had no mobile
+  override, meaning it was eating over a third of a typical phone
+  viewport and pushing the section's flex-centered content visibly
+  toward the bottom. Added `padding-top:120px` under
+  `max-width:700px`, matching the mobile ghost's own smaller size
+  (110px font-size + 10px offset) the same way 300px matches the
+  desktop one.
+- **Touch corrective scroll-snap safety net** (new IIFE in
+  `main.js`, gated on `'ontouchstart' in window` so it only runs
+  where the wheel controller doesn't already cover things): mobile's
+  `mandatory` CSS scroll-snap (see UPDATE 18) is the whole mechanism
+  on touch, with no JS-driven resistance like the wheel controller has
+  -- in practice a fast flick can still leave the page resting
+  mid-section on some mobile browsers that don't fully honor
+  `scroll-snap-stop:always` against high-velocity momentum, which read
+  as "sections aren't locking in" even with the CSS correctly set.
+  Debounces 140ms after the last `scroll` event, then finishes the
+  move with one `scrollIntoView` if not already within 2px of a
+  section's top -- reuses the exact suspend-snap-then-restore trick
+  the wheel controller's `goToStop()` already relies on, since
+  `scroll-snap-stop:always` blocks programmatic smooth scrolls too,
+  not just wheel-driven ones.
+
+**Hero: lowercase descenders (the y in "They", "your") were getting
+flat-clipped at the bottom on the `.l3` lines.** Root cause wasn't
+`overflow:hidden` anywhere -- it was the reveal wipe's own
+`mask-image`. `mask-size:auto` (the default) sizes the rendered mask
+to exactly the element's own box height; `.l3` uses a deliberately
+tight `line-height:1.0` (see that rule's own comment), so a
+descender extending below that tight box fell outside the mask's own
+tile and got treated as fully transparent by the masking operation
+itself -- a different, less obvious mechanism than overflow, but the
+same visual result. Fixed with `mask-size:100% 130%` (anchored at the
+default `mask-position:0% 0%`, so the extra room only extends
+downward) on the shared `.hero .headline > div` rule -- gives
+descenders room without touching `line-height` or the line's own
+layout height, so the tight inter-line gap `line-height:1.0` exists
+for is untouched.
+
+**Hero: ghost word repositioned to sit mostly ABOVE the eyebrow
+line** ("// ux/ui_design..."), barely overlapping into it, replacing
+the previous version which centered the ghost on the whole
+eyebrow+headline block (meaning it started BELOW the eyebrow
+entirely, zero overlap-above). Two coupled changes, tuned together:
+`.hero .ghost` dropped from the sitewide 280px to `font-size:150px`
+specifically for the hero (other sections' ghosts untouched) -- at
+280px there's no `top` value that both clears the nav and leaves most
+of the glyph above a single 15px line of eyebrow text. `.hero
+.eyebrow` gained `margin-top:150px`, deliberate reserved space (not a
+nudge) that's what actually creates room for the ghost above it --
+because that margin is part of what `.hero`'s `justify-content:center`
+measures and centers, the eyebrow-headline-sub block as a whole stays
+correctly flex-centered even though the margin itself is invisible
+space, rather than breaking centering the way a plain fixed-position
+adjustment would have. Desktop: `top:124px` (30px clear of the nav)
+puts ~69% of the glyph above the eyebrow's new position. Mobile
+needed no eyebrow margin at all -- its shorter content block relative
+to a typical phone viewport already leaves natural clearance above
+the eyebrow, so only `.hero .ghost`'s mobile `top` value changed (to
+130px, ~60% above).
