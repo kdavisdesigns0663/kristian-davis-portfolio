@@ -19,6 +19,11 @@
 <body>
 <div id="page" style="position:relative">
 
+<div id="spine" aria-hidden="true" style="position:fixed;top:0;bottom:0;left:clamp(14px,3.1vw,40px);z-index:90;width:1px;display:none;pointer-events:none">
+  <div style="position:absolute;top:14vh;bottom:14vh;left:0;width:1px;background:linear-gradient(180deg,transparent,#26262300 2%,#262623 12%,#262623 88%,transparent)"></div>
+  <div id="spineDot" style="position:absolute;top:14vh;left:-3.5px;width:8px;height:8px;background:var(--accent);border-radius:50% 50% 50% 0;transform:rotate(135deg);box-shadow:0 0 11px 3px rgba(var(--accent-rgb),.5);transition:top .18s linear"></div>
+</div>
+
 <a class="i1" href="#work" style="position:absolute;top:-100px;left:16px;z-index:100;padding:12px 20px;background:#0d0d0c;border:1px solid var(--accent);font-family:'JetBrains Mono',monospace;font-size:13px;color:#e9e7df">skip to work</a>
 
 <!-- ===================== HERO ===================== -->
@@ -49,142 +54,171 @@
 
   <div style="position:relative;z-index:2;font-family:'JetBrains Mono',monospace;font-size:clamp(13px,1.1vw,15px);margin-left:clamp(0px,2vw,24px);margin-top:min(150px, max(0px, (100vw - 700px) * 0.5));color:#a09c92">// <b style="color:var(--accent);font-weight:500">ux/ui_design</b> · product_design · web_experience</div>
 
-  <h1 id="heroHeadline" style="position:relative;z-index:2;margin-top:32px;margin-left:clamp(0px,2vw,24px);font-family:'Space Grotesk',sans-serif;font-weight:700;letter-spacing:-.01em">
-    <span data-line="a" style="display:block;width:fit-content;font-size:clamp(30px,5.4vw,76px);line-height:1.15;padding-bottom:.16em;margin-bottom:-.16em;color:#e9e7df;opacity:0;-webkit-mask-image:linear-gradient(90deg,#000 0%,#000 var(--reveal,0%),transparent calc(var(--reveal,0%) + 1.8em),transparent 100%);mask-image:linear-gradient(90deg,#000 0%,#000 var(--reveal,0%),transparent calc(var(--reveal,0%) + 1.8em),transparent 100%);-webkit-mask-size:100% 130%;mask-size:100% 130%;transition:opacity .15s ease, --reveal 2s linear">People don't experience</span>
-    <span data-line="a" style="display:block;width:fit-content;font-size:clamp(30px,5.4vw,76px);line-height:1.15;padding-bottom:.16em;margin-bottom:-.16em;color:#e9e7df;opacity:0;-webkit-mask-image:linear-gradient(90deg,#000 0%,#000 var(--reveal,0%),transparent calc(var(--reveal,0%) + 1.8em),transparent 100%);mask-image:linear-gradient(90deg,#000 0%,#000 var(--reveal,0%),transparent calc(var(--reveal,0%) + 1.8em),transparent 100%);-webkit-mask-size:100% 130%;mask-size:100% 130%;transition:opacity .15s ease, --reveal 2s linear">your design.</span>
-    <span data-line="b" style="display:block;width:fit-content;font-size:clamp(38px,7.1vw,100px);line-height:1.04;padding-bottom:.16em;margin-bottom:-.16em;color:var(--accent);margin-left:clamp(20px,4vw,56px);margin-top:6px;opacity:0;-webkit-mask-image:linear-gradient(90deg,#000 0%,#000 var(--reveal,0%),transparent calc(var(--reveal,0%) + 1.8em),transparent 100%);mask-image:linear-gradient(90deg,#000 0%,#000 var(--reveal,0%),transparent calc(var(--reveal,0%) + 1.8em),transparent 100%);-webkit-mask-size:100% 130%;mask-size:100% 130%;transition:opacity .15s ease, --reveal 2s linear">They experience</span>
-    <span data-line="b" style="display:block;width:fit-content;font-size:clamp(38px,7.1vw,100px);line-height:1.04;padding-bottom:.16em;margin-bottom:-.16em;color:var(--accent);margin-left:clamp(20px,4vw,56px);opacity:0;-webkit-mask-image:linear-gradient(90deg,#000 0%,#000 var(--reveal,0%),transparent calc(var(--reveal,0%) + 1.8em),transparent 100%);mask-image:linear-gradient(90deg,#000 0%,#000 var(--reveal,0%),transparent calc(var(--reveal,0%) + 1.8em),transparent 100%);-webkit-mask-size:100% 130%;mask-size:100% 130%;transition:opacity .15s ease, --reveal 2s linear">your decisions.</span>
+  <h1 id="heroHeadline" style="position:relative;z-index:2;margin-top:32px;margin-left:clamp(0px,2vw,24px);font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(34px,6.6vw,104px);line-height:1.02;letter-spacing:-.032em;max-width:17ch">
+    <span data-line="a" style="display:block;width:fit-content;padding-bottom:.14em;margin-bottom:-.14em;color:#e9e7df;opacity:0;-webkit-mask-image:linear-gradient(90deg,#000 0%,#000 var(--reveal,0%),transparent calc(var(--reveal,0%) + 1.6em),transparent 100%);mask-image:linear-gradient(90deg,#000 0%,#000 var(--reveal,0%),transparent calc(var(--reveal,0%) + 1.6em),transparent 100%);-webkit-mask-size:100% 140%;mask-size:100% 140%;transition:opacity .15s ease, --reveal 2s linear">People don't experience your design.</span>
+    <span data-line="b" style="display:block;width:fit-content;padding-bottom:.14em;margin-bottom:-.14em;margin-left:clamp(18px,4.4vw,74px);color:var(--accent);opacity:0;-webkit-mask-image:linear-gradient(90deg,#000 0%,#000 var(--reveal,0%),transparent calc(var(--reveal,0%) + 1.6em),transparent 100%);mask-image:linear-gradient(90deg,#000 0%,#000 var(--reveal,0%),transparent calc(var(--reveal,0%) + 1.6em),transparent 100%);-webkit-mask-size:100% 140%;mask-size:100% 140%;transition:opacity .15s ease, --reveal 2s linear">They experience your decisions.</span>
   </h1>
 
   <p style="position:relative;z-index:2;margin-top:clamp(36px,5vw,76px);margin-left:max(0px, min(400px, (100vw - 720px) * 0.9));max-width:440px;font-size:15px;line-height:1.7;color:#a09c92;padding-left:24px;border-left:2px solid var(--accent);text-wrap:pretty">Helping businesses navigate complexity through thoughtful strategy, purposeful design, and experiences people naturally understand.</p>
 </section>
 
 <!-- ===================== WORK ===================== -->
-<section id="work" style="position:relative;display:flex;align-items:center;justify-content:center;min-height:100dvh;padding-top:clamp(120px,22vw,300px);overflow:hidden;scroll-snap-align:start">
-  <div id="workBloom" aria-hidden="true" style="position:absolute;inset:0;z-index:0;pointer-events:none;background:rgba(var(--accent-rgb),.14);clip-path:circle(0% at 50% 50%)"></div>
-  <div aria-hidden="true" style="position:absolute;top:clamp(10px,1.5vw,20px);left:clamp(-30px,-2vw,-8px);z-index:1;pointer-events:none;user-select:none;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(110px,20vw,280px);line-height:1;color:transparent;-webkit-text-stroke:1px #fff;letter-spacing:-.02em;opacity:.45">WORK</div>
-  <h2 style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap">Selected work</h2>
-
-  <!-- Desktop stage -->
-  <div id="rippleStage" style="position:relative;z-index:2;width:min(78vw,1180px);height:min(40vw,56vh,560px)">
-    <div id="stageCard" style="position:absolute;top:50%;left:50%;width:108%;height:108%;transform:translate(-50%,-50%);background:#0a0a0a;border-radius:20px;z-index:0;clip-path:circle(0% at 50% 50%);box-shadow:0 40px 100px -24px rgba(0,0,0,.75), 0 0 0 1px rgba(255,255,255,.05);transition:filter .5s ease"></div>
-    <div data-drop-wrap style="position:absolute;left:50%;top:-90vh;z-index:5;transform:translateX(-50%) scaleY(1);opacity:0"><div style="width:12px;height:12px;background:var(--accent);box-shadow:0 0 14px 3px rgba(var(--accent-rgb),.55);border-radius:50% 50% 50% 0;transform:rotate(135deg)"></div></div>
-    <div data-flash style="position:absolute;top:50%;left:50%;z-index:4;width:6px;height:6px;border-radius:50%;background:#fff;transform:translate(-50%,-50%);opacity:0"></div>
-    <div data-glow style="position:absolute;top:50%;left:50%;z-index:3;width:0;height:0;border-radius:50%;background:radial-gradient(circle, rgba(var(--accent-rgb),.4), transparent 70%);transform:translate(-50%,-50%);opacity:0;filter:blur(2px)"></div>
-
-    <a data-node="nitefind" href="case-studies/nitefind.html" style="position:absolute;top:50%;left:50%;z-index:3;transform:translate(-50%,-50%);opacity:0;text-align:center;white-space:nowrap;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(16px,1.5vw,20px);color:#e9e7df;padding:6px;transition:opacity .5s ease,color .3s ease">
-      <span data-inner style="display:block;transition:transform .3s ease"><span style="display:block">Nitefind</span><span style="display:block;font-family:'Inter',sans-serif;font-size:11px;font-weight:400;color:#7d786f;margin-top:4px">too many options, not enough certainty</span></span>
-    </a>
-    <a data-node="smiteforge" href="case-studies/smiteforge.html" style="position:absolute;top:50%;left:50%;z-index:3;transform:translate(-50%,-50%);opacity:0;text-align:center;white-space:nowrap;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(16px,1.5vw,20px);color:#e9e7df;padding:6px;transition:opacity .5s ease,color .3s ease">
-      <span data-inner style="display:block;transition:transform .3s ease"><span style="display:block">SmiteForge</span><span style="display:block;font-family:'Inter',sans-serif;font-size:11px;font-weight:400;color:#7d786f;margin-top:4px">one brand, two very different platforms</span></span>
-    </a>
-    <a data-node="zentra" href="case-studies/zentra.html" style="position:absolute;top:50%;left:50%;z-index:3;transform:translate(-50%,-50%);opacity:0;text-align:center;white-space:nowrap;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(16px,1.5vw,20px);color:#e9e7df;padding:6px;transition:opacity .5s ease,color .3s ease">
-      <span data-inner style="display:block;transition:transform .3s ease"><span style="display:block">Zentra</span><span style="display:block;font-family:'Inter',sans-serif;font-size:11px;font-weight:400;color:#7d786f;margin-top:4px">saving money without losing motivation</span></span>
-    </a>
-    <a data-node="amun" href="case-studies/amun.html" style="position:absolute;top:50%;left:50%;z-index:3;transform:translate(-50%,-50%);opacity:0;text-align:center;white-space:nowrap;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(16px,1.5vw,20px);color:#e9e7df;padding:6px;transition:opacity .5s ease,color .3s ease">
-      <span data-inner style="display:block;transition:transform .3s ease"><span style="display:block">Amun</span><span style="display:block;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:400;color:#8f8f8f;margin-top:6px;letter-spacing:.08em;text-transform:uppercase">in progress</span></span>
-    </a>
-
-    <div data-preview="nitefind" aria-hidden="true" style="position:absolute;top:50%;left:50%;width:56px;height:121px;transform:translate(-50%,-50%) scale(.3);opacity:0;z-index:6;pointer-events:none;transition:opacity .4s ease,transform .5s cubic-bezier(.2,.8,.2,1),width .5s cubic-bezier(.2,.8,.2,1),height .5s cubic-bezier(.2,.8,.2,1)">
-      <div data-ring style="position:absolute;inset:-16px;border-radius:22px;z-index:1;opacity:0;padding:1.5px;background:conic-gradient(from 0deg, transparent 0%, rgba(176,74,214,.9) 10%, #fff 18%, rgba(176,74,214,.9) 26%, transparent 42%, transparent 100%);-webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);mask-composite:exclude;transition:opacity .6s ease"></div>
-      <div data-glowback aria-hidden="true" style="position:absolute;inset:-26%;z-index:0;pointer-events:none;opacity:0;border-radius:50%;background:radial-gradient(circle, rgba(176,74,214,.55), rgba(176,74,214,.16) 45%, transparent 72%);filter:blur(26px);transition:opacity .5s ease"></div>
-      <div data-shot style="position:absolute;inset:0;z-index:2;border-radius:12px;overflow:hidden;box-shadow:0 0 0 0 rgba(176,74,214,0);transition:box-shadow .5s ease">
-        <img src="img/previews/nitefind-preview.jpg" alt="" loading="lazy" style="position:relative;z-index:1;width:100%;height:100%;object-fit:cover;object-position:top;display:block">
-        <span data-shimmer style="position:absolute;inset:0;z-index:3;pointer-events:none;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.28) 48%,rgba(255,255,255,.06) 54%,transparent 70%);transform:translateX(-130%)"></span>
-      </div>
-    </div>
-    <div data-preview="smiteforge" aria-hidden="true" style="position:absolute;top:50%;left:50%;width:56px;height:121px;transform:translate(-50%,-50%) scale(.3);opacity:0;z-index:6;pointer-events:none;transition:opacity .4s ease,transform .5s cubic-bezier(.2,.8,.2,1),width .5s cubic-bezier(.2,.8,.2,1),height .5s cubic-bezier(.2,.8,.2,1)">
-      <div data-ring style="position:absolute;inset:-16px;border-radius:22px;z-index:1;opacity:0;padding:1.5px;background:conic-gradient(from 0deg, transparent 0%, rgba(224,184,74,.9) 10%, #fff 18%, rgba(224,184,74,.9) 26%, transparent 42%, transparent 100%);-webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);mask-composite:exclude;transition:opacity .6s ease"></div>
-      <div data-glowback aria-hidden="true" style="position:absolute;inset:-26%;z-index:0;pointer-events:none;opacity:0;border-radius:50%;background:radial-gradient(circle, rgba(224,184,74,.55), rgba(224,184,74,.16) 45%, transparent 72%);filter:blur(26px);transition:opacity .5s ease"></div>
-      <div data-shot style="position:absolute;inset:0;z-index:2;border-radius:12px;overflow:hidden;box-shadow:0 0 0 0 rgba(224,184,74,0);transition:box-shadow .5s ease">
-        <img src="img/previews/smiteforge-preview.jpg" alt="" loading="lazy" style="position:relative;z-index:1;width:100%;height:100%;object-fit:cover;object-position:top;display:block">
-        <span data-shimmer style="position:absolute;inset:0;z-index:3;pointer-events:none;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.28) 48%,rgba(255,255,255,.06) 54%,transparent 70%);transform:translateX(-130%)"></span>
-      </div>
-    </div>
-    <div data-preview="zentra" aria-hidden="true" style="position:absolute;top:50%;left:50%;width:56px;height:121px;transform:translate(-50%,-50%) scale(.3);opacity:0;z-index:6;pointer-events:none;transition:opacity .4s ease,transform .5s cubic-bezier(.2,.8,.2,1),width .5s cubic-bezier(.2,.8,.2,1),height .5s cubic-bezier(.2,.8,.2,1)">
-      <div data-ring style="position:absolute;inset:-16px;border-radius:22px;z-index:1;opacity:0;padding:1.5px;background:conic-gradient(from 0deg, transparent 0%, rgba(79,191,130,.9) 10%, #fff 18%, rgba(79,191,130,.9) 26%, transparent 42%, transparent 100%);-webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);mask-composite:exclude;transition:opacity .6s ease"></div>
-      <div data-glowback aria-hidden="true" style="position:absolute;inset:-26%;z-index:0;pointer-events:none;opacity:0;border-radius:50%;background:radial-gradient(circle, rgba(79,191,130,.55), rgba(79,191,130,.16) 45%, transparent 72%);filter:blur(26px);transition:opacity .5s ease"></div>
-      <div data-shot style="position:absolute;inset:0;z-index:2;border-radius:12px;overflow:hidden;box-shadow:0 0 0 0 rgba(79,191,130,0);transition:box-shadow .5s ease">
-        <img src="img/previews/zentra-preview.jpg" alt="" loading="lazy" style="position:relative;z-index:1;width:100%;height:100%;object-fit:cover;object-position:top;display:block">
-        <span data-shimmer style="position:absolute;inset:0;z-index:3;pointer-events:none;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.28) 48%,rgba(255,255,255,.06) 54%,transparent 70%);transform:translateX(-130%)"></span>
-      </div>
-    </div>
-    <div data-preview="amun" aria-hidden="true" style="position:absolute;top:50%;left:50%;width:56px;height:121px;transform:translate(-50%,-50%) scale(.3);opacity:0;z-index:6;pointer-events:none;transition:opacity .4s ease,transform .5s cubic-bezier(.2,.8,.2,1),width .5s cubic-bezier(.2,.8,.2,1),height .5s cubic-bezier(.2,.8,.2,1)">
-      <div data-ring style="position:absolute;inset:-16px;border-radius:22px;z-index:1;opacity:0;padding:1.5px;background:conic-gradient(from 0deg, transparent 0%, rgba(143,143,143,.9) 10%, #fff 18%, rgba(143,143,143,.9) 26%, transparent 42%, transparent 100%);-webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);mask-composite:exclude;transition:opacity .6s ease"></div>
-      <div data-glowback aria-hidden="true" style="position:absolute;inset:-26%;z-index:0;pointer-events:none;opacity:0;border-radius:50%;background:radial-gradient(circle, rgba(143,143,143,.55), rgba(143,143,143,.16) 45%, transparent 72%);filter:blur(26px);transition:opacity .5s ease"></div>
-      <div data-shot style="position:absolute;inset:0;z-index:2;border-radius:12px;overflow:hidden;box-shadow:0 0 0 0 rgba(143,143,143,0);transition:box-shadow .5s ease">
-        <img src="img/previews/amun-preview.jpg" alt="" loading="lazy" style="position:relative;z-index:1;width:100%;height:100%;object-fit:cover;object-position:top;display:block">
-        <span data-shimmer style="position:absolute;inset:0;z-index:3;pointer-events:none;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.28) 48%,rgba(255,255,255,.06) 54%,transparent 70%);transform:translateX(-130%)"></span>
-      </div>
-    </div>
-    <a class="i12" id="stageCta" href="case-studies/nitefind.html" style="position:absolute;top:50%;left:50%;z-index:7;display:inline-flex;align-items:center;gap:9px;padding:12px 22px;min-height:42px;border:1px solid #3a3a38;border-radius:999px;background:#0a0a0a;font-family:'JetBrains Mono',monospace;font-size:12px;color:#e9e7df;white-space:nowrap;opacity:0;pointer-events:none;transform:translate(-50%,0);transition:opacity .35s ease,transform .45s cubic-bezier(.19,1,.22,1),border-color .3s ease,color .3s ease,background .3s ease">view project<span aria-hidden="true">→</span></a>
+<section id="work" style="position:relative;padding:clamp(80px,10vw,150px) 0 0;overflow:hidden">
+  <div id="workWash" aria-hidden="true" style="position:absolute;top:0;left:0;right:0;height:min(760px,74vh);z-index:0;pointer-events:none;background:radial-gradient(ellipse 62% 100% at 50% 0%, rgba(var(--accent-rgb),.13), transparent 72%);clip-path:circle(0% at 50% 0%)"></div>
+  <div id="workGhost" aria-hidden="true" style="position:absolute;top:clamp(40px,6vw,96px);left:clamp(-30px,-2vw,-8px);z-index:1;pointer-events:none;user-select:none;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(110px,20vw,280px);line-height:1;color:transparent;-webkit-text-stroke:1px #ffffff;letter-spacing:-.02em;opacity:0;transition:opacity 1.6s ease">WORK</div>
+  <div id="dropStage" aria-hidden="true" style="position:absolute;top:0;left:50%;width:0;height:0;z-index:6;pointer-events:none;overflow:visible">
+    <div data-drop-wrap style="position:absolute;left:0;top:0;transform:translate(-50%,-70vh) scaleY(1);opacity:0"><div style="width:11px;height:11px;background:var(--accent);box-shadow:0 0 14px 3px rgba(var(--accent-rgb),.55);border-radius:50% 50% 50% 0;transform:rotate(135deg)"></div></div>
+    <div data-flash style="position:absolute;top:0;left:0;width:6px;height:6px;border-radius:50%;background:#fff;transform:translate(-50%,-50%);opacity:0"></div>
   </div>
 
-  <!-- Mobile stack: the drop anchor lives INSIDE this box, so it lands on the card's real centre -->
-  <div id="workMobile" style="display:none;position:relative;z-index:2;flex-direction:column;align-items:center;gap:22px;width:100%;max-width:400px;padding:32px 24px;text-align:center">
-    <div id="mobileCard" style="position:absolute;inset:0;z-index:0;background:#0a0a0a;border-radius:20px;box-shadow:0 24px 60px -16px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.05);clip-path:circle(0% at 50% 50%)"></div>
-    <div id="mobileDropStage" aria-hidden="true" style="position:absolute;top:50%;left:50%;width:0;height:0;z-index:4;pointer-events:none;overflow:visible">
-      <div data-drop-wrap style="position:absolute;left:50%;top:-90vh;transform:translateX(-50%) scaleY(1);opacity:0"><div style="width:10px;height:10px;background:var(--accent);box-shadow:0 0 12px 3px rgba(var(--accent-rgb),.55);border-radius:50% 50% 50% 0;transform:rotate(135deg)"></div></div>
-      <div data-flash style="position:absolute;top:50%;left:50%;width:5px;height:5px;border-radius:50%;background:#fff;transform:translate(-50%,-50%);opacity:0"></div>
-      <div data-glow style="position:absolute;top:50%;left:50%;width:0;height:0;border-radius:50%;background:radial-gradient(circle, rgba(var(--accent-rgb),.4), transparent 70%);transform:translate(-50%,-50%);opacity:0;filter:blur(2px)"></div>
+  <div id="workHead" style="position:relative;z-index:2;max-width:1420px;margin:0 auto;padding:0 clamp(24px,5vw,64px);opacity:0;transition:opacity .9s ease">
+    <div style="display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:16px;padding-bottom:clamp(22px,2.6vw,32px)">
+      <h2 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(26px,3.2vw,42px);line-height:1;letter-spacing:-.02em">Selected work</h2>
+      <p style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#7d786f">one decision per project</p>
     </div>
+  </div>
 
-    <div id="mobilePills" role="group" aria-label="Select a project" style="position:relative;z-index:1;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;width:100%">
-      <button type="button" data-pill="nitefind" aria-pressed="false" style="padding:9px 15px;min-height:38px;border:1px solid #3a3a38;border-radius:999px;background:none;font-family:'JetBrains Mono',monospace;font-size:11px;color:#a09c92;cursor:pointer;transition:color .3s ease,border-color .3s ease,background .3s ease,box-shadow .3s ease">Nitefind</button>
-      <button type="button" data-pill="smiteforge" aria-pressed="false" style="padding:9px 15px;min-height:38px;border:1px solid #3a3a38;border-radius:999px;background:none;font-family:'JetBrains Mono',monospace;font-size:11px;color:#a09c92;cursor:pointer;transition:color .3s ease,border-color .3s ease,background .3s ease,box-shadow .3s ease">SmiteForge</button>
-      <button type="button" data-pill="zentra" aria-pressed="false" style="padding:9px 15px;min-height:38px;border:1px solid #3a3a38;border-radius:999px;background:none;font-family:'JetBrains Mono',monospace;font-size:11px;color:#a09c92;cursor:pointer;transition:color .3s ease,border-color .3s ease,background .3s ease,box-shadow .3s ease">Zentra</button>
-      <button type="button" data-pill="amun" aria-pressed="false" style="padding:9px 15px;min-height:38px;border:1px solid #3a3a38;border-radius:999px;background:none;font-family:'JetBrains Mono',monospace;font-size:11px;color:#a09c92;cursor:pointer;transition:color .3s ease,border-color .3s ease,background .3s ease,box-shadow .3s ease">Amun</button>
-    </div>
+  <div id="bands" style="position:relative;z-index:2;border-top:1px solid #1c1c1a;opacity:0;transition:opacity .5s ease">
 
-    <div id="mobilePreview" aria-hidden="true" style="position:relative;z-index:1;width:150px;height:325px;pointer-events:none">
-      <div id="mobileRing" style="position:absolute;inset:-11px;border-radius:18px;opacity:0;padding:1.5px;background:conic-gradient(from 0deg, transparent 0%, rgba(var(--accent-rgb),.9) 10%, #fff 18%, rgba(var(--accent-rgb),.9) 26%, transparent 42%, transparent 100%);-webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);mask-composite:exclude;transition:opacity .6s ease"></div>
-      <div id="mobileShot" style="position:absolute;inset:0;border-radius:12px;overflow:hidden;opacity:0;transform:scale(.96);transition:opacity .5s ease,transform .6s cubic-bezier(.19,1,.22,1),box-shadow .6s ease">
-        <img id="mobilePreviewImg" src="img/previews/nitefind-preview.jpg" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:top;display:block;transition:opacity .18s ease">
+    <a data-band="nitefind" href="case-studies/nitefind.html" style="position:relative;display:block;border-bottom:1px solid #1c1c1a;overflow:hidden">
+      <span data-flood aria-hidden="true" style="position:absolute;inset:0;z-index:0;background:linear-gradient(90deg, rgba(176,74,214,.14), rgba(176,74,214,.02) 62%, transparent);transform:scaleX(0);transform-origin:left;transition:transform .62s cubic-bezier(.19,1,.22,1)"></span>
+      <span data-edge aria-hidden="true" style="position:absolute;top:0;bottom:0;left:0;z-index:1;width:2px;background:#b04ad6;transform:scaleY(0);transform-origin:top;transition:transform .52s cubic-bezier(.19,1,.22,1)"></span>
+      <div style="position:relative;z-index:2;max-width:1420px;margin:0 auto;padding:clamp(30px,3.6vw,50px) clamp(24px,5vw,64px)">
+        <div data-row style="display:grid;grid-template-columns:auto minmax(0,1.15fr) minmax(0,1fr) auto;align-items:center;gap:clamp(18px,2.6vw,44px);transition:transform .5s cubic-bezier(.19,1,.22,1)">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;color:#7d786f">01</span>
+          <div>
+            <h3 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(25px,3.5vw,50px);line-height:1.02;letter-spacing:-.025em">Nitefind</h3>
+            <p style="margin-top:9px;font-size:14px;line-height:1.5;color:#a09c92;max-width:34ch;text-wrap:pretty">Too many options, not enough certainty.</p>
+            <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:16px"><span style="padding:4px 10px;border:1px solid #262623;border-radius:999px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;color:#7d786f">MOBILE APP</span><span style="padding:4px 10px;border:1px solid #262623;border-radius:999px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;color:#7d786f">2025</span></div>
+          </div>
+          <div style="padding-left:clamp(16px,2vw,28px);border-left:1px solid #1c1c1a">
+            <span style="display:block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#b04ad6">the decision</span>
+            <p style="margin-top:11px;font-size:15px;line-height:1.6;color:#cfcabc;max-width:40ch;text-wrap:pretty">Show three recommendations instead of every match. Traded completeness for confidence, because a full list was the thing making people stall.</p>
+          </div>
+          <div data-shot style="position:relative;flex-shrink:0;width:clamp(74px,7.4vw,112px);aspect-ratio:230/498;border-radius:9px;overflow:hidden;box-shadow:0 18px 44px -14px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.06);transition:transform .55s cubic-bezier(.19,1,.22,1),box-shadow .55s ease">
+            <img src="img/previews/nitefind-preview.jpg" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:top;display:block;filter:saturate(.82) brightness(.86);transition:filter .55s ease">
+          </div>
+        </div>
       </div>
-    </div>
+    </a>
 
-    <div id="mobileCopy" style="position:relative;z-index:1;width:100%;opacity:0;transition:opacity .6s ease">
-      <p id="mobileDesc" style="font-size:14px;line-height:1.55;color:#a09c92;margin-bottom:16px;transition:opacity .18s ease">too many options, not enough certainty</p>
-      <a class="i13" id="mobileLink" href="case-studies/nitefind.html" style="display:inline-block;padding:14px 26px;min-height:44px;border:1px solid #3a3a38;font-family:'JetBrains Mono',monospace;font-size:13px;color:#e9e7df;transition:border-color .3s ease,color .3s ease">view project</a>
-    </div>
+    <a data-band="smiteforge" href="case-studies/smiteforge.html" style="position:relative;display:block;border-bottom:1px solid #1c1c1a;overflow:hidden">
+      <span data-flood aria-hidden="true" style="position:absolute;inset:0;z-index:0;background:linear-gradient(90deg, rgba(224,184,74,.14), rgba(224,184,74,.02) 62%, transparent);transform:scaleX(0);transform-origin:left;transition:transform .62s cubic-bezier(.19,1,.22,1)"></span>
+      <span data-edge aria-hidden="true" style="position:absolute;top:0;bottom:0;left:0;z-index:1;width:2px;background:#e0b84a;transform:scaleY(0);transform-origin:top;transition:transform .52s cubic-bezier(.19,1,.22,1)"></span>
+      <div style="position:relative;z-index:2;max-width:1420px;margin:0 auto;padding:clamp(30px,3.6vw,50px) clamp(24px,5vw,64px)">
+        <div data-row style="display:grid;grid-template-columns:auto minmax(0,1.15fr) minmax(0,1fr) auto;align-items:center;gap:clamp(18px,2.6vw,44px);transition:transform .5s cubic-bezier(.19,1,.22,1)">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;color:#7d786f">02</span>
+          <div>
+            <h3 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(25px,3.5vw,50px);line-height:1.02;letter-spacing:-.025em">SmiteForge</h3>
+            <p style="margin-top:9px;font-size:14px;line-height:1.5;color:#a09c92;max-width:34ch;text-wrap:pretty">One brand, two very different platforms.</p>
+            <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:16px"><span style="padding:4px 10px;border:1px solid #262623;border-radius:999px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;color:#7d786f">WEB + MOBILE</span><span style="padding:4px 10px;border:1px solid #262623;border-radius:999px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;color:#7d786f">2025</span></div>
+          </div>
+          <div style="padding-left:clamp(16px,2vw,28px);border-left:1px solid #1c1c1a">
+            <span style="display:block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#e0b84a">the decision</span>
+            <p style="margin-top:11px;font-size:15px;line-height:1.6;color:#cfcabc;max-width:40ch;text-wrap:pretty">One design system, two layouts. Kept a single visual language rather than tuning each platform separately, so the brand stayed recognisable across both.</p>
+          </div>
+          <div data-shot style="position:relative;flex-shrink:0;width:clamp(74px,7.4vw,112px);aspect-ratio:230/498;border-radius:9px;overflow:hidden;box-shadow:0 18px 44px -14px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.06);transition:transform .55s cubic-bezier(.19,1,.22,1),box-shadow .55s ease">
+            <img src="img/previews/smiteforge-preview.jpg" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:top;display:block;filter:saturate(.82) brightness(.86);transition:filter .55s ease">
+          </div>
+        </div>
+      </div>
+    </a>
+
+    <a data-band="zentra" href="case-studies/zentra.html" style="position:relative;display:block;border-bottom:1px solid #1c1c1a;overflow:hidden">
+      <span data-flood aria-hidden="true" style="position:absolute;inset:0;z-index:0;background:linear-gradient(90deg, rgba(79,191,130,.14), rgba(79,191,130,.02) 62%, transparent);transform:scaleX(0);transform-origin:left;transition:transform .62s cubic-bezier(.19,1,.22,1)"></span>
+      <span data-edge aria-hidden="true" style="position:absolute;top:0;bottom:0;left:0;z-index:1;width:2px;background:#4fbf82;transform:scaleY(0);transform-origin:top;transition:transform .52s cubic-bezier(.19,1,.22,1)"></span>
+      <div style="position:relative;z-index:2;max-width:1420px;margin:0 auto;padding:clamp(30px,3.6vw,50px) clamp(24px,5vw,64px)">
+        <div data-row style="display:grid;grid-template-columns:auto minmax(0,1.15fr) minmax(0,1fr) auto;align-items:center;gap:clamp(18px,2.6vw,44px);transition:transform .5s cubic-bezier(.19,1,.22,1)">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;color:#7d786f">03</span>
+          <div>
+            <h3 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(25px,3.5vw,50px);line-height:1.02;letter-spacing:-.025em">Zentra</h3>
+            <p style="margin-top:9px;font-size:14px;line-height:1.5;color:#a09c92;max-width:34ch;text-wrap:pretty">Saving money without losing motivation.</p>
+            <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:16px"><span style="padding:4px 10px;border:1px solid #262623;border-radius:999px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;color:#7d786f">MOBILE APP</span><span style="padding:4px 10px;border:1px solid #262623;border-radius:999px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;color:#7d786f">2025</span></div>
+          </div>
+          <div style="padding-left:clamp(16px,2vw,28px);border-left:1px solid #1c1c1a">
+            <span style="display:block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#4fbf82">the decision</span>
+            <p style="margin-top:11px;font-size:15px;line-height:1.6;color:#cfcabc;max-width:40ch;text-wrap:pretty">Framed progress, not restriction. Every screen reports what has been saved rather than what cannot be spent, because the restriction framing was why people quit.</p>
+          </div>
+          <div data-shot style="position:relative;flex-shrink:0;width:clamp(74px,7.4vw,112px);aspect-ratio:230/498;border-radius:9px;overflow:hidden;box-shadow:0 18px 44px -14px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.06);transition:transform .55s cubic-bezier(.19,1,.22,1),box-shadow .55s ease">
+            <img src="img/previews/zentra-preview.jpg" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:top;display:block;filter:saturate(.82) brightness(.86);transition:filter .55s ease">
+          </div>
+        </div>
+      </div>
+    </a>
+
+    <a data-band="amun" href="case-studies/amun.html" style="position:relative;display:block;border-bottom:1px solid #1c1c1a;overflow:hidden">
+      <span data-flood aria-hidden="true" style="position:absolute;inset:0;z-index:0;background:linear-gradient(90deg, rgba(143,143,143,.14), rgba(143,143,143,.02) 62%, transparent);transform:scaleX(0);transform-origin:left;transition:transform .62s cubic-bezier(.19,1,.22,1)"></span>
+      <span data-edge aria-hidden="true" style="position:absolute;top:0;bottom:0;left:0;z-index:1;width:2px;background:#8f8f8f;transform:scaleY(0);transform-origin:top;transition:transform .52s cubic-bezier(.19,1,.22,1)"></span>
+      <div style="position:relative;z-index:2;max-width:1420px;margin:0 auto;padding:clamp(30px,3.6vw,50px) clamp(24px,5vw,64px)">
+        <div data-row style="display:grid;grid-template-columns:auto minmax(0,1.15fr) minmax(0,1fr) auto;align-items:center;gap:clamp(18px,2.6vw,44px);transition:transform .5s cubic-bezier(.19,1,.22,1)">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;color:#7d786f">04</span>
+          <div>
+            <h3 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(25px,3.5vw,50px);line-height:1.02;letter-spacing:-.025em;color:#a8a49b">Amun</h3>
+            <p style="margin-top:9px;font-size:14px;line-height:1.5;color:#a09c92;max-width:34ch;text-wrap:pretty">Protection services, sold on trust.</p>
+            <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:16px"><span style="padding:4px 10px;border:1px solid #262623;border-radius:999px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;color:#7d786f">BRAND + WEB</span><span style="padding:4px 10px;border:1px solid rgba(143,143,143,.5);border-radius:999px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;color:#a8a49b">IN PROGRESS</span></div>
+          </div>
+          <div style="padding-left:clamp(16px,2vw,28px);border-left:1px solid #1c1c1a">
+            <span style="display:block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#8f8f8f">the open question</span>
+            <p style="margin-top:11px;font-size:15px;line-height:1.6;color:#a09c92;max-width:40ch;text-wrap:pretty">How much to show before a visitor trusts you. Still working out where reassurance stops being reassuring and starts reading as overselling.</p>
+          </div>
+          <div data-shot style="position:relative;flex-shrink:0;width:clamp(74px,7.4vw,112px);aspect-ratio:230/498;border-radius:9px;overflow:hidden;box-shadow:0 18px 44px -14px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.06);transition:transform .55s cubic-bezier(.19,1,.22,1),box-shadow .55s ease">
+            <img src="img/previews/amun-preview.jpg" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:top;display:block;filter:saturate(.62) brightness(.78);transition:filter .55s ease">
+          </div>
+        </div>
+      </div>
+    </a>
+
   </div>
 </section>
 
 <!-- ===================== ABOUT ===================== -->
-<section id="about" style="position:relative;display:flex;align-items:center;padding:clamp(88px,11vh,132px) 0;overflow:hidden;scroll-snap-align:start">
-  <div aria-hidden="true" style="position:absolute;top:clamp(10px,1.5vw,20px);left:clamp(-30px,-2vw,-8px);z-index:0;pointer-events:none;user-select:none;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(110px,20vw,280px);line-height:1;color:transparent;-webkit-text-stroke:1px var(--accent);letter-spacing:-.02em;opacity:.35">BIO</div>
+<section id="about" style="position:relative;padding:clamp(90px,11vw,168px) 0;overflow:hidden;scroll-snap-align:start">
+  <div aria-hidden="true" style="position:absolute;top:clamp(30px,5vw,74px);left:clamp(-30px,-2vw,-8px);z-index:0;pointer-events:none;user-select:none;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(110px,20vw,290px);line-height:1;color:transparent;-webkit-text-stroke:1px var(--accent);letter-spacing:-.025em;opacity:.3">BIO</div>
 
   <div style="position:relative;z-index:2;width:100%;max-width:1280px;margin:0 auto;padding:0 clamp(24px,5vw,64px)">
-    <h2 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(30px,3.6vw,44px);line-height:1.1;letter-spacing:-.01em">The Way I Work.</h2>
-    <div style="width:64px;height:1px;margin-top:24px;background:linear-gradient(90deg, var(--accent), transparent);opacity:.8"></div>
-    <div style="display:flex;flex-wrap:wrap;align-items:flex-start;gap:clamp(28px,4.5vw,56px);margin-top:clamp(32px,3.5vw,44px)">
-      <div style="flex:1 1 460px;min-width:0">
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:clamp(24px,3.5vw,48px)">
-          <div>
-            <p style="font-size:16px;line-height:1.7;color:#a09c92;margin-bottom:20px;max-width:52ch;text-wrap:pretty">I don't believe great products begin with polished interfaces. They begin with understanding the people they're built for.</p>
-            <p style="font-size:16px;line-height:1.7;color:#a09c92;margin-bottom:20px;max-width:52ch;text-wrap:pretty">Hi, I'm Kristian Davis. Long before I found UX, I was fascinated by why some experiences just felt right. Painting taught me balance, composition, and visual hierarchy. Nearly a decade in hospitality taught me to read people, adapt quickly, and notice what often goes unsaid. Today, those same instincts shape every project I take on.</p>
-            <p style="font-size:16px;line-height:1.7;color:#a09c92;margin-bottom:20px;max-width:52ch;text-wrap:pretty">Design is only valuable when it solves the right problem. I enjoy asking the questions that uncover what's really happening beneath the surface, then turning those insights into products that feel simple, thoughtful, and effortless to use.</p>
-            <p style="font-size:16px;line-height:1.7;color:#a09c92;max-width:52ch;text-wrap:pretty">Outside of work you'll usually find me swimming, gaming, or planning my next trip. I'm endlessly curious about how things work, why people make the choices they do, and how small details shape larger experiences. That curiosity doesn't stop when I leave my desk.</p>
-          </div>
-          <dl style="margin:0">
-            <dt style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#7d786f;margin:0 0 10px;text-transform:uppercase;letter-spacing:.08em">design</dt>
-            <dd style="font-size:15px;color:#e9e7df;line-height:1.6;margin:0 0 28px">Figma, FigJam, Photoshop, Illustrator</dd>
-            <dt style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#7d786f;margin:0 0 10px;text-transform:uppercase;letter-spacing:.08em">development</dt>
-            <dd style="font-size:15px;color:#e9e7df;line-height:1.6;margin:0 0 28px">HTML, CSS, JavaScript</dd>
-            <dt style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#7d786f;margin:0 0 10px;text-transform:uppercase;letter-spacing:.08em">platforms</dt>
-            <dd style="font-size:15px;color:#e9e7df;line-height:1.6;margin:0 0 28px">Framer, Webflow, Squarespace, GitHub, VS Code</dd>
-            <dt style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#7d786f;margin:0 0 10px;text-transform:uppercase;letter-spacing:.08em">focus</dt>
-            <dd style="font-size:15px;color:#e9e7df;line-height:1.6;margin:0">UX design, UI design, design systems, accessibility, conversion optimization</dd>
-          </dl>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:clamp(30px,5vw,86px);align-items:start">
+
+      <div style="display:flex;flex-direction:column;gap:clamp(24px,3vw,38px)">
+        <blockquote style="margin:0">
+          <p style="font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:clamp(23px,2.7vw,38px);line-height:1.2;letter-spacing:-.018em;text-wrap:pretty">Great products don't begin with polished interfaces. They begin with understanding the people they're built for.</p>
+        </blockquote>
+        <div style="width:58px;height:1px;background:linear-gradient(90deg,var(--accent),transparent)"></div>
+        <div style="display:flex;flex-direction:column;gap:17px;max-width:56ch">
+          <p style="font-size:15px;line-height:1.72;color:#a09c92;text-wrap:pretty">Hi, I'm Kristian Davis. Long before I found UX, I was fascinated by why some experiences just felt right. Painting taught me balance, composition, and visual hierarchy. Nearly a decade in hospitality taught me to read people, adapt quickly, and notice what often goes unsaid. Today, those same instincts shape every project I take on.</p>
+          <p style="font-size:15px;line-height:1.72;color:#a09c92;text-wrap:pretty">Design is only valuable when it solves the right problem. I enjoy asking the questions that uncover what's really happening beneath the surface, then turning those insights into products that feel simple, thoughtful, and effortless to use.</p>
+          <p style="font-size:15px;line-height:1.72;color:#a09c92;text-wrap:pretty">Outside of work you'll usually find me swimming, gaming, or planning my next trip. I'm endlessly curious about how things work, why people make the choices they do, and how small details shape larger experiences. That curiosity doesn't stop when I leave my desk.</p>
         </div>
       </div>
-      <div style="position:relative;z-index:1;order:2;flex:1 1 320px;max-width:400px;min-width:min(100%,260px);border-radius:4px;overflow:hidden">
-        <picture>
-          <source media="(max-width:900px)" srcset="img/kristian-about-mobile-crop.jpg">
-          <img src="img/kristian-about-crop.jpg" alt="Kristian Davis" width="1400" height="1750" style="width:100%;height:auto;aspect-ratio:4/5;object-fit:cover;object-position:50% 30%;filter:grayscale(1) contrast(1.15) brightness(.95);display:block">
-        </picture>
-        <div aria-hidden="true" style="position:absolute;inset:0;background:linear-gradient(160deg, rgba(var(--accent-rgb),.14), rgba(5,5,5,.18) 70%);mix-blend-mode:multiply"></div>
+
+      <div style="display:flex;flex-direction:column;gap:clamp(26px,3vw,40px)">
+        <div style="position:relative;max-width:380px;border-radius:5px;overflow:hidden">
+          <picture>
+            <source media="(max-width:900px)" srcset="img/kristian-about-mobile-crop.jpg">
+            <img src="img/kristian-about-crop.jpg" alt="Kristian Davis" width="1400" height="1750" style="width:100%;height:auto;aspect-ratio:4/5;object-fit:cover;object-position:50% 30%;filter:grayscale(1) contrast(1.15) brightness(.95);display:block">
+          </picture>
+          <span aria-hidden="true" style="position:absolute;inset:0;background:linear-gradient(160deg, rgba(var(--accent-rgb),.14), rgba(5,5,5,.18) 70%);mix-blend-mode:multiply"></span>
+        </div>
+
+        <dl style="margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:22px clamp(20px,2.4vw,34px)">
+          <div>
+            <dt style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#7d786f">design</dt>
+            <dd style="margin:8px 0 0;font-size:14px;line-height:1.55;color:#cfcabc">Figma, FigJam, Photoshop, Illustrator</dd>
+          </div>
+          <div>
+            <dt style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#7d786f">development</dt>
+            <dd style="margin:8px 0 0;font-size:14px;line-height:1.55;color:#cfcabc">HTML, CSS, JavaScript</dd>
+          </div>
+          <div>
+            <dt style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#7d786f">platforms</dt>
+            <dd style="margin:8px 0 0;font-size:14px;line-height:1.55;color:#cfcabc">Framer, Webflow, Squarespace, GitHub, VS Code</dd>
+          </div>
+          <div>
+            <dt style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#7d786f">focus</dt>
+            <dd style="margin:8px 0 0;font-size:14px;line-height:1.55;color:#cfcabc">UX design, UI design, design systems, accessibility, conversion optimization</dd>
+          </div>
+        </dl>
       </div>
+
     </div>
   </div>
 </section>

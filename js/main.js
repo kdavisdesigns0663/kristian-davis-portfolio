@@ -1,67 +1,56 @@
-const PROJ = {
-  nitefind:   { rgb:'176,74,214', hook:'too many options, not enough certainty', img:'img/previews/nitefind-preview.jpg',   href:'case-studies/nitefind.html', angle:-45 },
-  smiteforge: { rgb:'224,184,74', hook:'one brand, two very different platforms', img:'img/previews/smiteforge-preview.jpg', href:'case-studies/smiteforge.html', angle:45 },
-  zentra:     { rgb:'79,191,130', hook:'saving money without losing motivation',  img:'img/previews/zentra-preview.jpg',     href:'case-studies/zentra.html', angle:135 },
-  amun:       { rgb:'143,143,143',hook:'in progress, launching later this year',  img:'img/previews/amun-preview.jpg',       href:'case-studies/amun.html', angle:225 },
+const BANDS = {
+  nitefind:   { rgb:'176,74,214' },
+  smiteforge: { rgb:'224,184,74' },
+  zentra:     { rgb:'79,191,130' },
+  amun:       { rgb:'143,143,143' },
 };
 
 class Portfolio {
-  constructor() { this.props = {}; }
-
   init() {
     this.timers = [];
     this.reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    this.applyProps();
+    this.fall = 1;
     this.initHero();
-    this.initWork();
-    this.initMobile();
+    // Bands are put into their hidden state BEFORE the drop is wired: the reverse order lets
+    // a fast observer reveal a band and then have initBands reset it to invisible.
+    this.initBands();
+    this.initDrop();
+    this.initSpine();
     this.initContact();
     this.initDropdown();
     this.initAnchors();
-    this.onResize = () => { this.layoutNodes(); this.syncLayout(); };
-    window.addEventListener('resize', this.onResize);
-    this.syncLayout();
     this.applyIncomingHash();
   }
 
   wait(fn, ms) { this.timers.push(setTimeout(fn, ms)); }
 
-  applyProps() {
-    const hex = this.props.accent;
-    if (hex && /^#[0-9a-f]{6}$/i.test(hex)) {
-      const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
-      document.documentElement.style.setProperty('--accent', hex);
-      document.documentElement.style.setProperty('--accent-rgb', r+','+g+','+b);
-    }
-    this.fall = Math.max(0.5, Number(this.props.fallSpeed) || 1);
-    if (this.props.showGhostWords === false) {
-      document.querySelectorAll('#page [aria-hidden="true"]').forEach(el => {
-        if (el.style.webkitTextStroke || el.style.getPropertyValue('-webkit-text-stroke')) el.style.display = 'none';
-      });
-    }
+  observe(el, threshold, onIn, onOut) {
+    const io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) { if (e.isIntersecting) { if (onIn) onIn(); } else if (onOut) onOut(); });
+    }, { threshold: threshold });
+    io.observe(el);
+    (this.observers = this.observers || []).push(io);
   }
 
-  // --- Hero: one continuous left-to-right wipe per line, chained within a phrase ---
+  // --- Hero: one continuous left-to-right wipe per phrase ---
   initHero() {
     const hero = document.getElementById('hero');
     const ghost = document.getElementById('heroGhost');
-    const lines = Array.from(document.querySelectorAll('#heroHeadline [data-line]'));
+    const lines = Array.prototype.slice.call(document.querySelectorAll('#heroHeadline [data-line]'));
     if (!hero || !lines.length) return;
 
     const play = () => {
       if (this.heroPlayed) return;
       this.heroPlayed = true;
-      ghost.style.opacity = '0.35';
+      if (ghost) ghost.style.opacity = '0.35';
       if (this.reduced) {
-        lines.forEach(l => { l.style.transition = 'opacity .4s ease'; l.style.opacity = '1'; l.style.setProperty('--reveal','100%'); });
+        lines.forEach(function (l) { l.style.transition = 'opacity .4s ease'; l.style.opacity = '1'; l.style.setProperty('--reveal', '100%'); });
         return;
       }
-      // One phrase is one thought: the reveal edge holds a constant pace measured in ems, so
-      // it reads as a single continuous sweep across both lines regardless of their length or
-      // type size. The only break is the deliberate pause between the two phrases.
-      const EM_PER_SEC = 8, PHRASE_PAUSE = 1.2;
-      let delay = 1, prev = null;
-      lines.forEach(line => {
+      // Constant pace in ems, so the sweep reads the same regardless of line width or size.
+      const EM_PER_SEC = 10, PHRASE_PAUSE = 0.6;
+      let delay = 0.6, prev = null;
+      lines.forEach(function (line) {
         const phrase = line.dataset.line;
         const em = parseFloat(getComputedStyle(line).fontSize) || 16;
         const dur = line.getBoundingClientRect().width / (em * EM_PER_SEC);
@@ -80,130 +69,222 @@ class Portfolio {
     this.wait(play, 2500);
   }
 
-  observe(el, threshold, onIn, onOut) {
-    const io = new IntersectionObserver(entries => {
-      entries.forEach(e => { if (e.isIntersecting) { if (onIn) onIn(); } else if (onOut) onOut(); });
-    }, { threshold });
-    io.observe(el);
-    (this.observers = this.observers || []).push(io);
-    return io;
-  }
-
-  // --- Work (desktop): names and card land with the section; the drop passes THROUGH them ---
-  initWork() {
-    const stage = document.getElementById('rippleStage');
+  // --- Work: one drop works its way down the list. It lands on each project in turn, and
+  // each impact is what brings that project into being. ---
+  initDrop() {
     const section = document.getElementById('work');
-    if (!stage || !section) return;
-    this.stage = stage;
-    this.nodes = Array.from(stage.querySelectorAll('[data-node]'));
-    this.card = document.getElementById('stageCard');
-    this.cta = document.getElementById('stageCta');
-    this.layoutNodes();
+    const stage = document.getElementById('dropStage');
+    const wash = document.getElementById('workWash');
+    const ghost = document.getElementById('workGhost');
+    const head = document.getElementById('workHead');
+    const list = document.getElementById('bands');
+    if (!section || !stage) return;
+    const bands = Array.prototype.slice.call(document.querySelectorAll('[data-band]'));
 
-    const bloom = document.getElementById('workBloom');
-
-    // The drop causes the reveal: nothing blooms until impact.
-    // One tempo across the whole reveal: card, wash and rings all resolve inside ~1.6s of
-    // impact, so it reads as a single spreading event rather than four overlapping ones.
-    const openCard = () => {
-      this.card.style.transition = 'clip-path 1s cubic-bezier(.19,1,.22,1), filter .5s ease';
-      this.card.style.clipPath = 'circle(150% at 50% 50%)';
-      bloom.style.transition = 'clip-path 1.6s cubic-bezier(.19,1,.22,1)';
-      bloom.style.clipPath = 'circle(150% at 50% 50%)';
+    const finishAll = () => {
+      head.style.opacity = '1';
+      list.style.opacity = '1';
+      wash.style.transition = 'clip-path 1.7s cubic-bezier(.19,1,.22,1)';
+      wash.style.clipPath = 'circle(150% at 50% 0%)';
+      bands.forEach(function (b) { b.style.opacity = '1'; b.style.clipPath = 'inset(0 0 0% 0)'; });
+      stage.querySelector('[data-drop-wrap]').style.opacity = '0';
+      this.stepQueue = null;
     };
-    const showNodes = base => this.nodes.forEach((n, i) => this.wait(() => { n.style.opacity = '1'; }, base + i * 70));
 
     const play = () => {
-      if (this.workPlayed) return;
-      this.workPlayed = true;
-      if (this.reduced) { openCard(); showNodes(0); return; }
-      this.playDrop(stage, {
-        fall: this.fall, ringCount: 3, ringStagger: 170, ringDuration: 1.5, ringMax: 470,
-        glowDuration: 1, glowMax: 280,
-        onImpact: () => {
-          openCard();
-          this.card.style.animation = 'none';
-          void this.card.offsetWidth;
-          this.card.style.animation = 'cardRippleD 1.2s cubic-bezier(.22,1,.36,1)';
-          showNodes(100);
-          this.nodes.forEach((n, i) => this.wait(() => {
-            const inner = n.querySelector('[data-inner]');
-            inner.style.animation = 'none';
-            void inner.offsetWidth;
-            inner.style.animation = 'textRipple 1.1s cubic-bezier(.22,1,.36,1)';
-          }, 170 + i * 70));
-        },
+      if (this.workRevealed) return;
+      this.workRevealed = true;
+      ghost.style.opacity = '.42';
+      if (this.reduced) { finishAll(); return; }
+
+      const wrap = stage.querySelector('[data-drop-wrap]');
+      const flash = stage.querySelector('[data-flash]');
+      // Measured against the section's own box: the bands' offsetParent is #bands, not the
+      // section, so offsetTop alone would be measuring from the wrong origin.
+      const sTop = section.getBoundingClientRect().top;
+      const centreOf = b => Math.round(b.getBoundingClientRect().top - sTop + b.offsetHeight / 2);
+
+      const land = (y, i) => {
+        wrap.style.transition = 'transform .16s cubic-bezier(.22,.9,.3,1), opacity .14s ease-out .03s, filter .16s ease-out';
+        wrap.style.transform = 'translate(-50%,' + (y + 4) + 'px) scale(2.3,0.06)';
+        wrap.style.opacity = '0';
+        wrap.style.filter = 'blur(1px)';
+
+        flash.style.transition = 'none';
+        flash.style.top = y + 'px';
+        flash.style.transform = 'translate(-50%,-50%) scale(1)';
+        flash.style.opacity = '1';
+        void flash.offsetWidth;
+        flash.style.transition = 'transform .34s cubic-bezier(.16,1,.3,1), opacity .32s ease-out';
+        flash.style.transform = 'translate(-50%,-50%) scale(7)';
+        flash.style.opacity = '0';
+
+        this.ripples(stage, 2, 480, y);
+        this.revealBand(bands[i]);
+        if (i === 0) {
+          head.style.opacity = '1';
+          list.style.opacity = '1';
+          wash.style.transition = 'clip-path 1.9s cubic-bezier(.19,1,.22,1)';
+          wash.style.clipPath = 'circle(150% at 50% 0%)';
+        }
+      };
+
+      const steps = [];
+      let from = -Math.round(window.innerHeight * 0.55);
+      bands.forEach((b, i) => {
+        const y = centreOf(b);
+        steps.push({ y: y, from: from, dur: i === 0 ? this.fall : Math.max(0.34, this.fall * 0.42), i: i });
+        from = y;
       });
+      this.stepQueue = steps.slice();
+
+      const run = idx => {
+        if (idx >= steps.length) { this.stepQueue = null; return; }
+        const st = steps[idx];
+        wrap.style.transition = 'none';
+        wrap.style.transform = 'translate(-50%,' + st.from + 'px) scaleY(1)';
+        wrap.style.filter = 'blur(0px)';
+        wrap.style.opacity = '0';
+        void wrap.offsetHeight;
+        wrap.style.transition = 'transform ' + st.dur + 's cubic-bezier(.36,.06,.29,.99), opacity .2s ease';
+        wrap.style.transform = 'translate(-50%,' + st.y + 'px) scaleY(1.45)';
+        wrap.style.opacity = '1';
+        this.wait(() => {
+          land(st.y, st.i);
+          this.stepQueue = steps.slice(idx + 1);
+          this.wait(() => run(idx + 1), 250);
+        }, st.dur * 1000);
+      };
+      run(0);
     };
+
     this.workPlay = play;
-    this.observe(section, 0.15, play, null);
-    // An intersection callback only fires on an edge, which a reset-then-scroll-back can
-    // miss. A cheap scroll check makes the replay deterministic.
+    // Anchored to the first band, not the section: the section's top edge sits near the fold,
+    // so a low threshold on it fires while the visitor is still reading the hero and the whole
+    // sequence plays to an empty room. The scroll check backs the observer up for the case
+    // where a band is taller than the viewport; both paths go through the same guard.
+    this.observe(bands[0] || section, 0.45, play, null);
     this.onWorkScroll = () => {
-      if (this.isMobile ? this.mobilePlayed : this.workPlayed) return;
-      const r = section.getBoundingClientRect();
-      if (r.top < window.innerHeight * 0.85 && r.bottom > 0) {
-        if (this.isMobile) { if (this.playMobile) this.playMobile(); }
-        else play();
-      }
+      if (this.workRevealed) { window.removeEventListener('scroll', this.onWorkScroll); return; }
+      const r = (bands[0] || section).getBoundingClientRect();
+      if (r.top < window.innerHeight * 0.8 && r.bottom > 0) play();
     };
     window.addEventListener('scroll', this.onWorkScroll, { passive: true });
-    section.addEventListener('click', e => {
-      if (this.fastForward()) e.preventDefault();
-    }, true);
+    this.onWorkScroll();
 
-    // Hover / focus, delegated. The active item is never dimmed, including when it is the
-    // focused one — the old CSS :not(:hover) rule dimmed exactly the element it was showing.
-    const set = key => {
-      if (this.activeKey === key) return;
-      this.activeKey = key;
-      this.nodes.forEach(n => {
-        const k = n.dataset.node;
-        n.style.opacity = (key && k !== key) ? '0.25' : '1';
-        n.style.color = (key && k === key) ? 'rgb(' + PROJ[k].rgb + ')' : '#e9e7df';
-        const inner = n.querySelector('[data-inner]');
-        if (inner) inner.style.transform = (key && k === key) ? 'scale(1.08)' : 'scale(1)';
-      });
-      this.card.style.filter = key ? 'brightness(0.75)' : 'none';
-      if (this.cta) {
-        const p = key ? PROJ[key] : null;
-        this.cta.style.opacity = key ? '1' : '0';
-        this.cta.style.pointerEvents = key ? 'auto' : 'none';
-        this.cta.style.transform = 'translate(-50%,' + (key ? this.ctaOffset : this.ctaOffset + 12) + 'px)';
-        if (p) {
-          this.cta.href = p.href;
-          this.cta.style.borderColor = 'rgba(' + p.rgb + ',0.85)';
-          this.cta.setAttribute('aria-label', 'View the ' + key + ' case study');
-        }
-      }
-      stage.querySelectorAll('[data-preview]').forEach(p => {
-        const on = p.dataset.preview === key;
-        const shot = p.querySelector('[data-shot]');
-        const ring = p.querySelector('[data-ring]');
-        const shim = p.querySelector('[data-shimmer]');
-        const glow = p.querySelector('[data-glowback]');
-        const rgb = PROJ[p.dataset.preview].rgb;
-        if (glow) glow.style.opacity = on ? '1' : '0';
-        p.style.opacity = on ? '1' : '0';
-        p.style.transform = 'translate(-50%,-50%) translateY(' + (on ? this.groupShift : this.groupShift + 16) + 'px) scale(' + (on ? 1 : 0.92) + ')';
-        p.style.width = on ? this.previewW + 'px' : '56px';
-        p.style.height = on ? this.previewH + 'px' : '121px';
-        shot.style.boxShadow = on ? '0 0 90px 14px rgba(' + rgb + ',0.4)' : '0 0 0 0 rgba(' + rgb + ',0)';
-        ring.style.opacity = on ? '1' : '0';
-        if (on) {
-          ring.style.animation = 'none'; void ring.offsetWidth;
-          ring.style.animation = 'ringSpin 1.3s cubic-bezier(.19,1,.22,1) 1 forwards';
-          shim.style.animation = 'none'; void shim.offsetWidth;
-          shim.style.animation = 'previewShimmer 1.1s cubic-bezier(.19,1,.22,1) .2s 1';
-        }
-      });
-    };
-    // The active preview persists: it only changes when another project takes over.
-    this.nodes.forEach(n => {
-      const k = n.dataset.node;
-      n.addEventListener('mouseenter', () => set(k));
-      n.addEventListener('focus', () => set(k));
+    // Clicking anywhere in the section finishes the sequence rather than making anyone wait.
+    section.addEventListener('click', e => {
+      if (!this.stepQueue) return;
+      e.preventDefault();
+      this.timers.forEach(clearTimeout);
+      this.timers = [];
+      finishAll();
+    }, true);
+  }
+
+  // Rings are flattened: a ripple on a surface you are looking across is an ellipse.
+  ripples(container, count, max, atY) {
+    const y = atY || 0;
+    let d = 0;
+    for (let i = 0; i < count; i++) {
+      const ring = document.createElement('div');
+      const j = function () { return 48 + Math.random() * 6; };
+      // Each successive ring carries less of the impact: thinner, fainter, shorter reach.
+      const strength = 1 - i * 0.26;
+      const dur = 1.5 * (1 + i * 0.12);
+      ring.style.cssText = 'position:absolute;top:' + y + 'px;left:0;z-index:2;width:0;height:0;border:' +
+        (1 + 2.2 * strength).toFixed(2) + 'px solid var(--accent);transform:translate(-50%,-50%) scaleY(0.16);opacity:0;' +
+        'border-radius:' + j() + '% ' + j() + '% ' + j() + '% ' + j() + '%';
+      container.appendChild(ring);
+      this.wait(function () {
+        ring.style.transition = 'width ' + dur + 's cubic-bezier(.16,1,.3,1), height ' + dur +
+          's cubic-bezier(.16,1,.3,1), opacity ' + dur + 's ease-out, filter ' + dur +
+          's ease-out, border-width ' + dur + 's ease-out';
+        ring.style.opacity = (0.55 * strength).toFixed(2); void ring.offsetHeight;
+        ring.style.width = ring.style.height = (max * (1 - i * 0.16) + Math.random() * (max * 0.1)) + 'px';
+        ring.style.opacity = '0';
+        ring.style.filter = 'blur(5px)';
+        ring.style.borderWidth = '0.5px';
+      }, d);
+      this.wait(function () { ring.remove(); }, d + dur * 1000 + 120);
+      d += 170;
+    }
+  }
+
+  revealBand(b) {
+    if (!b) return;
+    b.style.opacity = '1';
+    b.style.clipPath = 'inset(0 0 0% 0)';
+    if (this.reduced) return;
+    const row = b.querySelector('[data-row]');
+    row.style.animation = 'none'; void row.offsetWidth;
+    row.style.animation = 'bandFall 1.15s cubic-bezier(.22,1,.36,1)';
+    // The project's own colour flares down its left edge as the front passes, then recedes.
+    const edge = b.querySelector('[data-edge]');
+    edge.style.transition = 'transform .42s cubic-bezier(.3,.9,.4,1)';
+    edge.style.transformOrigin = 'top';
+    edge.style.transform = 'scaleY(1)';
+    this.wait(function () {
+      edge.style.transition = 'transform .75s cubic-bezier(.19,1,.22,1)';
+      edge.style.transformOrigin = 'bottom';
+      edge.style.transform = 'scaleY(0)';
+      setTimeout(function () { edge.style.transformOrigin = 'top'; }, 760);
+    }, 430);
+  }
+
+  initBands() {
+    Array.prototype.slice.call(document.querySelectorAll('[data-band]')).forEach(b => {
+      b.style.opacity = '0';
+      b.style.clipPath = 'inset(0 0 100% 0)';
+      b.style.transition = 'opacity .5s ease, clip-path .95s cubic-bezier(.19,1,.22,1)';
+
+      const rgb = BANDS[b.dataset.band].rgb;
+      const flood = b.querySelector('[data-flood]');
+      const edge = b.querySelector('[data-edge]');
+      const shot = b.querySelector('[data-shot]');
+      const img = shot.querySelector('img');
+      const row = b.querySelector('[data-row]');
+      const dim = b.dataset.band === 'amun';
+
+      const set = function (on) {
+        flood.style.transform = 'scaleX(' + (on ? 1 : 0) + ')';
+        edge.style.transform = 'scaleY(' + (on ? 1 : 0) + ')';
+        shot.style.transform = on ? 'scale(1.07) translateY(-3px)' : 'scale(1)';
+        shot.style.boxShadow = on
+          ? '0 26px 60px -16px rgba(' + rgb + ',.45), 0 0 0 1px rgba(' + rgb + ',.4)'
+          : '0 18px 44px -14px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.06)';
+        img.style.filter = on ? 'saturate(1) brightness(1)' : (dim ? 'saturate(.62) brightness(.78)' : 'saturate(.82) brightness(.86)');
+        row.style.transform = on ? 'translateX(9px)' : 'translateX(0)';
+      };
+      b.addEventListener('mouseenter', function () { set(true); });
+      b.addEventListener('mouseleave', function () { set(false); });
+      b.addEventListener('focus', function () { set(true); });
+      b.addEventListener('blur', function () { set(false); });
     });
+  }
+
+  // The spine answers "where am I" without a fixed list of links taking up space.
+  initSpine() {
+    const spine = document.getElementById('spine');
+    const dot = document.getElementById('spineDot');
+    if (!spine || !dot) return;
+    const sync = function () {
+      if (!window.matchMedia('(min-width:1100px)').matches) { spine.style.display = 'none'; return; }
+      spine.style.display = 'block';
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const p = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+      dot.style.top = 'calc(14vh + ' + (p * 72) + 'vh)';
+    };
+    window.addEventListener('scroll', sync, { passive: true });
+    window.addEventListener('resize', sync);
+    sync();
+  }
+
+  initContact() {
+    const pulse = document.getElementById('listenPulse');
+    const section = document.getElementById('contact');
+    if (!pulse || !section || this.reduced) return;
+    this.observe(section, 0.2, function () { pulse.style.opacity = '1'; }, function () { pulse.style.opacity = '0'; });
   }
 
   initDropdown() {
@@ -212,10 +293,11 @@ class Portfolio {
     const menu = det.querySelector('ul');
     const summary = det.querySelector('summary');
     const caret = summary && summary.querySelector('span');
+    if (caret) caret.style.transition = 'transform .3s cubic-bezier(.19,1,.22,1)';
 
-    det.addEventListener('toggle', () => {
+    det.addEventListener('toggle', function () {
       if (caret) caret.style.transform = det.open ? 'translateY(1px) rotate(180deg)' : 'translateY(1px)';
-      if (!det.open || !menu) return;
+      if (!det.open) return;
       menu.style.transition = 'none';
       menu.style.opacity = '0';
       menu.style.transform = 'translateY(-10px) scale(.97)';
@@ -224,249 +306,16 @@ class Portfolio {
       menu.style.opacity = '1';
       menu.style.transform = 'translateY(0) scale(1)';
     });
-    if (caret) caret.style.transition = 'transform .3s cubic-bezier(.19,1,.22,1)';
 
-    const close = () => { if (det.open) det.open = false; };
+    const close = function () { if (det.open) det.open = false; };
     // Pointerdown covers mouse, touch and pen, so tapping out closes it on every device.
-    this.onDocPointer = e => { if (det.open && !det.contains(e.target)) close(); };
-    document.addEventListener('pointerdown', this.onDocPointer, true);
-    this.onDocKey = e => {
-      if (e.key === 'Escape' && det.open) { close(); if (summary) summary.focus(); }
-    };
-    document.addEventListener('keydown', this.onDocKey);
-    menu.addEventListener('click', e => { if (e.target.closest('a')) close(); });
-    this.onDocScrollClose = () => close();
-    window.addEventListener('scroll', this.onDocScrollClose, { passive: true });
+    document.addEventListener('pointerdown', function (e) { if (det.open && !det.contains(e.target)) close(); }, true);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && det.open) { close(); summary.focus(); } });
+    menu.addEventListener('click', function (e) { if (e.target.closest('a')) close(); });
+    window.addEventListener('scroll', close, { passive: true });
   }
 
-  layoutNodes() {
-    if (!this.stage || !this.nodes) return;
-    const r = this.stage.getBoundingClientRect();
-    if (!r.width) return;
-    const rx = r.width * 0.373, ry = r.height * 0.428;
-    this.nodes.forEach(n => {
-      const a = PROJ[n.dataset.node].angle * Math.PI / 180;
-      n.style.transform = 'translate(-50%,-50%) translate(' + (rx * Math.cos(a)) + 'px,' + (ry * Math.sin(a)) + 'px)';
-    });
-    // The preview and its CTA read as one group, so the image sits above centre to make
-    // room for the button underneath it.
-    this.previewW = Math.round(Math.min(190, r.height * 0.32));
-    this.previewH = Math.round(this.previewW * 498 / 230);
-    this.groupShift = -30;
-    this.ctaOffset = this.groupShift + Math.round(this.previewH / 2) + 18;
-    if (this.cta && this.activeKey) this.cta.style.transform = 'translate(-50%,' + this.ctaOffset + 'px)';
-  }
-
-  // Shared drop + ripple. Rings must start at an explicit 0 size and get a forced reflow
-  // between setting the transition and the target size, or the browser will not animate them.
-  playDrop(container, o) {
-    const wrap = container.querySelector('[data-drop-wrap]');
-    const flash = container.querySelector('[data-flash]');
-    const glow = container.querySelector('[data-glow]');
-    if (!wrap) return;
-    container.querySelectorAll('[data-ring]').forEach(r => { if (!r.closest('[data-preview]') && r.id !== 'mobileRing') r.remove(); });
-
-    // The fall is a transform, not `top`: transitioning `top` between a viewport unit and a
-    // percentage is not interpolable, and the drop teleported to the centre instead of falling.
-    const endTop = Math.round(container.getBoundingClientRect().height / 2);
-    const dist = Math.round(window.innerHeight * 0.9) + endTop;
-    this.dropEndTop = endTop;
-    wrap.style.transition = 'none';
-    wrap.style.top = endTop + 'px';
-    wrap.style.opacity = '0';
-    wrap.style.transform = 'translateX(-50%) translateY(' + -dist + 'px) scaleY(1)';
-    wrap.style.filter = 'blur(0px)';
-    void wrap.offsetHeight;
-    wrap.style.transition = 'transform ' + o.fall + 's cubic-bezier(.36,.06,.29,.99), opacity .25s ease';
-    wrap.style.transform = 'translateX(-50%) translateY(0px) scaleY(1.4)';
-    wrap.style.opacity = '1';
-    wrap.style.transform = 'translateX(-50%) scaleY(1.4)';
-
-    const impact = () => {
-      // A real drop does not drift away, it flattens into the surface and is gone in about a
-      // sixth of a second. It has to vanish as the first ring is born, or the ring stops
-      // reading as something the drop caused.
-      wrap.style.transition = 'transform .17s cubic-bezier(.22,.9,.3,1), opacity .15s ease-out .04s, filter .17s ease-out';
-      wrap.style.transform = 'translateX(-50%) translateY(5px) scale(2.2,0.06)';
-      wrap.style.opacity = '0';
-      wrap.style.filter = 'blur(1px)';
-
-      flash.style.transition = 'transform .36s cubic-bezier(.16,1,.3,1), opacity .34s ease-out';
-      flash.style.opacity = '1'; void flash.offsetWidth;
-      flash.style.transform = 'translate(-50%,-50%) scale(7)';
-      flash.style.opacity = '0';
-
-      if (glow) {
-        glow.style.transition = 'none';
-        glow.style.width = glow.style.height = '0px';
-        glow.style.opacity = '0';
-        void glow.offsetHeight;
-        glow.style.transition = 'width ' + o.glowDuration + 's cubic-bezier(.16,1,.3,1), height ' + o.glowDuration + 's cubic-bezier(.16,1,.3,1), opacity ' + o.glowDuration + 's ease-out .3s';
-        glow.style.opacity = '0.4'; void glow.offsetHeight;
-        glow.style.width = glow.style.height = o.glowMax + 'px';
-        glow.style.opacity = '0';
-      }
-
-      let d = 0;
-      for (let i = 0; i < o.ringCount; i++) {
-        const ring = document.createElement('div');
-        const j = () => 48 + Math.random() * 6;
-        ring.setAttribute('data-ring', 'ripple');
-        // Each successive ring carries less of the impact: thinner, fainter, shorter reach.
-        const strength = 1 - i * 0.26;
-        const dur = o.ringDuration * (1 + i * 0.12);
-        ring.style.cssText = 'position:absolute;top:50%;left:50%;z-index:2;width:0;height:0;border:' + (1 + 2.2 * strength).toFixed(2) + 'px solid var(--accent);transform:translate(-50%,-50%);opacity:0;filter:blur(0px);border-radius:' + j() + '% ' + j() + '% ' + j() + '% ' + j() + '%';
-        container.insertBefore(ring, container.firstChild);
-        this.wait(() => {
-          ring.style.transition = 'width ' + dur + 's cubic-bezier(.16,1,.3,1), height ' + dur + 's cubic-bezier(.16,1,.3,1), opacity ' + dur + 's ease-out, filter ' + dur + 's ease-out, border-width ' + dur + 's ease-out';
-          ring.style.opacity = (0.6 * strength).toFixed(2); void ring.offsetHeight;
-          const size = o.ringMax * (1 - i * 0.16) + Math.random() * o.ringMax * 0.1;
-          ring.style.width = ring.style.height = size + 'px';
-          ring.style.opacity = '0';
-          ring.style.filter = 'blur(5px)';
-          ring.style.borderWidth = '0.5px';
-        }, d);
-        this.wait(() => ring.remove(), d + dur * 1000 + 100);
-        d += o.ringStagger;
-      }
-      if (o.onImpact) o.onImpact();
-    };
-    // Held so a click can land the drop early instead of waiting out the fall.
-    this.pendingImpact = impact;
-    this.impactTimer = setTimeout(() => {
-      this.pendingImpact = null;
-      this.impactTimer = null;
-      impact();
-    }, o.fall * 1000);
-    this.timers.push(this.impactTimer);
-  }
-
-  // Clicking mid-fall lands the drop now; the reveal it causes runs at full speed.
-  fastForward() {
-    if (!this.pendingImpact) return false;
-    clearTimeout(this.impactTimer);
-    const fn = this.pendingImpact;
-    this.pendingImpact = null;
-    this.impactTimer = null;
-    const wrap = document.querySelector((this.isMobile ? '#mobileDropStage' : '#rippleStage') + ' [data-drop-wrap]');
-    if (wrap) {
-      wrap.style.transition = 'none';
-      wrap.style.top = (this.dropEndTop || 0) + 'px';
-      wrap.style.transform = 'translateX(-50%) translateY(0px) scaleY(1.4)';
-      wrap.style.opacity = '1';
-      void wrap.offsetHeight;
-    }
-    fn();
-    return true;
-  }
-
-  // --- Work (mobile): pills + one shared preview. The drop anchor lives inside the card,
-  // so it lands on the card's real centre instead of the section's geometric centre. ---
-  initMobile() {
-    const wrap = document.getElementById('workMobile');
-    const pills = Array.from(document.querySelectorAll('[data-pill]'));
-    if (!wrap || !pills.length) return;
-    this.mobileWrap = wrap;
-
-    const img = document.getElementById('mobilePreviewImg');
-    const shot = document.getElementById('mobileShot');
-    const ring = document.getElementById('mobileRing');
-    const desc = document.getElementById('mobileDesc');
-    const link = document.getElementById('mobileLink');
-    const copy = document.getElementById('mobileCopy');
-
-    const select = key => {
-      if (this.mobileKey === key) return;
-      const fresh = !this.mobileKey;
-      this.mobileKey = key;
-      const p = PROJ[key];
-      pills.forEach(b => {
-        const on = b.dataset.pill === key;
-        b.setAttribute('aria-pressed', on ? 'true' : 'false');
-        b.style.color = on ? '#e9e7df' : '#a09c92';
-        b.style.borderColor = on ? 'rgba(' + p.rgb + ',0.9)' : '#3a3a38';
-        b.style.background = on ? 'rgba(' + p.rgb + ',0.14)' : 'none';
-        b.style.boxShadow = on ? '0 0 20px -4px rgba(' + p.rgb + ',0.55)' : 'none';
-      });
-      link.href = p.href;
-      const apply = () => {
-        img.src = p.img;
-        desc.textContent = p.hook;
-        img.style.opacity = '1';
-        desc.style.opacity = '1';
-        shot.style.opacity = '1';
-        shot.style.transform = 'scale(1)';
-        shot.style.boxShadow = '0 0 50px 6px rgba(' + p.rgb + ',0.3)';
-        ring.style.background = 'conic-gradient(from 0deg, transparent 0%, rgba(' + p.rgb + ',.9) 10%, #fff 18%, rgba(' + p.rgb + ',.9) 26%, transparent 42%, transparent 100%)';
-        ring.style.opacity = '1';
-        ring.style.animation = 'none'; void ring.offsetWidth;
-        ring.style.animation = 'ringSpin 1.3s cubic-bezier(.19,1,.22,1) 1 forwards';
-        copy.style.opacity = '1';
-      };
-      if (fresh) { apply(); }
-      else {
-        img.style.opacity = '0';
-        desc.style.opacity = '0';
-        clearTimeout(this.swapTimer);
-        this.swapTimer = setTimeout(apply, 180);
-      }
-    };
-    pills.forEach(b => b.addEventListener('click', () => select(b.dataset.pill)));
-
-    const card = document.getElementById('mobileCard');
-    const dropStage = document.getElementById('mobileDropStage');
-    const bloom = document.getElementById('workBloom');
-    const section = document.getElementById('work');
-
-    const openMobileCard = () => {
-      card.style.transition = 'clip-path 1s cubic-bezier(.19,1,.22,1)';
-      card.style.clipPath = 'circle(150% at 50% 50%)';
-      bloom.style.transition = 'clip-path 1.6s cubic-bezier(.19,1,.22,1)';
-      bloom.style.clipPath = 'circle(150% at 50% 50%)';
-    };
-
-    this.playMobile = () => {
-      if (this.mobilePlayed) return;
-      this.mobilePlayed = true;
-      if (this.reduced) { openMobileCard(); select('nitefind'); return; }
-      this.playDrop(dropStage, {
-        fall: Math.min(this.fall, 1.1), ringCount: 3, ringStagger: 160, ringDuration: 1.2,
-        ringMax: 340, glowDuration: 1, glowMax: 240,
-        onImpact: () => {
-          openMobileCard();
-          card.style.animation = 'none';
-          void card.offsetWidth;
-          card.style.animation = 'cardRippleM 1.2s cubic-bezier(.22,1,.36,1)';
-          this.wait(() => select('nitefind'), 120);
-        },
-      });
-    };
-    if (section) this.observe(section, 0.15, () => { if (this.isMobile) this.playMobile(); }, null);
-  }
-
-  // One layout switch, so the desktop sequence never runs behind display:none on a phone.
-  syncLayout() {
-    const mobile = window.matchMedia('(max-width:700px)').matches;
-    if (mobile === this.isMobile) return;
-    this.isMobile = mobile;
-    if (this.stage) this.stage.style.display = mobile ? 'none' : 'block';
-    if (this.mobileWrap) this.mobileWrap.style.display = mobile ? 'flex' : 'none';
-    if (mobile && this.playMobile) {
-      const r = document.getElementById('work').getBoundingClientRect();
-      if (r.top < window.innerHeight && r.bottom > 0) this.playMobile();
-    }
-    if (!mobile) this.layoutNodes();
-  }
-
-  initContact() {
-    const pulse = document.getElementById('listenPulse');
-    const section = document.getElementById('contact');
-    if (!pulse || !section || this.reduced) return;
-    this.observe(section, 0.2, () => { pulse.style.opacity = '1'; }, () => { pulse.style.opacity = '0'; });
-  }
-
-  // Arriving from a project page with #about or #contact: the DC mounts after the browser
-  // has already given up on the hash, so the jump has to be re-applied once laid out.
+  // Arriving from a project page with #about or #contact: re-apply the jump once laid out.
   applyIncomingHash() {
     const id = (window.location.hash || '').slice(1);
     if (!id) return;
@@ -480,31 +329,25 @@ class Portfolio {
     this.wait(jump, 400);
   }
 
-  // Every section snaps, which means a programmatic jump can be dragged to the wrong
-  // section's snap point mid-flight. Snapping is lifted for the duration of the jump only.
+  // A programmatic jump can be dragged to the wrong section's snap point mid-flight, so
+  // snapping is lifted for the duration of the jump only.
   suspendSnap(restoreAfter) {
     const html = document.documentElement;
     html.style.scrollSnapType = 'none';
     clearTimeout(this.snapTimer);
-    const restore = () => { html.style.scrollSnapType = ''; };
-    this.snapTimer = setTimeout(restore, restoreAfter || 260);
-    this.timers.push(this.snapTimer);
+    this.snapTimer = setTimeout(function () { html.style.scrollSnapType = ''; }, restoreAfter || 260);
   }
 
   // KD in the nav returns the page to its opening state and replays every reveal.
   resetAll() {
     this.timers.forEach(clearTimeout);
     this.timers = [];
-    this.pendingImpact = null;
-    this.impactTimer = null;
-    clearTimeout(this.swapTimer);
-
+    this.stepQueue = null;
     window.scrollTo({ top: 0, behavior: 'instant' });
 
-    // hero
     const ghost = document.getElementById('heroGhost');
     if (ghost) ghost.style.opacity = '0';
-    document.querySelectorAll('#heroHeadline [data-line]').forEach(l => {
+    document.querySelectorAll('#heroHeadline [data-line]').forEach(function (l) {
       l.style.transition = 'none';
       l.style.opacity = '0';
       l.style.setProperty('--reveal', '0%');
@@ -514,77 +357,32 @@ class Portfolio {
     });
     this.heroPlayed = false;
 
-    // work, both layouts
-    this.workPlayed = false;
-    this.mobilePlayed = false;
-    this.activeKey = null;
-    this.mobileKey = null;
-    const bloom = document.getElementById('workBloom');
-    [bloom, this.card, document.getElementById('mobileCard')].forEach(el => {
-      if (!el) return;
-      el.style.transition = 'none';
-      el.style.animation = 'none';
-      el.style.clipPath = 'circle(0% at 50% 50%)';
-      void el.offsetWidth;
+    this.workRevealed = false;
+    document.getElementById('workGhost').style.opacity = '0';
+    document.getElementById('workHead').style.opacity = '0';
+    document.getElementById('bands').style.opacity = '0';
+    const wash = document.getElementById('workWash');
+    wash.style.transition = 'none';
+    wash.style.clipPath = 'circle(0% at 50% 0%)';
+    void wash.offsetWidth;
+    document.querySelectorAll('[data-band]').forEach(function (b) {
+      b.style.opacity = '0';
+      b.style.clipPath = 'inset(0 0 100% 0)';
+      b.querySelector('[data-row]').style.animation = 'none';
+      b.querySelector('[data-edge]').style.transform = 'scaleY(0)';
     });
-    if (this.card) this.card.style.filter = 'none';
-    if (this.nodes) this.nodes.forEach(n => {
-      n.style.opacity = '0';
-      n.style.color = '#e9e7df';
-      const inner = n.querySelector('[data-inner]');
-      if (inner) { inner.style.animation = 'none'; inner.style.transform = 'scale(1)'; }
-    });
-    if (this.cta) { this.cta.style.opacity = '0'; this.cta.style.pointerEvents = 'none'; }
-    document.querySelectorAll('#rippleStage [data-preview]').forEach(p => {
-      p.style.opacity = '0';
-      const g = p.querySelector('[data-glowback]');
-      const r = p.querySelector('[data-ring]');
-      if (g) g.style.opacity = '0';
-      if (r) r.style.opacity = '0';
-    });
-    document.querySelectorAll('[data-ring="ripple"]').forEach(r => r.remove());
-    ['#rippleStage', '#mobileDropStage'].forEach(sel => {
-      const w = document.querySelector(sel + ' [data-drop-wrap]');
-      if (!w) return;
-      w.style.transition = 'none';
-      w.style.top = -Math.round(window.innerHeight * 0.9) + 'px';
-      w.style.opacity = '0';
-      w.style.transform = 'translateX(-50%) translateY(0px) scaleY(1)';
-      w.style.filter = 'blur(0px)';
-      void w.offsetHeight;
-    });
-    // mobile stack
-    const shot = document.getElementById('mobileShot');
-    const mring = document.getElementById('mobileRing');
-    const copy = document.getElementById('mobileCopy');
-    if (shot) { shot.style.opacity = '0'; shot.style.transform = 'scale(.96)'; shot.style.boxShadow = 'none'; }
-    if (mring) mring.style.opacity = '0';
-    if (copy) copy.style.opacity = '0';
-    document.querySelectorAll('[data-pill]').forEach(b => {
-      b.setAttribute('aria-pressed', 'false');
-      b.style.color = '#a09c92';
-      b.style.borderColor = '#3a3a38';
-      b.style.background = 'none';
-      b.style.boxShadow = 'none';
-    });
+    const wrap = document.querySelector('#dropStage [data-drop-wrap]');
+    wrap.style.transition = 'none';
+    wrap.style.opacity = '0';
+    wrap.style.filter = 'blur(0px)';
+    document.querySelectorAll('#dropStage div[style*="border-radius:4"]').forEach(function (r) { r.remove(); });
 
-    // contact
     const pulse = document.getElementById('listenPulse');
     if (pulse) pulse.style.opacity = '0';
 
-    // replay from the top; the work observer re-fires when it next scrolls into view
     this.wait(() => {
-      this.heroPlayed = false;
       if (this.heroPlay) this.heroPlay();
-      // A reset that lands with the work section still on screen gets no fresh
-      // intersection callback, so replay it directly in that case.
-      const w = document.getElementById('work');
-      if (!w) return;
-      const r = w.getBoundingClientRect();
-      if (r.top < window.innerHeight * 0.85 && r.bottom > 0) {
-        if (this.isMobile) { if (this.playMobile) this.playMobile(); }
-        else if (this.workPlay) this.workPlay();
-      }
+      window.addEventListener('scroll', this.onWorkScroll, { passive: true });
     }, 60);
   }
 
@@ -604,4 +402,4 @@ class Portfolio {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => new Portfolio().init());
+document.addEventListener('DOMContentLoaded', function () { new Portfolio().init(); });

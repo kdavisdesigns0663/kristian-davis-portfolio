@@ -19,29 +19,11 @@
   ::selection{ background:rgba(var(--accent-rgb),.35); color:#fff; }
   :focus-visible{ outline:2px solid var(--accent); outline-offset:4px; border-radius:2px; }
   @property --reveal{ syntax:'<percentage>'; inherits:false; initial-value:0%; }
-  @keyframes textRipple{
-    0%{ transform:scale(.9) skewX(0deg); }
-    32%{ transform:scale(1.05) skewX(-4deg); }
-    56%{ transform:scale(.97) skewX(2.5deg); }
-    76%{ transform:scale(1.015) skewX(-1deg); }
-    100%{ transform:scale(1) skewX(0deg); }
-  }
-  @keyframes previewShimmer{ to{ transform:translateX(130%); } }
-  @keyframes cardRippleD{
-    0%{ transform:translate(-50%,-50%) scale(.985) skewX(0deg); }
-    30%{ transform:translate(-50%,-50%) scale(1.012) skewX(-1.1deg); }
-    56%{ transform:translate(-50%,-50%) scale(.995) skewX(.7deg); }
-    78%{ transform:translate(-50%,-50%) scale(1.004) skewX(-.3deg); }
-    100%{ transform:translate(-50%,-50%) scale(1) skewX(0deg); }
-  }
-  @keyframes cardRippleM{
-    0%{ transform:scale(.985) skewX(0deg); }
-    30%{ transform:scale(1.012) skewX(-1.1deg); }
-    56%{ transform:scale(.995) skewX(.7deg); }
-    78%{ transform:scale(1.004) skewX(-.3deg); }
-    100%{ transform:scale(1) skewX(0deg); }
-  }
-  @keyframes ringSpin{ to{ transform:rotate(360deg); } }
+  
+  
+  
+  
+  
   @keyframes listenPulse{
     0%{ width:10px; height:10px; opacity:.5; }
     70%{ opacity:0; }
@@ -74,4 +56,30 @@
 @media (prefers-reduced-motion: reduce){
   html{ scroll-behavior:auto; }
   *, *::before, *::after{ animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
+}
+
+/* --- work bands (added with the new work section) --- */
+/* Liquid settle: the row lands, compresses, and rebounds, the way a surface absorbs
+   something dropped onto it. Vertical, not lateral, so it reads as descent. */
+@keyframes bandFall{
+  0%{ transform:translateY(-14px) scaleY(1.05) skewX(0deg); }
+  38%{ transform:translateY(0) scaleY(.965) skewX(-.35deg); }
+  62%{ transform:translateY(0) scaleY(1.018) skewX(.18deg); }
+  82%{ transform:translateY(0) scaleY(.995) skewX(-.07deg); }
+  100%{ transform:translateY(0) scaleY(1) skewX(0deg); }
+}
+
+/* Band rows regroup rather than shrink: the four desktop columns become a stack where the
+   screenshot sits beside the project name and the decision runs full width beneath. */
+@media (max-width:900px){
+  [data-row]{
+    grid-template-columns:minmax(0,1fr) auto !important;
+    grid-template-areas:'num num' 'title shot' 'dec dec' !important;
+    align-items:start !important;
+    gap:16px 20px !important;
+  }
+  [data-row] > *:nth-child(1){ grid-area:num; }
+  [data-row] > *:nth-child(2){ grid-area:title; }
+  [data-row] > *:nth-child(3){ grid-area:dec; padding-left:0 !important; border-left:0 !important; padding-top:17px; border-top:1px solid #1c1c1a; }
+  [data-row] > *:nth-child(4){ grid-area:shot; width:88px !important; }
 }
