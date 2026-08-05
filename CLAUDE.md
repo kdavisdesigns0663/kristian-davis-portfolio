@@ -50,9 +50,26 @@ img/kristian-about-mobile-crop.jpg   mobile bio photo, tighter crop
 ## Things that are easy to get wrong here
 - **Scroll snap is `proximity`, not `mandatory`.** Mandatory forced every section
   to fit exactly one viewport and was why the bio section had to be fought into
-  submission. Programmatic jumps briefly set `scroll-snap-type:none` via
-  `suspendSnap()`, because a snap point can otherwise drag a deep link to the
-  wrong section mid-flight.
+  submission. Also tested and confirmed broken a second time, independently: A/B'd
+  identical wheel input against proximity and mandatory got permanently stuck at
+  the first section boundary (0px of further scroll across 40+ events) while
+  proximity scrolled the page freely every time. Don't reach for mandatory here.
+  Programmatic jumps briefly set `scroll-snap-type:none` via `suspendSnap()`,
+  because a snap point can otherwise drag a deep link to the wrong section
+  mid-flight.
+- **The actual "forced scroll to next section, lock it in" behavior is
+  `initScrollLock()` in `main.js`, not CSS.** It intercepts wheel (desktop) and
+  touch (mobile) directly: while there's room left to scroll WITHIN the current
+  section it does nothing, but the moment input would carry you past a section's
+  own edge, the native scroll is prevented and gated behind an accumulated-
+  distance threshold, then committed with one `scrollIntoView`. This is what
+  lets `#about` (no fixed height, ~1800px tall on a phone) scroll through freely
+  while hero/work/contact each lock decisively. Mobile commits with
+  `behavior:'instant'`, desktop with `'smooth'` — deliberately different, not a
+  bug. If you touch this, keep the bounds check that skips interception past the
+  first/last stop; without it, overshooting past Contact re-triggers
+  `scrollIntoView` on itself and yanks the page back to Contact's own top instead
+  of allowing normal end-of-page scroll.
 - **The mobile and desktop work sections are switched in JS, not CSS.** A
   `display:none` stage still runs its timers, and the desktop sequence used to
   overwrite the mobile bloom's origin with a zeroed coordinate. `syncLayout()`
