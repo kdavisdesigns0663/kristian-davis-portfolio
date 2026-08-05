@@ -29,10 +29,10 @@ if (heroSection) {
   // makes all four identical by construction, and it self-adjusts at every breakpoint (narrower
   // viewport -> shorter lines -> proportionally shorter durations, same speed) with no per-
   // breakpoint tuning. The sequencing (order, phrase pause placement) was already right -- this
-  // only slows the sweep itself, ~222px/s now (was 556px/s originally, 333px/s one tuning pass
-  // ago) for a more deliberate, cinematic pace; total sequence time scales up with it since later
-  // starts are still chained off earlier durations, not held to a fixed clock.
-  const PX_RATE = 0.0045;
+  // only tunes the sweep itself, ~250px/s now (was 222px/s one pass ago, 556px/s originally,
+  // 333px/s two passes ago) for a more deliberate, cinematic pace; total sequence time scales up
+  // with it since later starts are still chained off earlier durations, not held to a fixed clock.
+  const PX_RATE = 0.004;
   const PHRASE_PAUSE = 1.2; // the ONE deliberate gap: between the two sentences, nowhere else
   const OPENING_DELAY = 1; // a beat of stillness before line 0 starts -- without it the reveal
                             // fires the instant the page loads, which read as motion starting
@@ -208,17 +208,13 @@ if (stage) {
     p.el = el;
 
     // .preview-wrap carries position/size/the active toggle; .preview inside it is just the
-    // clipped image box. Split this way so the ring + corner brackets (siblings of .preview,
-    // not children) can extend past the image's own rounded corners instead of being clipped
-    // by the overflow:hidden that the image itself needs. See style.css for the visual detail.
+    // clipped image box. Split this way so the ring (a sibling of .preview, not a child) can
+    // extend past the image's own rounded corners instead of being clipped by the
+    // overflow:hidden that the image itself needs. See style.css for the visual detail.
     const previewWrap = document.createElement('div');
     previewWrap.className = 'preview-wrap ' + p.key;
     previewWrap.innerHTML = `
       <div class="preview-ring"></div>
-      <span class="preview-corner tl"></span>
-      <span class="preview-corner tr"></span>
-      <span class="preview-corner bl"></span>
-      <span class="preview-corner br"></span>
       <div class="preview">
         <img src="${p.img}" alt="${p.isPlaceholder ? '' : p.name + ' preview'}" loading="lazy">
         <span class="preview-shimmer"></span>

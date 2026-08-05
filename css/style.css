@@ -75,9 +75,13 @@ a{ color:inherit; text-decoration:none; }
    elements -- no wrapper div needed just to centre a subset of the section's children.
    eyebrow's old padding-top:260px existed purely to clear the nav under the old top-anchored
    layout; centred content doesn't need it; removed rather than left as dead space above the
-   eyebrow now. min-height keeps a floor on very short viewports so centring still has visible
-   content to centre rather than collapsing toward the section's own min-content size. */
-.hero{ position:relative; display:flex; flex-direction:column; justify-content:center; padding:40px 64px; min-height:820px; }
+   eyebrow now. min-height:max(820px,100dvh) keeps the section filling the viewport like every
+   other .snap-section -- a plain 820px here was overriding .snap-section's own 100vh/100dvh
+   floor (same specificity, .hero declared later in the stylesheet wins), so on any monitor
+   taller than 820px the hero fell short of full-viewport and the top of Work was visible
+   without scrolling, which also fired Work's entrance animations before you'd actually
+   scrolled to it. max() keeps 820px only as a floor for short viewports, same original intent. */
+.hero{ position:relative; display:flex; flex-direction:column; justify-content:center; padding:40px 64px; min-height:820px; min-height:max(820px,100vh); min-height:max(820px,100dvh); }
 .hero .eyebrow{ position:relative; z-index:2; font-family:var(--font-mono); font-size:15px; margin-left:24px; color:var(--text-dim); }
 .hero .eyebrow b{ color:var(--accent); font-weight:500; }
 .hero .headline{ position:relative; z-index:2; margin-top:32px; margin-left:24px; }
@@ -343,23 +347,8 @@ a{ color:inherit; text-decoration:none; }
 .mobile-preview-wrap.active .preview-ring{ opacity:1; animation:previewRingSpin 1.3s cubic-bezier(.19,1,.22,1) 1 forwards; }
 @keyframes previewRingSpin{ to{ transform:rotate(360deg); } }
 
-.ripple-stage .preview-corner{
-  position:absolute; width:16px; height:16px;
-  border:1.5px solid rgba(var(--proj-rgb),0.95);
-  opacity:0; transform:scale(0.5); pointer-events:none;
-  transition:opacity .5s ease, transform .5s cubic-bezier(.19,1,.22,1);
-}
-.ripple-stage .preview-corner.tl{ top:-10px; left:-10px; border-right:none; border-bottom:none; }
-.ripple-stage .preview-corner.tr{ top:-10px; right:-10px; border-left:none; border-bottom:none; }
-.ripple-stage .preview-corner.bl{ bottom:-10px; left:-10px; border-right:none; border-top:none; }
-.ripple-stage .preview-corner.br{ bottom:-10px; right:-10px; border-left:none; border-top:none; }
-.ripple-stage .preview-wrap.active .preview-corner{ opacity:1; transform:scale(1); }
-.ripple-stage .preview-wrap.active .preview-corner.tr{ transition-delay:.05s; }
-.ripple-stage .preview-wrap.active .preview-corner.bl{ transition-delay:.1s; }
-.ripple-stage .preview-wrap.active .preview-corner.br{ transition-delay:.15s; }
-
-/* --proj-rgb is the one thing that changes per project — it drives the tint, ring, corners and
-   glow everywhere. Colors match each project's actual screenshot; Amun stays neutral gray since
+/* --proj-rgb is the one thing that changes per project — it drives the tint, ring, and glow
+   everywhere. Colors match each project's actual screenshot; Amun stays neutral gray since
    it has no real screen yet. All three consumers need the rule; none share a common class. */
 .preview-wrap.nitefind, .mobile-preview-wrap.nitefind, .work-pill.nitefind{ --proj-rgb:176,74,214; }
 .preview-wrap.smiteforge, .mobile-preview-wrap.smiteforge, .work-pill.smiteforge{ --proj-rgb:224,184,74; }
