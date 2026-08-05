@@ -19,15 +19,14 @@ html{ scroll-snap-type:y mandatory; overflow-x:hidden; }
    no @supports needed. Mobile 100vh measures the LARGEST viewport (address bar hidden), so a
    section sized to it ends up taller than what's actually on screen; dvh tracks the real one. */
 .snap-section{ min-height:100vh; min-height:100dvh; scroll-snap-align:start; scroll-snap-stop:always; }
-/* Mobile gets a softer snap. `mandatory` + `stop:always` forces a stop at every section however
-   hard you swipe, and with touch tracking the finger directly (the wheel-resistance controller at
-   the bottom of this file is wheel-only on purpose) that read as the page fighting the gesture.
-   `proximity` only pulls you in once you're already close; `stop:normal` is its correct pairing —
-   `always` would still force a stop even when the scroll was legitimately sailing past. */
-@media (max-width:700px){
-  html{ scroll-snap-type:y proximity; }
-  .snap-section{ scroll-snap-stop:normal; }
-}
+/* Mobile used to get a softer `proximity` snap (an earlier version of this comment explained the
+   tradeoff: `mandatory` fighting a direct-tracking touch gesture). That softness is exactly what
+   let #work be rested at a non-snapped, half-scrolled position -- the actual root enabler of
+   "the work section's pills/preview visibly scroll," survived two different position:fixed
+   rewrites because neither addressed this. Mobile now shares desktop's `mandatory` +
+   `scroll-snap-stop:always` (i.e. this rule needs no mobile override at all) so there is no
+   resting position other than fully snapped into a section, same as desktop -- the owner asked
+   for the mobile work section to behave exactly like desktop's, not just look similar. */
 
 *{ margin:0; padding:0; box-sizing:border-box; }
 
@@ -259,20 +258,27 @@ a{ color:inherit; text-decoration:none; }
    cubic-bezier(.19,1,.22,1)) rather than its own width/height scale-up -- the card and the
    background used to bloom at visibly different speeds/curves, this makes them read as one
    consistent motion. Width/height are set to their final 108% up front (no longer part of the
-   animation); clip-path controls visibility instead, same as the background does. */
+   animation); clip-path controls visibility instead, same as the background does. Transition is
+   declared ONLY on .active, matching .section-bloom.bloomed -- reveal animates, but scrolling
+   back out (removing .active) snaps to hidden instantly instead of spending another 4.5s shrinking
+   away, so a quick scroll-out-and-back-in isn't fighting a still-in-progress reset. */
 .ripple-stage .stage-card{
   z-index:1; width:108%; height:108%; opacity:1;
   clip-path:circle(0% at 50% 50%);
   box-shadow:0 40px 100px -24px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.05);
+}
+.ripple-stage .stage-card.active{
+  clip-path:circle(150% at 50% 50%);
   transition:clip-path 4.5s cubic-bezier(.19,1,.22,1);
 }
-.ripple-stage .stage-card.active{ clip-path:circle(150% at 50% 50%); }
 /* Spotlight cue: the card dims behind the glowing preview, reinforcing the "stage" read. */
 .ripple-stage.hovering .stage-card{ filter:brightness(0.75); transition:filter .5s ease; }
 
 .ripple-stage .node{ position:absolute; top:50%; left:50%; opacity:0; color:var(--text); font-family:var(--font-display); font-size:20px; font-weight:700; white-space:nowrap; text-align:center; cursor:pointer; z-index:2; transform:translate(-50%,-50%) scale(0.3); filter:blur(8px); transition:opacity 1.9s ease, transform 2.6s cubic-bezier(.22,1.44,.36,1), filter 2.2s ease-out; }
 .ripple-stage .node .hook{ font-family:'Inter',sans-serif; font-size:11px; color:var(--text-mute); font-weight:400; margin-top:4px; }
-.ripple-stage .node:hover, .ripple-stage .node:focus{ color:var(--accent); }
+/* Each project's own color (--proj-rgb, set via the .node.KEY rules above), not one shared
+   accent for all four -- matches the ring/glow color that project's own preview uses on hover. */
+.ripple-stage .node:hover, .ripple-stage .node:focus{ color:rgb(var(--proj-rgb)); }
 .ripple-stage .node.placed{ opacity:1; filter:blur(0px); }
 .ripple-stage.hovering .node:not(:hover){ opacity:0.25 !important; }
 
@@ -285,13 +291,26 @@ a{ color:inherit; text-decoration:none; }
   76%{ transform:scale(1.02) skewX(-1.5deg); }
   100%{ transform:scale(1) skewX(0deg); }
 }
-.ripple-stage .node-inner{ display:block; }
-.ripple-stage .node.placed .node-inner{ animation:textRipple 1.3s cubic-bezier(.22,1,.36,1) both; }
+.ripple-stage .node-inner{ display:block; transition:transform .3s ease; }
+/* No fill-mode (was `both`) -- textRipple's own last keyframe (scale(1) skewX(0deg)) is
+   identical to the element's un-animated resting transform, so dropping the forwards fill
+   doesn't change how it looks once the wobble settles. It matters for hover below: a finished
+   animation with a forwards fill still "owns" the animated property indefinitely per the cascade
+   (animations outrank transitions), which silently blocked the hover scale from ever applying no
+   matter how long ago the wobble had actually finished. Without forwards fill, control reverts to
+   the normal cascade the instant the animation ends, so the hover transition can take over. */
+.ripple-stage .node.placed .node-inner{ animation:textRipple 1.3s cubic-bezier(.22,1,.36,1); }
+/* Slight enlarge on hover -- lives on the inner wrapper, not .node itself, because .node's own
+   transform is set inline by main.js (translate to its X position + scale(1)) to place it in the
+   X-layout; a CSS transform here would need !important to fight that AND would have to duplicate
+   each node's own translate offset to avoid resetting its position. The inner wrapper's transform
+   is free once textRipple finishes (see above), so scaling it up doesn't fight anything. */
+.ripple-stage .node:hover .node-inner, .ripple-stage .node:focus .node-inner{ transform:scale(1.08); }
 
 /* --- Preview image layers, shared by the desktop hover preview and the mobile fixed preview ---
-   Three stacked layers over the image: ::before is a corner accent tint, ::after a bottom-up dark
-   fade for label legibility, .preview-tag the project name on top of that fade. All keyed off
-   --proj-rgb so one set of rules covers every project. */
+   ::before is a corner accent tint keyed off --proj-rgb so one rule covers every project. (A
+   bottom-up dark fade + project-name label used to sit on top of the image here too; both were
+   removed together since the fade's only job was label legibility.) */
 .ripple-stage .preview img, .work-item-preview-bloom img{
   position:relative; z-index:1; width:100%; height:100%;
   object-fit:cover; object-position:top; display:block;
@@ -299,14 +318,6 @@ a{ color:inherit; text-decoration:none; }
 .ripple-stage .preview::before, .work-item-preview-bloom::before{
   content:""; position:absolute; inset:0; z-index:2; pointer-events:none;
   background:radial-gradient(circle at 82% 14%, rgba(var(--proj-rgb),0.4), transparent 55%);
-}
-.ripple-stage .preview::after, .work-item-preview-bloom::after{
-  content:""; position:absolute; inset:0; z-index:3; pointer-events:none;
-  background:linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 22%, transparent 46%);
-}
-.ripple-stage .preview .preview-tag, .work-item-preview-bloom .preview-tag{
-  position:absolute; left:14px; bottom:12px; z-index:4; pointer-events:none;
-  font-family:var(--font-display); font-weight:700; font-size:14px; color:#f4f2ee;
 }
 
 /* Desktop preview is split into an outer .preview-wrap (position/size/active toggle, NOT clipped)
@@ -356,13 +367,14 @@ a{ color:inherit; text-decoration:none; }
 .mobile-preview-wrap.active .preview-ring{ opacity:1; animation:previewRingSpin 1.3s cubic-bezier(.19,1,.22,1) 1 forwards; }
 @keyframes previewRingSpin{ to{ transform:rotate(360deg); } }
 
-/* --proj-rgb is the one thing that changes per project — it drives the tint, ring, and glow
-   everywhere. Colors match each project's actual screenshot; Amun stays neutral gray since
-   it has no real screen yet. All three consumers need the rule; none share a common class. */
-.preview-wrap.nitefind, .mobile-preview-wrap.nitefind, .work-pill.nitefind{ --proj-rgb:176,74,214; }
-.preview-wrap.smiteforge, .mobile-preview-wrap.smiteforge, .work-pill.smiteforge{ --proj-rgb:224,184,74; }
-.preview-wrap.zentra, .mobile-preview-wrap.zentra, .work-pill.zentra{ --proj-rgb:79,191,130; }
-.preview-wrap.amun, .mobile-preview-wrap.amun, .work-pill.amun{ --proj-rgb:143,143,143; }
+/* --proj-rgb is the one thing that changes per project — it drives the tint, ring, glow, and
+   (via .node below) each project's own node-label hover color. Colors match each project's
+   actual screenshot; Amun stays neutral gray since it has no real screen yet. Four consumers
+   now; none share a common class. */
+.preview-wrap.nitefind, .mobile-preview-wrap.nitefind, .work-pill.nitefind, .node.nitefind{ --proj-rgb:176,74,214; }
+.preview-wrap.smiteforge, .mobile-preview-wrap.smiteforge, .work-pill.smiteforge, .node.smiteforge{ --proj-rgb:224,184,74; }
+.preview-wrap.zentra, .mobile-preview-wrap.zentra, .work-pill.zentra, .node.zentra{ --proj-rgb:79,191,130; }
+.preview-wrap.amun, .mobile-preview-wrap.amun, .work-pill.amun, .node.amun{ --proj-rgb:143,143,143; }
 
 /* --- Work section, mobile fallback ---
    The X-layout stage assumes a desktop canvas, so below 700px it's replaced by a row of pills
@@ -373,40 +385,26 @@ a{ color:inherit; text-decoration:none; }
    There's exactly one drop per visit, not one per tap: playMobileEntrance() in main.js fires it,
    and everything after — the pills, then the default first preview — is revealed by that same
    impact, so it reads as caused by the drop rather than materializing independently. */
-.work-mobile-fixed, .work-mobile-stage, .mobile-preview-wrap, .mobile-preview-copy{ display:none; }
+.work-mobile-stack, .work-mobile-stage, .mobile-preview-wrap, .mobile-preview-copy{ display:none; }
 @media (max-width:700px){
   .ripple-stage{ display:none; }
-  /* Pills / preview / copy are genuinely PINNED to the viewport while #work is in view -- not
-     in normal document flow. A prior version put them in flow instead (one flex column, scrolling
-     with the page) specifically to fix pills getting covered by the preview image; that traded one
-     bug for a different regression: in-flow content scrolls BY DEFINITION, so the "stay stationary
-     while you're in this section" behavior (the actual original goal) was gone, not fixed.
-     This version keeps the stationary behavior AND fixes the covering bug: all three are children
-     of ONE fixed, centred container (.work-mobile-fixed) instead of three independently
-     `position:fixed` elements tied together by matching calc(50% + 187px) offsets that only lined
-     up when the section happened to sit exactly at the viewport edge (mobile's scroll-snap is
-     `proximity`, a soft snap you can rest between, so that assumption regularly broke — measured
-     the pills passing straight through the pinned image at several mid-scroll offsets). With one
-     fixed parent and a normal flex column INSIDE it, the browser's own layout guarantees the pills
-     sit above the preview with no overlap, the same way it would for in-flow content — the
-     difference is the whole bundle is fixed to the viewport, not the document.
-     .in-view is toggled by main.js (an IntersectionObserver on #work, not CSS) so this hides
-     itself once the section actually leaves the viewport instead of floating over About/Contact
-     — see the comment above that observer in main.js for why threshold:0/rootMargin:-2px.
-     This element is ALSO deliberately placed in index.html as a sibling of the sections, not a
-     descendant of #work — see the HTML comment there for the scroll-snap + position:fixed WebKit
-     bug that was the real root cause of pills/preview visibly moving during scroll.
-     translate3d(...,0) + backface-visibility:hidden forces this onto its own compositor layer --
-     without it, mobile Safari repaints a `position:fixed` element's screen position only once a
-     touch-scroll gesture settles instead of every frame, so it visibly drags along with the page
-     mid-scroll and only snaps back into place once you lift your finger. One translate3d()
-     function, not a separate translate()+translateZ(0) pair — some older WebKit versions promote
-     a layer more reliably from a single 3D transform function than from two chained ones. */
-  .work-mobile-fixed.in-view{
-    display:flex; flex-direction:column; align-items:center; gap:16px;
-    position:fixed; top:50%; left:50%; transform:translate3d(-50%,-50%,0);
-    -webkit-backface-visibility:hidden; backface-visibility:hidden;
-    z-index:4; width:100%; max-width:400px; padding:0 24px; text-align:center;
+  /* Pills / preview / copy live in NORMAL DOCUMENT FLOW, centred by .work-section's own
+     `display:flex; align-items:center; justify-content:center` -- the exact same mechanism
+     .ripple-stage relies on for desktop. Two earlier versions used position:fixed instead (first
+     pinned independently with matching calc() offsets, then as one shared fixed container, later
+     moved outside #work entirely to dodge a Safari scroll-snap bug) and neither one actually held
+     up -- real devices kept showing this visibly scrolling mid-section regardless. The root cause
+     wasn't the positioning scheme, it was that mobile's `proximity` scroll-snap let you rest at a
+     half-scrolled, non-snapped position at all. Now that #work uses the same `mandatory` snap as
+     desktop (see the .snap-section comment near the top of this file), there IS no such resting
+     position, so plain in-flow centred content is already "stationary" in exactly the sense
+     desktop's card is: while you're actually looking at the section, nothing about your scroll
+     position is still settling underneath it. A normal flex column also still guarantees the
+     pills sit above the preview with no overlap, same as it would in a fixed container — that
+     part was never the part that needed position:fixed. */
+  .work-mobile-stack{
+    display:flex; flex-direction:column; align-items:center; gap:22px;
+    width:100%; max-width:400px; padding:0 24px; text-align:center;
   }
   .work-pills-wrap{
     width:100%;
@@ -651,12 +649,8 @@ a{ color:inherit; text-decoration:none; }
 .contact-social svg{ width:24px; height:24px; }
 
 @media (max-width:720px){
-  /* Larger and brighter on a small screen so the pulse still reads as a deliberate focal point.
-     Cadence (3.6s cycle, 70% fade point, 1.2s ring stagger) is untouched — only size and alpha
-     change. Dropping r3 is about ring COUNT in tighter space, separate from that. */
-  .listen-pulse{ width:16px; height:16px; }
-  .listen-ring{ --ring-from:16px; --ring-to:64px; --ring-alpha:0.75; }
-  .listen-ring.r3{ display:none; }
+  /* Pulse deliberately matches the desktop size here -- a mobile-specific enlargement was tried
+     and reverted, back to one shared size (10px dot, 52px ring) across breakpoints. */
   /* Touch has no hover state, so the CTA and social icons carry their hover treatment at rest —
      otherwise they'd look permanently muted. Plain email is excluded: it was never violet, and
      its underline already reads as a link. */

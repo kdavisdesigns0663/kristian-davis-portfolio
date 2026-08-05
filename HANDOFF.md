@@ -1504,3 +1504,89 @@ already be resolved or no longer applicable:
 If this list resurfaces again, check current file state before acting
 on it -- most of it describes a snapshot of this codebase from well
 before this session's other changes.
+
+## MAJOR UPDATE 18 — mobile work section rebuilt to mirror desktop's architecture (mandatory snap, in-flow content, reset-on-exit); several smaller fixes, 2026-08-04
+
+**The real fix for "mobile pills/preview still scroll with the page."**
+Two prior attempts (UPDATE 17's single fixed container, then moving
+that container outside `#work` to dodge a Safari scroll-snap bug)
+both still showed it scrolling on a real device. The owner's framing
+cracked it: make mobile work exactly like desktop, not just look
+similar. Desktop's card never needed any position trick at all --
+it's plain in-flow content, centred by `.work-section`'s own
+`display:flex; align-items:center; justify-content:center`, and it
+reads as "stationary" purely because desktop's `mandatory` scroll-snap
+means there's no resting scroll position other than fully snapped
+into a section. Mobile had `proximity` snap specifically so it
+wouldn't fight direct touch tracking -- but `proximity` is a SOFT
+snap, meaning you could rest halfway into `#work`, which is what let
+its content visibly scroll in the first place. Two rewrites of the
+positioning scheme never touched that.
+
+**Fix**: mobile now shares desktop's plain `mandatory` +
+`scroll-snap-stop:always` (the mobile override block is gone
+entirely -- one rule now covers both breakpoints). `#workMobileStack`
+(renamed from `#workMobileFixed` -- "fixed" stopped being true) moved
+back inside `#work`, in normal document flow, `position:static`, no
+transform/backface-visibility hacks. It's centred by the exact same
+flex rule `.ripple-stage` already relies on for desktop.
+
+**Also added: reset-on-scroll-out, replay-on-scroll-in**, matching
+desktop's `rippleObserver` exactly (the owner explicitly asked for
+this, correctly pointing out desktop already resets and mobile never
+did). One `IntersectionObserver` on `#work` (threshold 0.15, same as
+desktop) now plays `playMobileEntrance()` on enter and a new
+`resetMobileEntrance()` on exit -- clears pending timers (raindrop's
+`registerTimer` hook, previously desktop-only, now wired for mobile
+too), un-reveals pills, resets the shared preview to its base class,
+resets the mobile raindrop stage, and calls the shared
+`resetSectionBloom()`. Scrolling out of Work and back in now replays
+the whole raindrop-and-reveal sequence from scratch on mobile, same as
+desktop.
+
+**A real bug caught while touching this**: `.stage-card`'s clip-path
+transition (added in the same-day commit that synced its reveal with
+`.section-bloom`) was declared on the BASE rule, not scoped to
+`.active` the way `.section-bloom.bloomed` correctly does -- meaning
+removing `.active` on scroll-out would spend another 4.5s slowly
+shrinking the card instead of snapping instantly, breaking the
+sitewide "reset is instant, only the reveal animates" pattern and
+risking a fight with a freshly-replayed reveal on quick back-and-forth
+scrolling. Moved the transition onto `.active` only.
+
+**Mobile spacing**: pills-to-preview and preview-to-copy gaps
+unified and bumped from `16px` to `22px` (both equal to each other,
+per the owner's ask) -- the preview is a visually heavy 150x325 glowing
+card, and 16px read as cramped next to it. The description-to-CTA
+gap inside `.mobile-preview-copy` (`16px` margin) was explicitly left
+untouched, per instruction.
+
+**Contact pulse reverted**: the mobile-specific enlargement (16px dot,
+64px ring, dropped third ring) from an earlier session is gone --
+mobile now uses the same 10px dot / 52px ring as desktop, one shared
+size again.
+
+**Desktop node hover, two changes**: (1) each project's title now
+hovers to that project's own `--proj-rgb` color instead of one shared
+`var(--accent)` for all four -- `.node` gained the project's key class
+(`nitefind`/`smiteforge`/etc, same pattern `.preview-wrap`/`.work-pill`
+already used) so it has access to the custom property. (2) a slight
+`scale(1.08)` on hover, applied to `.node-inner` rather than `.node`
+itself since `.node`'s own transform is set inline by JS (position +
+scale(1)) and a CSS rule can't win that specificity fight without
+`!important` and duplicating each node's own offset. Caught a real bug
+implementing this: `.node-inner`'s one-shot entrance wobble
+(`textRipple`) had `animation-fill-mode:both`, and a FINISHED animation
+with a forwards fill still outranks a plain `:hover` transition on the
+same property indefinitely per the cascade -- silently blocking the
+hover scale no matter how long ago the wobble had actually finished.
+Dropped `both`; its last keyframe (`scale(1) skewX(0deg)`) already
+matched the element's un-animated resting state, so nothing else
+changed.
+
+**Removed the project-name label that sat on top of each preview
+image** (`.preview-tag`, both desktop hover preview and mobile),
+per explicit request. Its accompanying bottom-up dark fade
+(`.preview::after`) was removed alongside it -- that gradient's only
+documented purpose was label legibility, so keeping it with nothing
+to make legible would've left a purposeless dead gradient.

@@ -5,10 +5,10 @@ GitHub Pages at `https://kdavisdesigns0663.github.io/kristian-davis-portfolio/`.
 Repo: `github.com/kdavisdesigns0663/kristian-davis-portfolio`.
 
 **Before doing anything else, read `HANDOFF.md`** — specifically the last
-section ("MAJOR UPDATE 17 — mobile work section genuinely stationary (not
-just non-overlapping); hero vertically centered, slower + delayed reveal"),
-which is a current, accurate summary of what's built and how it works.
-Earlier sections in that
+section ("MAJOR UPDATE 18 — mobile work section rebuilt to mirror desktop's
+architecture (mandatory snap, in-flow content, reset-on-exit); several
+smaller fixes"), which is a current, accurate summary of what's built and
+how it works. Earlier sections in that
 file are historical (rejected directions, locked copy decisions, rationale)
 and still worth knowing, but their *technical* descriptions of what's built
 are stale — trust the last section and the live files over anything earlier

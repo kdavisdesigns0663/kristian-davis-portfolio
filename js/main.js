@@ -200,7 +200,10 @@ const stage = document.getElementById('rippleStage');
 if (stage) {
   projects.forEach(p => {
     const el = document.createElement('a');
-    el.className = 'node';
+    // Key class gives .node access to --proj-rgb (see that custom-property block in style.css)
+    // so its hover color can match the project's own preview/glow color instead of one shared
+    // accent for all four.
+    el.className = 'node ' + p.key;
     el.href = p.href;
     el.tabIndex = 0;
     el.innerHTML = `<span class="node-inner"><div>${p.name}</div><div class="hook">${p.hook}</div></span>`;
@@ -218,7 +221,6 @@ if (stage) {
       <div class="preview">
         <img src="${p.img}" alt="${p.isPlaceholder ? '' : p.name + ' preview'}" loading="lazy">
         <span class="preview-shimmer"></span>
-        <span class="preview-tag">${p.name}</span>
       </div>
     `;
     stage.appendChild(previewWrap);
@@ -312,12 +314,11 @@ if (stage) {
 
 // --- Work section: mobile pill selector (below ~700px, see style.css) ---
 // Same `projects` array as the desktop raindrop layout, rendered as a row of pills next to one
-// fixed preview container (#mobilePreviewWrap). Tapping a pill just swaps that container's
+// shared preview container (#mobilePreviewWrap). Tapping a pill only swaps that container's
 // image/label/color/href -- the container itself never moves or resizes. An earlier version used
 // a tap-to-expand accordion with its own per-tap scroll-recentering logic; that logic is gone
 // entirely here, not just disabled, because pills never change any element's height or the
 // page's scroll position, so there's nothing left needing recentering.
-const workMobileFixed = document.getElementById('workMobileFixed');
 const pillsWrap = document.getElementById('workPillsWrap');
 const pillsContainer = document.getElementById('workPills');
 const previewLink = document.getElementById('workPreviewLink');
@@ -329,9 +330,8 @@ if (pillsWrap && pillsContainer) {
   // toggles .active, never its position (see the CSS comment above .mobile-preview-wrap).
   const mobilePreviewWrap = document.getElementById('mobilePreviewWrap');
   const mobilePreviewImg = document.getElementById('mobilePreviewImg');
-  const mobilePreviewTag = document.getElementById('mobilePreviewTag');
   // Description block sits below the preview (see .mobile-preview-copy in style.css), toggled
-  // and cross-faded in lockstep with the image/tag above rather than as a separate update --
+  // and cross-faded in lockstep with the image above rather than as a separate update --
   // same isFreshOpen/swap-timer logic, just one more piece of content. Reuses each project's
   // existing `hook` copy (already short, already project-specific, not shown anywhere else on
   // mobile) as a placeholder description -- swap in dedicated copy per project once it's
@@ -347,7 +347,6 @@ if (pillsWrap && pillsContainer) {
     const applyContent = () => {
       mobilePreviewImg.src = p.img;
       mobilePreviewImg.alt = p.isPlaceholder ? '' : p.name + ' preview';
-      mobilePreviewTag.textContent = p.name;
       mobilePreviewWrap.className = 'mobile-preview-wrap active ' + p.key;
       if (mobilePreviewDesc) mobilePreviewDesc.textContent = p.desc || p.hook;
       if (mobilePreviewCopy) mobilePreviewCopy.classList.add('active');
@@ -410,24 +409,51 @@ if (pillsWrap && pillsContainer) {
     p.pillEl = pill;
   });
 
-  let mobileEntrancePlayed = false;
+  let mobilePlayed = false;
+  let mobileTimers = [];
+  function clearMobileTimers() { mobileTimers.forEach(t => clearTimeout(t)); mobileTimers = []; }
+
+  function resetMobileEntrance() {
+    mobilePlayed = false;
+    clearMobileTimers();
+    clearTimeout(mobilePreviewSwapTimer);
+    pillsWrap.classList.remove('revealed');
+    projects.forEach(p => {
+      p.pillEl.classList.remove('placed', 'active');
+      p.pillEl.setAttribute('aria-pressed', 'false');
+    });
+    activePill = null;
+    mobilePreviewWrap.className = 'mobile-preview-wrap';
+    mobilePreviewImg.style.opacity = '';
+    if (mobilePreviewDesc) mobilePreviewDesc.style.opacity = '';
+    if (mobilePreviewCopy) mobilePreviewCopy.classList.remove('active');
+    if (mobileStage) {
+      const dropWrap = mobileStage.querySelector('.drop-wrap');
+      const flash = mobileStage.querySelector('.impact-flash');
+      dropWrap.classList.remove('falling', 'impact');
+      dropWrap.style.opacity = '0';
+      flash.classList.remove('flash');
+    }
+    resetSectionBloom(workBloomEl);
+  }
+
   function playMobileEntrance() {
-    if (mobileEntrancePlayed) return;
-    mobileEntrancePlayed = true;
+    if (mobilePlayed) return;
+    mobilePlayed = true;
 
     const revealPills = () => {
       pillsWrap.classList.add('revealed');
       // Ripples through the pills one at a time rather than all appearing together the
       // instant the wrap's own clip-path finishes expanding.
       projects.forEach((p, i) => {
-        setTimeout(() => p.pillEl.classList.add('placed'), 160 + i * 120);
+        mobileTimers.push(setTimeout(() => p.pillEl.classList.add('placed'), 160 + i * 120));
       });
-      // First project previews automatically -- with no hover on touch, an empty fixed preview
-      // box would just look broken until the first tap. Delay matches the last pill's own
-      // stagger so this reads as the sequence settling into a default, not racing it.
-      setTimeout(() => {
+      // First project previews automatically -- with no hover on touch, an empty preview box
+      // would just look broken until the first tap. Delay matches the last pill's own stagger
+      // so this reads as the sequence settling into a default, not racing it.
+      mobileTimers.push(setTimeout(() => {
         selectProject(projects[0], projects[0].pillEl, true);
-      }, 160 + projects.length * 120 + 250);
+      }, 160 + projects.length * 120 + 250));
     };
 
     if (prefersReducedMotion || !mobileStage) {
@@ -451,6 +477,7 @@ if (pillsWrap && pillsContainer) {
       // Matches roughly how long .drop-wrap.impact takes to fully fade (0.2s delay + 0.55s
       // fade = 0.75s) -- see the glowFadeDelay comment in playRaindrop() above.
       glowFadeDelay: 0.3,
+      registerTimer: (id) => mobileTimers.push(id),
       onImpact: () => {
         triggerSectionBloom(workSectionEl, workBloomEl, mobileStage);
         revealPills();
@@ -458,46 +485,23 @@ if (pillsWrap && pillsContainer) {
     });
   }
 
-  // Watching #work (not the pills wrap itself) means this observer still fires on desktop --
-  // the matchMedia check below is what actually gates the entrance to mobile. That check used to
-  // read getComputedStyle(pillsWrap).display, but now that .work-pills-wrap's own visibility
-  // comes from its ANCESTOR (.work-mobile-fixed, whose display is now tied to the .in-view class
-  // the observer below toggles at runtime), the computed style of the wrap itself no longer
-  // reflects "are we on mobile" independent of scroll position -- it could read block even on
-  // desktop, or none on mobile before .in-view is first set, depending on which observer's
-  // callback happens to run first. matchMedia answers the breakpoint question directly, with no
-  // dependency on any other observer's timing. threshold 0.5 plus the one-shot
-  // `mobileEntrancePlayed` flag (never reset) is what keeps small scroll jitters near the section
-  // boundary from re-triggering it, unlike desktop's ripple which deliberately resets on scroll-out.
+  // Same shape as desktop's rippleObserver: play on enter, reset on exit, so scrolling out of
+  // #work and back in replays the whole raindrop-and-reveal sequence from scratch instead of
+  // leaving it played-once-forever. isMobileLayout() is what actually gates this to mobile --
+  // watching #work directly (not the pills wrap) means this observer still fires on desktop
+  // viewports too, same as it always has, just a no-op there. Threshold 0.15 matches desktop's
+  // rippleObserver for the same reason: low enough that the sequence starts within the first
+  // stretch of scrolling into the section rather than waiting for it to almost fully arrive.
   const isMobileLayout = () => window.matchMedia('(max-width:700px)').matches;
   if (workSectionEl) {
-    const entranceObserver = new IntersectionObserver((entries) => {
+    const mobileEntranceObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
-        if (entry.isIntersecting && isMobileLayout()) {
-          playMobileEntrance();
-        }
+        if (!isMobileLayout()) return;
+        if (entry.isIntersecting) playMobileEntrance();
+        else resetMobileEntrance();
       });
-    }, { threshold: 0.5 });
-    entranceObserver.observe(workSectionEl);
-  }
-  // Pills/preview/copy are position:fixed to the viewport (see .work-mobile-fixed in style.css)
-  // specifically so they stay stationary while scrolling through #work, instead of scrolling with
-  // the page like normal content -- but "fixed to the viewport" also means they'd hang there over
-  // About/Contact once you scroll past #work, unless something hides them. This toggles .in-view
-  // (which the CSS uses as the actual display:none/flex switch) based on whether #work is
-  // currently in the viewport at all, independent of the one-shot entrance animation above.
-  // rootMargin:-2px (not the default 0) -- with scroll-snap landing sections exactly edge-to-edge,
-  // #work's own edge can end up sitting at EXACTLY 0px from the viewport edge with zero true
-  // overlap, an ambiguous boundary case for threshold:0 that's been observed reporting
-  // isIntersecting:true with nothing actually visible. Shrinking the effective root by 2px
-  // removes that ambiguity.
-  if (workSectionEl && workMobileFixed) {
-    const fixedVisibilityObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        workMobileFixed.classList.toggle('in-view', entry.isIntersecting);
-      });
-    }, { threshold: 0, rootMargin: '-2px' });
-    fixedVisibilityObserver.observe(workSectionEl);
+    }, { threshold: 0.15 });
+    mobileEntranceObserver.observe(workSectionEl);
   }
 }
 

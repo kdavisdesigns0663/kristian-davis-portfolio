@@ -44,33 +44,32 @@
     <div class="impact-flash"></div>
     <div class="impact-glow"></div>
   </div>
-</section>
-
-<!-- Deliberately OUTSIDE #work, as a sibling of the sections rather than a descendant of one.
-     Safari has a real, documented bug where position:fixed elements nested inside a
-     scroll-snap-align ancestor get incorrectly caught up in the snap-scroll instead of staying
-     pinned to the viewport -- exactly the "pills/preview scroll with the page, then vanish partway
-     into the next section" symptom this markup was rewritten to fix. It's still shown/hidden
-     purely by measuring #work's position (see the fixedVisibilityObserver in main.js), so moving
-     it here changes nothing about WHEN it's visible, only removes it from underneath a
-     scroll-snap-align box. -->
-<div class="work-mobile-fixed" id="workMobileFixed">
-  <div class="work-pills-wrap" id="workPillsWrap">
-    <div class="work-pills" id="workPills" role="group" aria-label="Select a project"></div>
-  </div>
-  <div class="mobile-preview-wrap" id="mobilePreviewWrap" aria-hidden="true">
-    <div class="work-item-preview-card"></div>
-    <div class="preview-ring"></div>
-    <div class="work-item-preview-bloom">
-      <img id="mobilePreviewImg" src="" alt="" loading="lazy">
-      <span class="preview-tag" id="mobilePreviewTag"></span>
+  <!-- In normal document flow, same as .ripple-stage above -- deliberately NOT position:fixed.
+       Two earlier position:fixed versions both fought real Safari bugs (fixed-position lag
+       during touch scroll, then fixed elements nested under a scroll-snap-align ancestor getting
+       pulled into the snap-scroll) and neither fully held up. #work now uses the SAME hard
+       mandatory scroll-snap as desktop (see html's max-width:700px override in style.css), which
+       removes the actual cause of "things scroll mid-section": there's no resting position other
+       than fully snapped, so in-flow content centered via .work-section's own flex layout (the
+       same centering .ripple-stage relies on) just sits still, exactly like the desktop card
+       does, with no position tricks needed at all. -->
+  <div class="work-mobile-stack" id="workMobileStack">
+    <div class="work-pills-wrap" id="workPillsWrap">
+      <div class="work-pills" id="workPills" role="group" aria-label="Select a project"></div>
+    </div>
+    <div class="mobile-preview-wrap" id="mobilePreviewWrap" aria-hidden="true">
+      <div class="work-item-preview-card"></div>
+      <div class="preview-ring"></div>
+      <div class="work-item-preview-bloom">
+        <img id="mobilePreviewImg" src="" alt="" loading="lazy">
+      </div>
+    </div>
+    <div class="mobile-preview-copy" id="mobilePreviewCopy">
+      <p id="mobilePreviewDesc"></p>
+      <a class="work-item-btn mono" id="workPreviewLink" href="#">view project</a>
     </div>
   </div>
-  <div class="mobile-preview-copy" id="mobilePreviewCopy">
-    <p id="mobilePreviewDesc"></p>
-    <a class="work-item-btn mono" id="workPreviewLink" href="#">view project</a>
-  </div>
-</div>
+</section>
 
 <section id="about" class="snap-section about">
   <div class="ghost">BIO</div>
