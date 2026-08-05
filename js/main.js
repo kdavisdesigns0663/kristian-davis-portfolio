@@ -338,6 +338,7 @@ if (pillsWrap && pillsContainer) {
   // written, this just needs `desc` (or however it ends up named) added to the `projects` array.
   const mobilePreviewCopy = document.getElementById('mobilePreviewCopy');
   const mobilePreviewDesc = document.getElementById('mobilePreviewDesc');
+  const mobilePreviewRing = mobilePreviewWrap.querySelector('.preview-ring');
   let mobilePreviewSwapTimer = null;
   let activePill = null;
 
@@ -350,6 +351,18 @@ if (pillsWrap && pillsContainer) {
       mobilePreviewWrap.className = 'mobile-preview-wrap active ' + p.key;
       if (mobilePreviewDesc) mobilePreviewDesc.textContent = p.desc || p.hook;
       if (mobilePreviewCopy) mobilePreviewCopy.classList.add('active');
+      // previewRingSpin (style.css) plays once per class match, not once per selection -- .active
+      // stays on mobilePreviewWrap continuously across pill switches (only the content cross-fades,
+      // see the isFreshOpen branch below), so without this the ring would only ever spin on the
+      // very first project you open and sit frozen at rest for every switch after, including
+      // switching back to a project you'd already viewed. Setting animation to none and reading
+      // offsetWidth forces a style recalc in between, which is what makes the browser treat the
+      // next assignment as a genuinely new animation instead of a no-op on an unchanged value.
+      if (mobilePreviewRing) {
+        mobilePreviewRing.style.animation = 'none';
+        void mobilePreviewRing.offsetWidth;
+        mobilePreviewRing.style.animation = '';
+      }
     };
     if (isFreshOpen) {
       // Nothing was showing -- play the full bloom-in from scratch.
