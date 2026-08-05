@@ -87,12 +87,14 @@ a{ color:inherit; text-decoration:none; }
 .hero .headline .l3{ font-family:var(--font-display); font-weight:700; font-size:100px; line-height:1.0; color:var(--accent); margin-left:56px; margin-top:6px; }
 .hero .sub{ position:relative; z-index:2; margin-top:76px; margin-left:400px; max-width:440px; font-size:15px; line-height:1.7; color:var(--text-dim); padding-left:24px; border-left:2px solid var(--accent); }
 /* Ghost fades in plainly (no blur/bounce) so it reads as a backdrop settling in behind the text,
-   not part of the headline's reveal. top:50% + translateY(-50%) (not a fixed px value like the
-   rest of this site's ghost words use) is what keeps it centred on the SAME point the content
-   column now centres on -- content moved from top-anchored to vertically centred, and a fixed
-   top offset here would have left the ghost sitting in the old top-anchored position while the
-   actual text moved away from it underneath. */
-.hero .ghost{ top:50%; transform:translateY(-50%); opacity:0; transition:opacity 2.8s ease; }
+   not part of the headline's reveal. Fixed px top, back to how every other ghost word on the
+   site is positioned -- an earlier top:50%/translateY(-50%) version centred it on the whole
+   content column (eyebrow through sub), which pulled it down off the headline and read as
+   floating in the wrong spot relative to the actual text. This value instead centres it on just
+   the eyebrow+headline block (the "hero text" the ghost sits behind), measured at 194px so it
+   clears the nav by a full ~100px -- the earlier fixed value (118px, from before content was
+   vertically centred) sat only ~24px under the nav, which read as crowded. */
+.hero .ghost{ top:194px; opacity:0; transition:opacity 2.8s ease; }
 .hero.revealed .ghost{ opacity:0.35; }
 @media (max-width:900px){
   .hero{ padding:24px; }
@@ -101,6 +103,7 @@ a{ color:inherit; text-decoration:none; }
   .hero .headline .l1{ font-size:30px; }
   .hero .headline .l3{ font-size:38px; margin-left:20px; margin-top:4px; }
   .hero .sub{ margin-left:0; margin-top:40px; }
+  .hero .ghost{ top:284px; }
 }
 
 /* Each headline LINE wipes in as one continuous left-to-right sweep. A per-word version was
@@ -337,7 +340,7 @@ a{ color:inherit; text-decoration:none; }
 .ripple-stage .preview-ring{ inset:-16px; border-radius:22px; z-index:0; }
 .mobile-preview-wrap .preview-ring{ inset:-11px; border-radius:18px; }
 .ripple-stage .preview-wrap.active .preview-ring,
-.mobile-preview-wrap.active .preview-ring{ opacity:1; animation:previewRingSpin 3.2s linear infinite; }
+.mobile-preview-wrap.active .preview-ring{ opacity:1; animation:previewRingSpin 1.3s cubic-bezier(.19,1,.22,1) 1 forwards; }
 @keyframes previewRingSpin{ to{ transform:rotate(360deg); } }
 
 .ripple-stage .preview-corner{
@@ -391,10 +394,17 @@ a{ color:inherit; text-decoration:none; }
      difference is the whole bundle is fixed to the viewport, not the document.
      .in-view is toggled by main.js (an IntersectionObserver on #work, not CSS) so this hides
      itself once the section actually leaves the viewport instead of floating over About/Contact
-     — see the comment above that observer in main.js for why threshold:0/rootMargin:-2px. */
+     — see the comment above that observer in main.js for why threshold:0/rootMargin:-2px.
+     translateZ(0) + backface-visibility:hidden forces this onto its own compositor layer --
+     without it, mobile Safari repaints a `position:fixed` element's screen position only once a
+     touch-scroll gesture settles instead of every frame, so it visibly drags along with the page
+     mid-scroll and only snaps back into place once you lift your finger. That reads as "it's
+     scrolling with the site" even though getBoundingClientRect() (and desktop Chrome, which
+     doesn't have this bug) shows it never actually moved. */
   .work-mobile-fixed.in-view{
     display:flex; flex-direction:column; align-items:center; gap:16px;
-    position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+    position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) translateZ(0);
+    -webkit-backface-visibility:hidden; backface-visibility:hidden;
     z-index:4; width:100%; max-width:400px; padding:0 24px; text-align:center;
   }
   .work-pills-wrap{
