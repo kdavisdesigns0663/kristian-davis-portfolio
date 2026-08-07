@@ -131,14 +131,11 @@ class Portfolio {
     const section = document.getElementById('work');
     const stage = document.getElementById('dropStage');
     const wash = document.getElementById('workWash');
-    const ghost = document.getElementById('workGhost');
-    const head = document.getElementById('workHead');
     const list = document.getElementById('bands');
     if (!section || !stage) return;
     const bands = Array.prototype.slice.call(document.querySelectorAll('[data-band]'));
 
     const finishAll = () => {
-      head.style.opacity = '1';
       list.style.opacity = '1';
       wash.style.transition = 'clip-path 1.7s cubic-bezier(.19,1,.22,1)';
       wash.style.clipPath = 'circle(150% at 50% 0%)';
@@ -150,7 +147,6 @@ class Portfolio {
     const play = () => {
       if (this.workRevealed) return;
       this.workRevealed = true;
-      ghost.style.opacity = '.42';
       if (this.reduced) { finishAll(); return; }
 
       const wrap = stage.querySelector('[data-drop-wrap]');
@@ -178,7 +174,6 @@ class Portfolio {
         this.ripples(stage, 2, 480, y);
         this.revealBand(bands[i]);
         if (i === 0) {
-          head.style.opacity = '1';
           list.style.opacity = '1';
           wash.style.transition = 'clip-path 1.9s cubic-bezier(.19,1,.22,1)';
           wash.style.clipPath = 'circle(150% at 50% 0%)';
@@ -429,8 +424,6 @@ class Portfolio {
     this.heroPlayed = false;
 
     this.workRevealed = false;
-    document.getElementById('workGhost').style.opacity = '0';
-    document.getElementById('workHead').style.opacity = '0';
     document.getElementById('bands').style.opacity = '0';
     const wash = document.getElementById('workWash');
     wash.style.transition = 'none';
@@ -458,7 +451,7 @@ class Portfolio {
   }
 
   initAnchors() {
-    const brand = document.querySelector('nav a[aria-label="Kristian Davis, home"]');
+    const brand = document.querySelector('nav a[aria-label="Kristian Davis, UX Consultant, home"]');
     if (brand) brand.addEventListener('click', e => { e.preventDefault(); this.resetAll(); });
     window.addEventListener('hashchange', () => this.applyIncomingHash());
     document.querySelectorAll('#page a[href^="#"]').forEach(a => {
