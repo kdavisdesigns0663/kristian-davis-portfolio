@@ -134,6 +134,12 @@
 }
 @media (max-width:900px){
   .about-media{ flex:1 1 100% !important; max-width:420px !important; }
+  /* The photo is first in source order here (see the comment above), landing at the same top
+     offset #about's own BIO ghost starts from -- the two were never actually coordinated, so the
+     opaque photo covered the ghost instead of sitting below it. margin-top mirrors the ghost's
+     own top + font-size clamps exactly (see that div's inline style), so the photo is guaranteed
+     to clear it by a fixed 24px gap at any viewport width, not just the one this was tuned on. */
+  .about-media{ margin-top:calc(clamp(30px,5vw,74px) + clamp(110px,20vw,290px) + 24px) !important; }
   .about-text{ flex:1 1 100% !important; }
 }
 @media (max-width:640px){
