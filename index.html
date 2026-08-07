@@ -28,14 +28,15 @@
 <a class="i1" href="#work" style="position:absolute;top:-100px;left:16px;z-index:100;padding:12px 20px;background:#0d0d0c;border:1px solid var(--accent);font-family:'JetBrains Mono',monospace;font-size:13px;color:#e9e7df">skip to work</a>
 
 <!-- ===================== HERO ===================== -->
-<section id="hero" style="position:relative;display:flex;flex-direction:column;justify-content:center;min-height:max(760px,100dvh);padding:40px clamp(24px,5vw,64px);overflow:hidden;scroll-snap-align:start">
+<section id="hero" style="position:relative;display:flex;flex-direction:column;justify-content:center;min-height:100dvh;padding:clamp(72px,8vh,88px) clamp(24px,5vw,64px) clamp(28px,4vh,48px);overflow:hidden">
 
   <nav aria-label="Primary" style="position:absolute;top:0;left:0;right:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:clamp(15px,1.8vw,21px) clamp(24px,5vw,64px);border-bottom:1px solid #1c1c1a">
     <a class="i2" href="#hero" aria-label="Kristian Davis, UX Consultant, home" style="display:inline-flex;align-items:baseline;gap:10px;min-width:0">
       <span class="nav-name" style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:17px;letter-spacing:-.01em;color:#e9e7df;white-space:nowrap;transition:color .3s ease">Kristian Davis</span>
       <span class="nav-role" aria-hidden="true" style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:#7d786f;white-space:nowrap"><span style="color:var(--accent)">•</span> UX Consultant</span>
     </a>
-    <ul style="display:flex;gap:clamp(18px,3vw,32px);list-style:none;font-family:'JetBrains Mono',monospace;font-size:13px">
+    <button id="navToggle" type="button" aria-expanded="false" aria-controls="navMenu" style="display:none;align-items:center;gap:9px;min-height:44px;padding:10px 16px;border:1px solid #34332f;border-radius:999px;background:transparent;color:#e9e7df;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.06em;cursor:pointer">menu<span aria-hidden="true" style="font-size:8px;transition:transform .3s cubic-bezier(.19,1,.22,1)">▼</span></button>
+    <ul id="navMenu" style="display:flex;gap:clamp(18px,3vw,32px);list-style:none;font-family:'JetBrains Mono',monospace;font-size:13px">
       <li><a class="i3" href="#hero" style="display:inline-block;padding-bottom:5px;color:#a09c92;background:linear-gradient(90deg,var(--accent),var(--accent)) left bottom / 0% 1px no-repeat;transition:background-size .45s cubic-bezier(.19,1,.22,1),color .3s ease,transform .45s cubic-bezier(.19,1,.22,1)">home</a></li>
       <li style="position:relative">
         <details style="position:relative">
@@ -56,7 +57,7 @@
 
   <div id="heroGhost" aria-hidden="true" style="position:absolute;top:124px;left:clamp(-30px,-2vw,-8px);z-index:0;pointer-events:none;user-select:none;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(84px,11vw,150px);line-height:1;color:transparent;-webkit-text-stroke:1px var(--accent);letter-spacing:-.02em;opacity:0;transition:opacity 2.8s ease">KD</div>
 
-  <div style="position:relative;z-index:2;font-family:'JetBrains Mono',monospace;font-size:clamp(13px,1.1vw,15px);margin-left:clamp(0px,2vw,24px);margin-top:min(150px, max(0px, (100vw - 700px) * 0.5));color:#a09c92">// <b style="color:var(--accent);font-weight:500">ux/ui_design</b> · product_design · web_experience</div>
+  <div style="position:relative;z-index:2;font-family:'JetBrains Mono',monospace;font-size:clamp(13px,1.1vw,15px);margin-left:clamp(0px,2vw,24px);margin-top:min(28px, max(0px, (100vw - 700px) * 0.1));color:#a09c92">// <b style="color:var(--accent);font-weight:500">ux/ui_design</b> · product_design · web_experience</div>
 
   <div class="hero-block" style="position:relative;z-index:2;margin-top:32px;margin-left:clamp(0px,2vw,24px)">
   <div id="surface" style="position:relative;z-index:2">
@@ -65,7 +66,7 @@
     <span data-line="b" style="display:block;width:fit-content;padding-bottom:.14em;margin-bottom:-.14em;margin-left:clamp(18px,4.4vw,74px);color:var(--accent);opacity:0;-webkit-mask-image:linear-gradient(90deg,#000 0%,#000 var(--reveal,0%),transparent calc(var(--reveal,0%) + 1.6em),transparent 100%);mask-image:linear-gradient(90deg,#000 0%,#000 var(--reveal,0%),transparent calc(var(--reveal,0%) + 1.6em),transparent 100%);-webkit-mask-size:100% 140%;mask-size:100% 140%;transition:opacity .15s ease, --reveal 2s linear">They experience your<br data-mob> decisions.</span>
   </h1>
 
-    <div id="waterline" aria-hidden="true" style="position:relative;z-index:2;height:1px;margin-top:clamp(16px,1.8vw,26px);background:linear-gradient(90deg, rgba(var(--accent-rgb),.55), rgba(var(--accent-rgb),.14) 46%, transparent 82%);opacity:0;transform:scaleX(0);transform-origin:left;transition:opacity .5s ease, transform 1.5s cubic-bezier(.19,1,.22,1)"></div>
+    <div id="waterline" aria-hidden="true" style="position:relative;z-index:2;height:1px;margin-top:clamp(10px,1.2vw,18px);background:linear-gradient(90deg, rgba(var(--accent-rgb),.55), rgba(var(--accent-rgb),.14) 46%, transparent 82%);opacity:0;transform:scaleX(0);transform-origin:left;transition:opacity .5s ease, transform 1.5s cubic-bezier(.19,1,.22,1)"></div>
 
     <div id="heroDropStage" aria-hidden="true" style="position:absolute;left:clamp(40px,13vw,220px);top:100%;width:0;height:0;z-index:4;pointer-events:none;overflow:visible">
       <div data-drop-wrap style="position:absolute;left:0;top:0;transform:translate(-50%,-60vh) scaleY(1);opacity:0"><div style="width:11px;height:11px;background:var(--accent);box-shadow:0 0 15px 4px rgba(var(--accent-rgb),.6);border-radius:50% 50% 50% 0;transform:rotate(135deg)"></div></div>
@@ -78,17 +79,17 @@
     </div>
   </div>
 
-  <div aria-hidden="true" style="height:calc(2.8 * clamp(34px,6.6vw,104px))"></div>
+  <div id="heroSpacer" aria-hidden="true" style="height:calc(1.2 * clamp(34px,6.6vw,104px))"></div>
   </div>
 
-  <div style="position:relative;z-index:2;margin-top:clamp(20px,2.6vw,40px);margin-left:clamp(0px,2vw,24px);padding-left:clamp(0px,2vw,24px);display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:clamp(20px,3vw,48px)">
+  <div id="heroFoot" style="position:relative;z-index:2;margin-top:clamp(18px,2.2vw,34px);margin-left:clamp(0px,2vw,24px);padding-left:clamp(0px,2vw,24px);display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:clamp(20px,3vw,48px)">
     <p style="max-width:46ch;font-size:clamp(15px,1.15vw,17px);line-height:1.7;color:#a09c92;padding-left:22px;border-left:2px solid var(--accent);text-wrap:pretty">Helping businesses navigate complexity through thoughtful strategy and purposeful design.</p>
     <a class="i-scroll" href="#work" style="display:inline-flex;align-items:center;gap:11px;flex-shrink:0;padding-bottom:6px;border-bottom:1px solid #34332f;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.06em;color:#e9e7df;transition:border-color .35s ease,gap .35s cubic-bezier(.19,1,.22,1)">SEE THE WORK<span aria-hidden="true">↓</span></a>
   </div>
 </section>
 
 <!-- ===================== WORK ===================== -->
-<section id="work" style="position:relative;padding:calc(clamp(40px,6vw,96px) + clamp(110px,20vw,280px) + 40px) 0 0;overflow:hidden">
+<section id="work" style="position:relative;padding:calc(clamp(32px,4.4vw,68px) + clamp(110px,20vw,280px) + 8px) 0 0;overflow:hidden">
   <div id="workWash" aria-hidden="true" style="position:absolute;top:0;left:0;right:0;height:min(760px,74vh);z-index:0;pointer-events:none;background:radial-gradient(ellipse 62% 100% at 50% 0%, rgba(var(--accent-rgb),.13), transparent 72%);clip-path:circle(0% at 50% 0%)"></div>
   <div id="workGhost" aria-hidden="true" style="position:absolute;top:clamp(40px,6vw,96px);left:clamp(-30px,-2vw,-8px);z-index:1;pointer-events:none;user-select:none;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(110px,20vw,280px);line-height:1;color:transparent;-webkit-text-stroke:1px #ffffff;letter-spacing:-.02em;opacity:.34">WORK</div>
   <div id="dropStage" aria-hidden="true" style="position:absolute;top:0;left:50%;width:0;height:0;z-index:6;pointer-events:none;overflow:visible">
@@ -111,7 +112,7 @@
           </div>
           <div style="padding-left:clamp(16px,2vw,28px);border-left:1px solid #1c1c1a">
             <span style="display:block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#b04ad6">the decision</span>
-            <p style="margin-top:11px;font-size:15px;line-height:1.6;color:#cfcabc;max-width:40ch;text-wrap:pretty">Show three recommendations instead of every match. Traded completeness for confidence, because a full list was the thing making people stall.</p>
+            <p style="margin-top:11px;font-size:15px;line-height:1.6;color:#cfcabc;max-width:40ch;text-wrap:pretty">Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod.</p>
           </div>
           <div data-shot style="position:relative;flex-shrink:0;width:clamp(74px,7.4vw,112px);aspect-ratio:230/498;border-radius:9px;overflow:hidden;box-shadow:0 18px 44px -14px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.06);transition:transform .55s cubic-bezier(.19,1,.22,1),box-shadow .55s ease">
             <img src="img/previews/nitefind-preview.jpg" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:top;display:block;filter:saturate(.82) brightness(.86);transition:filter .55s ease">
@@ -133,7 +134,7 @@
           </div>
           <div style="padding-left:clamp(16px,2vw,28px);border-left:1px solid #1c1c1a">
             <span style="display:block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#e0b84a">the decision</span>
-            <p style="margin-top:11px;font-size:15px;line-height:1.6;color:#cfcabc;max-width:40ch;text-wrap:pretty">One design system, two layouts. Kept a single visual language rather than tuning each platform separately, so the brand stayed recognisable across both.</p>
+            <p style="margin-top:11px;font-size:15px;line-height:1.6;color:#cfcabc;max-width:40ch;text-wrap:pretty">Sed ut perspiciatis unde omnis iste natus error sit voluptatem.</p>
           </div>
           <div data-shot style="position:relative;flex-shrink:0;width:clamp(74px,7.4vw,112px);aspect-ratio:230/498;border-radius:9px;overflow:hidden;box-shadow:0 18px 44px -14px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.06);transition:transform .55s cubic-bezier(.19,1,.22,1),box-shadow .55s ease">
             <img src="img/previews/smiteforge-preview.jpg" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:top;display:block;filter:saturate(.82) brightness(.86);transition:filter .55s ease">
@@ -155,7 +156,7 @@
           </div>
           <div style="padding-left:clamp(16px,2vw,28px);border-left:1px solid #1c1c1a">
             <span style="display:block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#4fbf82">the decision</span>
-            <p style="margin-top:11px;font-size:15px;line-height:1.6;color:#cfcabc;max-width:40ch;text-wrap:pretty">Framed progress, not restriction. Every screen reports what has been saved rather than what cannot be spent, because the restriction framing was why people quit.</p>
+            <p style="margin-top:11px;font-size:15px;line-height:1.6;color:#cfcabc;max-width:40ch;text-wrap:pretty">At vero eos et accusamus et iusto odio dignissimos ducimus.</p>
           </div>
           <div data-shot style="position:relative;flex-shrink:0;width:clamp(74px,7.4vw,112px);aspect-ratio:230/498;border-radius:9px;overflow:hidden;box-shadow:0 18px 44px -14px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.06);transition:transform .55s cubic-bezier(.19,1,.22,1),box-shadow .55s ease">
             <img src="img/previews/zentra-preview.jpg" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:top;display:block;filter:saturate(.82) brightness(.86);transition:filter .55s ease">
@@ -177,7 +178,7 @@
           </div>
           <div style="padding-left:clamp(16px,2vw,28px);border-left:1px solid #1c1c1a">
             <span style="display:block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#8f8f8f">the open question</span>
-            <p style="margin-top:11px;font-size:15px;line-height:1.6;color:#a09c92;max-width:40ch;text-wrap:pretty">How much to show before a visitor trusts you. Still working out where reassurance stops being reassuring and starts reading as overselling.</p>
+            <p style="margin-top:11px;font-size:15px;line-height:1.6;color:#a09c92;max-width:40ch;text-wrap:pretty">Nemo enim ipsam voluptatem quia voluptas sit aspernatur auto dit.</p>
           </div>
           <div data-shot style="position:relative;flex-shrink:0;width:clamp(74px,7.4vw,112px);aspect-ratio:230/498;border-radius:9px;overflow:hidden;box-shadow:0 18px 44px -14px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.06);transition:transform .55s cubic-bezier(.19,1,.22,1),box-shadow .55s ease">
             <img src="img/previews/amun-preview.jpg" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:top;display:block;filter:saturate(.62) brightness(.78);transition:filter .55s ease">
@@ -190,8 +191,8 @@
 </section>
 
 <!-- ===================== ABOUT ===================== -->
-<section id="about" style="position:relative;padding:clamp(90px,11vw,168px) 0;overflow:hidden;scroll-snap-align:start">
-  <div aria-hidden="true" style="position:absolute;top:clamp(30px,5vw,74px);left:clamp(-30px,-2vw,-8px);z-index:0;pointer-events:none;user-select:none;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(110px,20vw,290px);line-height:1;color:transparent;-webkit-text-stroke:1px var(--accent);letter-spacing:-.025em;opacity:.3">BIO</div>
+<section id="about" style="position:relative;padding:clamp(72px,8vw,120px) 0;overflow:hidden">
+  <div aria-hidden="true" style="position:absolute;top:clamp(24px,4vw,58px);left:clamp(-30px,-2vw,-8px);z-index:0;pointer-events:none;user-select:none;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(96px,17vw,240px);line-height:1;color:transparent;-webkit-text-stroke:1px var(--accent);letter-spacing:-.025em;opacity:.3">BIO</div>
 
   <div style="position:relative;z-index:2;width:100%;max-width:1280px;margin:0 auto;padding:0 clamp(24px,5vw,64px)">
     <div class="about-row" style="display:flex;flex-wrap:wrap;align-items:flex-start;gap:clamp(32px,5vw,80px)">
@@ -227,13 +228,13 @@
 
       <div class="about-text" style="flex:1 1 480px;min-width:min(100%,280px);display:flex;flex-direction:column;gap:clamp(22px,2.6vw,34px)">
         <blockquote style="margin:0">
-          <p style="font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:clamp(23px,2.7vw,38px);line-height:1.2;letter-spacing:-.018em;text-wrap:pretty">Great products don't begin with polished interfaces. They begin with understanding the people they're built for.</p>
+          <p style="font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:clamp(23px,2.7vw,38px);line-height:1.2;letter-spacing:-.018em;text-wrap:pretty">The thinking behind the work.</p>
         </blockquote>
         <div style="width:58px;height:1px;background:linear-gradient(90deg,var(--accent),transparent)"></div>
         <div style="display:flex;flex-direction:column;gap:17px;max-width:56ch">
-          <p style="font-size:15px;line-height:1.72;color:#a09c92;text-wrap:pretty">Hi, I'm Kristian Davis. Long before I found UX, I was fascinated by why some experiences just felt right. Painting taught me balance, composition, and visual hierarchy. Nearly a decade in hospitality taught me to read people, adapt quickly, and notice what often goes unsaid. Today, those same instincts shape every project I take on.</p>
-          <p style="font-size:15px;line-height:1.72;color:#a09c92;text-wrap:pretty">Design is only valuable when it solves the right problem. I enjoy asking the questions that uncover what's really happening beneath the surface, then turning those insights into products that feel simple, thoughtful, and effortless to use.</p>
-          <p style="font-size:15px;line-height:1.72;color:#a09c92;text-wrap:pretty">Outside of work you'll usually find me swimming, gaming, or planning my next trip. I'm endlessly curious about how things work, why people make the choices they do, and how small details shape larger experiences. That curiosity doesn't stop when I leave my desk.</p>
+          <p style="font-size:15px;line-height:1.72;color:#a09c92;text-wrap:pretty">Hi, I'm Kristian Davis. Long before I found UX, I was fascinated by why some experiences just felt right. Painting taught me balance, composition, and visual hierarchy. Nearly a decade in hospitality taught me to read people, adapt quickly, and notice what often goes unsaid.</p>
+          <p style="font-size:15px;line-height:1.72;color:#a09c92;text-wrap:pretty">Today, I bring those instincts into every project. I believe design is only valuable when it solves the right problem, so I enjoy asking the questions that uncover what's happening beneath the surface and turning those insights into products that feel simple, thoughtful, and intuitive.</p>
+          <p style="font-size:15px;line-height:1.72;color:#a09c92;text-wrap:pretty">Outside of work you'll usually find me swimming, gaming, or planning my next trip. I'm endlessly curious about how people think and how small details shape the experiences we remember.</p>
         </div>
       </div>
 
@@ -242,7 +243,7 @@
 </section>
 
 <!-- ===================== CONTACT ===================== -->
-<section id="contact" style="position:relative;display:flex;align-items:center;min-height:100dvh;padding:clamp(96px,13vh,140px) 0 168px;overflow:hidden;scroll-snap-align:start">
+<section id="contact" style="position:relative;display:flex;align-items:center;min-height:auto;padding:clamp(64px,9vh,104px) 0 clamp(120px,14vh,150px);overflow:hidden">
   <div aria-hidden="true" style="position:absolute;top:clamp(10px,1.5vw,20px);left:clamp(-30px,-2vw,-8px);z-index:0;pointer-events:none;user-select:none;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(110px,20vw,280px);line-height:1;color:transparent;-webkit-text-stroke:1px var(--accent);letter-spacing:-.02em;opacity:.35">CONTACT</div>
 
   <div style="position:relative;z-index:2;width:100%;max-width:1280px;margin:0 auto;padding:0 clamp(24px,5vw,64px)">

@@ -18,6 +18,7 @@ class Portfolio {
     this.initSpine();
     this.initContact();
     this.initDropdown();
+    this.initMobileNav();
     this.initAnchors();
     this.applyIncomingHash();
   }
@@ -363,7 +364,35 @@ class Portfolio {
     document.addEventListener('pointerdown', function (e) { if (det.open && !det.contains(e.target)) close(); }, true);
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && det.open) { close(); summary.focus(); } });
     menu.addEventListener('click', function (e) { if (e.target.closest('a')) close(); });
-    window.addEventListener('scroll', close, { passive: true });
+    window.addEventListener('scroll', function () {
+      if (window.matchMedia('(min-width:901px)').matches) close();
+    }, { passive: true });
+  }
+
+  // Mobile: the whole nav collapses into one dropdown. The project list stays a <details>
+  // inside it, so it reads as a second menu nested in the first.
+  initMobileNav() {
+    const nav = document.querySelector('nav');
+    const btn = document.getElementById('navToggle');
+    const menu = document.getElementById('navMenu');
+    if (!nav || !btn || !menu) return;
+
+    const set = open => {
+      nav.setAttribute('data-open', open ? 'true' : 'false');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (!open) { const d = menu.querySelector('details'); if (d) d.open = false; }
+    };
+    set(false);
+
+    btn.addEventListener('click', () => set(nav.getAttribute('data-open') !== 'true'));
+    menu.addEventListener('click', e => { if (e.target.closest('a')) set(false); });
+    document.addEventListener('pointerdown', e => {
+      if (nav.getAttribute('data-open') === 'true' && !nav.contains(e.target)) set(false);
+    }, true);
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && nav.getAttribute('data-open') === 'true') { set(false); btn.focus(); }
+    });
+    window.matchMedia('(min-width:901px)').addEventListener('change', () => set(false));
   }
 
   // Arriving from a project page with #about or #contact: re-apply the jump once laid out.
@@ -380,14 +409,10 @@ class Portfolio {
     this.wait(jump, 400);
   }
 
-  // A programmatic jump can be dragged to the wrong section's snap point mid-flight, so
-  // snapping is lifted for the duration of the jump only.
-  suspendSnap(restoreAfter) {
-    const html = document.documentElement;
-    html.style.scrollSnapType = 'none';
-    clearTimeout(this.snapTimer);
-    this.snapTimer = setTimeout(function () { html.style.scrollSnapType = ''; }, restoreAfter || 260);
-  }
+  // Scroll snapping was removed from the stylesheet -- the page is one continuous scroll now,
+  // so there is nothing to suspend around a programmatic jump. Kept as a no-op because the
+  // anchor and incoming-hash paths both still call it.
+  suspendSnap() {}
 
   // KD in the nav returns the page to its opening state and replays every reveal.
   resetAll() {

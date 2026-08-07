@@ -1,0 +1,35 @@
+Three files. Copy each over the file at the SAME path in your repo, then commit and push to main.
+
+  index.html      ->  index.html
+  css/style.css   ->  css/style.css
+  js/main.js      ->  js/main.js
+
+Nothing else in the repo changes. Suggested commit message:
+
+  Restore bio copy; per-project title hover; single smooth scroll; mobile nav dropdown; hero + section spacing
+
+What changed
+------------
+index.html
+  - Bio section: heading "The thinking behind the work." + the three edited paragraphs
+  - Removed every scroll-snap-align (hero, about, contact)
+  - Hero: centred in 100dvh, top padding clears the nav, eyebrow offset 92px -> 28px,
+    reflection well 2.8x headline -> 1.2x, waterline gap matched to the gap above line 2
+  - Work section padding-top reduced; about padding reduced; contact off min-height:100dvh
+  - BIO ghost word scaled down
+  - "the decision" copy replaced with short lorem ipsum on all four projects
+  - Added the mobile nav toggle button + id="navMenu" on the nav list
+
+css/style.css
+  - Dropped scroll-snap-type from html (this was the awkward scrolling on both mobile and desktop)
+  - Work band titles hover to their own project colour instead of the site purple
+  - Mobile (<=900px): nav collapses to one dropdown, project list nested inside it as a
+    second dropdown; 48px tap targets
+  - Mobile hero: more space between eyebrow, headline and sub-line; shallower reflection well
+  - Equal spacing above and below the second headline phrase
+
+js/main.js
+  - initMobileNav(): opens/closes the mobile dropdown, closes on tap-out, Escape, link click,
+    and when the viewport crosses back to desktop
+  - suspendSnap() is now a no-op (there is no snapping left to suspend)
+  - The work dropdown's close-on-scroll now only applies at desktop widths
