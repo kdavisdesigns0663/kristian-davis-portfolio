@@ -191,10 +191,14 @@
   .nav-role{ display:none !important; }
 }
 
-/* --- mobile: nav links need a real tap target, not a 13px line of text --- */
+/* --- mobile: nav links need a real tap target, not a 13px line of text ---
+   12px, not 10px: at 10px the top-level links measured 41px and the project items in the
+   dropdown 39px, both under the 44px this project holds itself to. min-height carries the
+   dropdown items, whose padding is inline and would otherwise need overriding twice. */
 @media (max-width:900px){
   nav ul{ gap:clamp(14px,3.6vw,22px) !important; }
-  nav ul a, nav ul summary{ padding-top:10px !important; padding-bottom:10px !important; }
+  nav ul a, nav ul summary{ padding-top:12px !important; padding-bottom:12px !important; }
+  nav details ul a{ min-height:44px; align-items:center; }
   #contact{ min-height:auto !important; padding-top:clamp(150px,40vw,210px) !important; padding-bottom:clamp(72px,16vw,120px) !important; }
   #contactGhost{ top:clamp(26px,6vw,44px) !important; font-size:clamp(84px,22vw,190px) !important; }
   #about{ padding-bottom:clamp(72px,14vw,110px) !important; }

@@ -221,7 +221,14 @@
             <source media="(max-width:900px)" srcset="img/kristian-about-mobile-crop-900.jpg">
             <img src="img/kristian-about-crop-800.jpg" alt="Kristian Davis" width="800" height="1000" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;object-position:50% 30%;filter:grayscale(1) contrast(1.15) brightness(.95);display:block">
           </picture>
-          <span aria-hidden="true" style="position:absolute;inset:0;background:linear-gradient(160deg, rgba(var(--accent-rgb),.14), rgba(5,5,5,.18) 70%);mix-blend-mode:multiply"></span>
+          <!-- Deliberately NOT mix-blend-mode. Safari promotes a blended element to its own
+               compositing layer, and inside a border-radius + overflow:hidden parent like this
+               one it fails to apply the rounded clip, paints the layer opaque black, and then
+               does not repaint it while the page scrolls -- a black box sitting still over the
+               content. Chrome and Firefox composite it correctly, which is why it only ever
+               showed up on iPhone. Multiplying .14 violet over an already-grayscale photo was
+               worth almost nothing visually, so the tint is done with plain alpha instead. -->
+          <span aria-hidden="true" style="position:absolute;inset:0;background:linear-gradient(160deg, rgba(var(--accent-rgb),.10), rgba(5,5,5,.20) 70%)"></span>
         </div>
       </div>
 
