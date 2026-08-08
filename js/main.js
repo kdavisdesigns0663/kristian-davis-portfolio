@@ -55,6 +55,12 @@ class Portfolio {
     };
     seatStage();
     window.addEventListener('resize', seatStage);
+    // Seating it once at init is not enough. On a cold load this runs while Space Grotesk is
+    // still downloading, so the headline is measured in fallback metrics and the waterline is
+    // read ~86px lower than where it finally lands (measured at 1280px). The stage kept that
+    // stale seat and the drop hit well below the line. Re-seat when the fonts settle, and
+    // again in startFall() below, which is the only moment the number actually has to be right.
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(seatStage);
     // One phrase at a time. Constant pace in ems, so both read as the same sweep regardless of
     // width, and the reflection is driven off the same duration so each mirrored phrase surfaces
     // in step with the real one rather than fading in as a block.
@@ -111,13 +117,19 @@ class Portfolio {
         // bright stop is moved onto the hit instead. It survives the scale because the origin
         // and the stop are the same point of the box, so the core stays pinned to the impact
         // while the line grows outward from it in both directions.
+        // Full-strength accent at the core, the same colour the purple phrase is set in and the
+        // same colour the drop is, so the drop, the line and the words read as one material
+        // rather than three. drop-shadow rather than box-shadow: box-shadow would trace the
+        // element's box and hang a glow out over the stretch where the gradient is transparent,
+        // whereas drop-shadow follows the painted alpha, so the halo only exists where there is
+        // actually liquid, and it compresses with the scale into a bright point at the impact.
         const stop = v => Math.max(0, Math.min(100, v)).toFixed(1) + '%';
         line.style.background =
           'linear-gradient(90deg,' +
           ' transparent ' + stop(pct - 30) + ',' +
-          ' rgba(var(--accent-rgb),.28) ' + stop(pct - 11) + ',' +
-          ' rgba(var(--accent-rgb),.55) ' + stop(pct) + ',' +
-          ' rgba(var(--accent-rgb),.18) ' + stop(pct + 28) + ',' +
+          ' rgba(var(--accent-rgb),.55) ' + stop(pct - 11) + ',' +
+          ' rgba(var(--accent-rgb),1) ' + stop(pct) + ',' +
+          ' rgba(var(--accent-rgb),.34) ' + stop(pct + 28) + ',' +
           ' transparent ' + stop(pct + 60) + ')';
         line.style.transformOrigin = ox.toFixed(1) + 'px 50%';
         line.style.transition = 'opacity .28s ease, transform 1.15s cubic-bezier(.12,.86,.16,1)';
@@ -148,6 +160,9 @@ class Portfolio {
       // The drop is not released until the white phrase has finished writing itself, so the
       // fall is armed here rather than at the top of play().
       const startFall = () => {
+        // Last word on where the drop is aimed, taken after the headline has finished writing
+        // itself and the layout has settled for good.
+        seatStage();
         const dist = Math.round(window.innerHeight * 0.6);
         wrap.style.transition = 'none';
         wrap.style.transform = 'translate(-50%,' + -dist + 'px) scaleY(1)';
