@@ -46,31 +46,37 @@ class Portfolio {
     if (!lines.length || !stage) return;
 
     const reflLines = Array.prototype.slice.call(document.querySelectorAll('#reflection [data-refl]'));
-    const wipe = function () {
-      // Constant pace in ems, so both phrases read as one sweep regardless of their width.
-      // The reflection is driven off the same delay and duration, so each mirrored phrase
-      // surfaces in step with the real one rather than fading in as a block.
-      const EM_PER_SEC = 6;
-      let delay = 0;
-      lines.forEach(function (l, i) {
-        const em = parseFloat(getComputedStyle(l).fontSize) || 16;
-        const dur = l.getBoundingClientRect().width / (em * EM_PER_SEC);
-        if (i === 1) delay += 0.9;
-        [l, reflLines[i]].forEach(function (el) {
-          if (!el) return;
-          el.style.transitionDelay = delay + 's';
-          el.style.transitionDuration = '0.14s, ' + dur + 's';
-          el.style.opacity = '1';
-          el.style.setProperty('--reveal', '100%');
-        });
-        delay += dur;
+
+    // Park the drop's landing point on the waterline's own centre line, so it vanishes exactly
+     // where the line is created rather than a stray pixel below the headline block.
+    const seatStage = function () {
+      if (!line) return;
+      stage.style.top = (line.offsetTop + line.offsetHeight / 2) + 'px';
+    };
+    seatStage();
+    window.addEventListener('resize', seatStage);
+    // One phrase at a time. Constant pace in ems, so both read as the same sweep regardless of
+    // width, and the reflection is driven off the same duration so each mirrored phrase surfaces
+    // in step with the real one rather than fading in as a block.
+    const wipe = function (i) {
+      const l = lines[i];
+      if (!l) return 0;
+      const em = parseFloat(getComputedStyle(l).fontSize) || 16;
+      const dur = l.getBoundingClientRect().width / (em * 6);
+      [l, reflLines[i]].forEach(function (el) {
+        if (!el) return;
+        el.style.transitionDelay = '0s';
+        el.style.transitionDuration = '0.14s, ' + dur + 's';
+        el.style.opacity = '1';
+        el.style.setProperty('--reveal', '100%');
       });
+      return dur;
     };
 
     const play = () => {
       if (this.heroPlayed) return;
       this.heroPlayed = true;
-      if (ghost) ghost.style.opacity = '0.35';
+      if (ghost) ghost.style.opacity = '0.4';
 
       if (this.reduced) {
         lines.forEach(function (l) { l.style.transition = 'opacity .4s ease'; l.style.opacity = '1'; l.style.setProperty('--reveal', '100%'); });
@@ -86,10 +92,14 @@ class Portfolio {
       wrap.style.transform = 'translate(-50%,' + -dist + 'px) scaleY(1)';
       wrap.style.opacity = '0';
       wrap.style.filter = 'blur(0px)';
+      wrap.style.clipPath = 'inset(0 0 0 0)';
       void wrap.offsetHeight;
       wrap.style.transition = 'transform ' + this.heroFall + 's cubic-bezier(.36,.06,.29,.99), opacity .3s ease';
       wrap.style.transform = 'translate(-50%,0px) scaleY(1.45)';
       wrap.style.opacity = '1';
+
+      // First phrase reads while the drop is still falling.
+      wipe(0);
 
       const impact = () => {
         // Flattens into the surface and is gone in about a sixth of a second, at the same
@@ -103,10 +113,18 @@ class Portfolio {
         flash.style.transform = 'translate(-50%,-50%) scale(9)';
         flash.style.opacity = '0';
 
+        // The line spreads out of the point of impact. Layout geometry, not the bounding rect —
+        // the line is still at scaleX(0) here, so its rect measures zero width.
+        const lw = line.offsetWidth;
+        const ox = Math.max(0, Math.min(lw, stage.offsetLeft - line.offsetLeft));
+        line.style.transformOrigin = ox.toFixed(1) + 'px 50%';
+        line.style.transition = 'opacity .28s ease, transform 1.15s cubic-bezier(.12,.86,.16,1)';
         line.style.opacity = '1';
         line.style.transform = 'scaleX(1)';
+
         this.ripples(stage, 3, 640, 0);
-        wipe();
+        // The purple phrase arrives on the hit, with the line.
+        wipe(1);
         // The reflection surfaces disturbed, then settles.
         refl.style.animation = 'reflWobble 2.9s cubic-bezier(.22,1,.36,1)';
         this.wait(function () { refl.style.animation = 'reflIdle 11s ease-in-out infinite'; }, 2900);
@@ -440,6 +458,7 @@ class Portfolio {
     });
     const wrap = document.querySelector('#dropStage [data-drop-wrap]');
     wrap.style.transition = 'none';
+    wrap.style.clipPath = 'inset(0 0 0 0)';
     wrap.style.opacity = '0';
     wrap.style.filter = 'blur(0px)';
     document.querySelectorAll('#dropStage div[style*="border-radius:4"]').forEach(function (r) { r.remove(); });

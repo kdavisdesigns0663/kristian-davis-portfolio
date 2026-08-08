@@ -2,7 +2,7 @@
    Layout and colour live as inline styles on the elements themselves; the rules below are
    only the things an inline style cannot express: resets, custom properties, keyframes, and
    the hover/focus/active states. */
-:root{ --accent:#a06bff; --accent-rgb:160,107,255; --gut:clamp(20px,5vw,116px); --maxw:2160px; }
+:root{ --accent:#a06bff; --accent-rgb:160,107,255; --gut:clamp(20px,4.6vw,72px); --maxw:1440px; }
 
 /* One measure for the whole page: nav, hero, work rows, bio, contact and footer all resolve
    to the same left and right edge at every width, so nothing drifts between sections. */
@@ -162,13 +162,21 @@
 @media (min-width:901px){
   .about-row{ grid-template-columns:minmax(0,1fr) minmax(0,.58fr);
               grid-template-areas:'lede media' 'text media'; align-items:start; }
-  .about-media{ max-width:440px; justify-self:end; align-self:stretch; }
-  .about-photo{ min-height:100%; }
+  .about-media{ width:100%; max-width:min(400px,32vw); justify-self:end; align-self:stretch; }
+  .about-photo{ height:100% !important; }
+  /* Support lists sit two-up in the copy column: design | development over focus | platforms. */
+  .about-text dl{ grid-template-columns:repeat(2,minmax(0,1fr)) !important; max-width:56ch; }
+  .about-text dl > div:nth-child(3){ order:2; }
+  .about-text dl > div:nth-child(4){ order:1; }
 }
 @media (max-width:900px){
   .about-row{ grid-template-areas:'media' 'lede' 'text' !important; }
   .about-media{ max-width:420px; }
   .about-photo{ aspect-ratio:4/5; height:auto !important; }
+  /* Support lists sit two-up in the copy column: design | development over focus | platforms. */
+  .about-text dl{ grid-template-columns:repeat(2,minmax(0,1fr)) !important; max-width:56ch; }
+  .about-text dl > div:nth-child(3){ order:2; }
+  .about-text dl > div:nth-child(4){ order:1; }
   /* Enough top padding for the ghost word to clear the portrait, but only just: the image sits
      right under it rather than colliding with it. */
   #about{ padding-top:clamp(130px,33vw,200px) !important; }
@@ -213,3 +221,30 @@ br[data-mob]{ display:none; }
   .hero-block, #surface{ margin-left:0 !important; }
   #heroHeadline [data-line="b"], #reflection [data-refl="b"]{ margin-left:clamp(12px,3.4vw,26px) !important; }
 }
+
+/* --- hero rhythm on mobile ---
+   The two phrases get a little air between them (applied to headline and reflection alike so the
+   mirror stays in register), the sub-line moves up under the headline by shortening the reflection
+   reserve, and the CTA detaches onto its own rule so it reads as a separate action. */
+@media (max-width:700px){
+  #heroHeadline [data-line="b"], #reflection [data-refl="b"]{ margin-top:.16em; }
+  #reflSpace{ height:calc(.78 * clamp(22px,7.6vw,41px)) !important; }
+  #heroFoot{
+    margin-top:14px !important;
+    flex-direction:column; align-items:flex-start !important; gap:0 !important;
+  }
+  #heroFoot > a{
+    justify-content:space-between;
+    margin-top:32px; padding-top:24px;
+    border-top:1px solid #1c1c1a; border-bottom:0 !important;
+    padding-bottom:0; width:100%;
+  }
+}
+
+/* Each project's title takes its own colour on hover, not the site accent: the generic a:hover
+   rule would otherwise turn every one of them purple. */
+[data-band="nitefind"]:hover h3, [data-band="nitefind"]:focus-visible h3{ color:#b04ad6 !important; }
+[data-band="smiteforge"]:hover h3, [data-band="smiteforge"]:focus-visible h3{ color:#e0b84a !important; }
+[data-band="zentra"]:hover h3, [data-band="zentra"]:focus-visible h3{ color:#4fbf82 !important; }
+[data-band="amun"]:hover h3, [data-band="amun"]:focus-visible h3{ color:#c9c5bc !important; }
+[data-band]:hover, [data-band]:focus-visible{ color:inherit; }

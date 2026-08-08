@@ -60,7 +60,7 @@
     <div style="position:relative;z-index:2;font-family:'JetBrains Mono',monospace;font-size:clamp(13px,1.1vw,15px);margin-top:min(150px, max(0px, (100vw - 700px) * 0.5));color:#a09c92">// <b style="color:var(--accent);font-weight:500">ux/ui_design</b> · product_design · web_experience</div>
 
   <div class="hero-block" style="position:relative;z-index:2;margin-top:32px">
-    <div id="heroGhost" aria-hidden="true" style="position:absolute;top:calc(-.32em - 20px);left:-.09em;z-index:0;pointer-events:none;user-select:none;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(120px,19vw,270px);line-height:.84;color:transparent;-webkit-text-stroke:1px var(--accent);letter-spacing:-.035em;opacity:0;transition:opacity 3.6s ease">KD</div>
+    <div id="heroGhost" aria-hidden="true" style="position:absolute;top:calc(-.32em - 20px);left:-.09em;z-index:0;pointer-events:none;user-select:none;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(120px,19vw,270px);line-height:.84;color:transparent;-webkit-text-stroke:1.2px var(--accent);letter-spacing:-.035em;opacity:0;transition:opacity 3.6s ease">KD</div>
 
   <div id="surface" style="position:relative;z-index:2">
     <h1 id="heroHeadline" style="position:relative;z-index:2;margin-top:0;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(34px,6.6vw,104px);line-height:1.02;letter-spacing:-.032em;max-width:17ch">
@@ -71,7 +71,7 @@
     <div id="waterline" aria-hidden="true" style="position:relative;z-index:2;height:1px;margin-top:clamp(16px,1.8vw,26px);background:linear-gradient(90deg, rgba(var(--accent-rgb),.55), rgba(var(--accent-rgb),.14) 46%, transparent 82%);opacity:0;transform:scaleX(0);transform-origin:left;transition:opacity .9s ease, transform 2.4s cubic-bezier(.19,1,.22,1)"></div>
 
     <div id="heroDropStage" aria-hidden="true" style="position:absolute;left:clamp(40px,13vw,220px);top:100%;width:0;height:0;z-index:4;pointer-events:none;overflow:visible">
-      <div data-drop-wrap style="position:absolute;left:0;top:0;transform:translate(-50%,-60vh) scaleY(1);opacity:0"><div style="width:11px;height:11px;background:var(--accent);box-shadow:0 0 15px 4px rgba(var(--accent-rgb),.6);border-radius:50% 50% 50% 0;transform:rotate(135deg)"></div></div>
+      <div data-drop-wrap style="position:absolute;left:0;top:0;transform:translate(-50%,-60vh) scaleY(1);opacity:0"><div style="width:13px;height:13px;background:var(--accent);box-shadow:0 0 15px 4px rgba(var(--accent-rgb),.6);border-radius:50% 50% 50% 0;transform:rotate(135deg)"></div></div>
       <div data-flash style="position:absolute;top:0;left:0;width:5px;height:5px;border-radius:50%;background:#fff;transform:translate(-50%,-50%);opacity:0"></div>
     </div>
 
@@ -81,10 +81,10 @@
     </div>
   </div>
 
-  <div aria-hidden="true" style="height:calc(1.38 * clamp(34px,6.6vw,104px))"></div>
+  <div id="reflSpace" aria-hidden="true" style="height:calc(1.38 * clamp(34px,6.6vw,104px))"></div>
   </div>
 
-  <div style="position:relative;z-index:2;margin-top:clamp(10px,1.4vw,22px);display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:clamp(20px,3vw,48px)">
+  <div id="heroFoot" style="position:relative;z-index:2;margin-top:clamp(10px,1.4vw,22px);display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:clamp(20px,3vw,48px)">
     <p style="max-width:46ch;font-size:clamp(15px,1.15vw,17px);line-height:1.7;color:#a09c92;padding-left:22px;border-left:2px solid var(--accent);text-wrap:pretty">Helping businesses navigate complexity through thoughtful strategy and purposeful design.</p>
     <a class="i-scroll" href="#work" style="display:inline-flex;align-items:center;gap:11px;flex-shrink:0;padding-bottom:6px;border-bottom:1px solid #34332f;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.06em;color:#e9e7df;transition:border-color .35s ease,gap .35s cubic-bezier(.19,1,.22,1)">SEE THE WORK<span aria-hidden="true">↓</span></a>
   </div>
@@ -92,15 +92,14 @@
 </section>
 
 <!-- ===================== WORK ===================== -->
-<section id="work" aria-labelledby="workHeading" style="position:relative;padding:clamp(150px,22vw,330px) 0 0;overflow:hidden">
+<section id="work" aria-label="Selected work" style="position:relative;padding:clamp(150px,22vw,330px) 0 0;overflow:hidden">
   <div id="workWash" aria-hidden="true" style="position:absolute;top:0;left:0;right:0;height:min(760px,74vh);z-index:0;pointer-events:none;background:radial-gradient(ellipse 62% 100% at 50% 0%, rgba(var(--accent-rgb),.13), transparent 72%);clip-path:circle(0% at 50% 0%)"></div>
-  <div id="workGhost" aria-hidden="true" style="position:absolute;top:clamp(40px,6vw,96px);left:clamp(-30px,-2vw,-8px);z-index:1;pointer-events:none;user-select:none;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(110px,20vw,280px);line-height:1;color:transparent;-webkit-text-stroke:1px var(--accent);letter-spacing:-.02em;opacity:.34">WORK</div>
+  <div id="workGhost" aria-hidden="true" style="position:absolute;top:clamp(40px,6vw,96px);left:clamp(-30px,-2vw,-8px);z-index:1;pointer-events:none;user-select:none;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(110px,20vw,280px);line-height:1;color:transparent;-webkit-text-stroke:1.8px var(--accent);letter-spacing:-.02em;opacity:.85">WORK</div>
   <div id="dropStage" aria-hidden="true" style="position:absolute;top:0;left:50%;width:0;height:0;z-index:6;pointer-events:none;overflow:visible">
     <div data-drop-wrap style="position:absolute;left:0;top:0;transform:translate(-50%,-70vh) scaleY(1);opacity:0"><div style="width:11px;height:11px;background:var(--accent);box-shadow:0 0 14px 3px rgba(var(--accent-rgb),.55);border-radius:50% 50% 50% 0;transform:rotate(135deg)"></div></div>
     <div data-flash style="position:absolute;top:0;left:0;width:6px;height:6px;border-radius:50%;background:#fff;transform:translate(-50%,-50%);opacity:0"></div>
   </div>
 
-  <h2 id="workHeading" class="vh">Selected work</h2>
 
   <div id="bands" style="position:relative;z-index:2;opacity:0;transition:opacity .5s ease">
 
@@ -196,11 +195,10 @@
 </section>
 
 <!-- ===================== ABOUT ===================== -->
-<section id="about" aria-labelledby="aboutHeading" style="position:relative;padding:clamp(90px,11vw,168px) 0;overflow:hidden">
-  <div id="bioGhost" aria-hidden="true" style="position:absolute;top:clamp(30px,5vw,74px);left:clamp(-30px,-2vw,-8px);z-index:0;pointer-events:none;user-select:none;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(110px,20vw,290px);line-height:1;color:transparent;-webkit-text-stroke:1px var(--accent);letter-spacing:-.025em;opacity:.3">BIO</div>
+<section id="about" aria-label="About Kristian Davis" style="position:relative;padding:clamp(90px,11vw,168px) 0;overflow:hidden">
+  <div id="bioGhost" aria-hidden="true" style="position:absolute;top:clamp(30px,5vw,74px);left:clamp(-30px,-2vw,-8px);z-index:0;pointer-events:none;user-select:none;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(110px,20vw,290px);line-height:1;color:transparent;-webkit-text-stroke:1.2px var(--accent);letter-spacing:-.025em;opacity:.4">BIO</div>
 
   <div class="wrap" style="position:relative;z-index:2">
-    <h2 id="aboutHeading" class="vh">About Kristian Davis</h2>
     <div class="about-row">
 
       <div class="about-lede">
@@ -252,7 +250,7 @@
 
 <!-- ===================== CONTACT ===================== -->
 <section id="contact" aria-labelledby="contactHeading" style="position:relative;display:flex;align-items:center;min-height:100dvh;padding:clamp(96px,13vh,140px) 0 168px;overflow:hidden">
-  <div id="contactGhost" aria-hidden="true" style="position:absolute;top:clamp(10px,1.5vw,20px);left:clamp(-30px,-2vw,-8px);z-index:0;pointer-events:none;user-select:none;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(110px,20vw,280px);line-height:1;color:transparent;-webkit-text-stroke:1px var(--accent);letter-spacing:-.02em;opacity:.35">CONTACT</div>
+  <div id="contactGhost" aria-hidden="true" style="position:absolute;top:clamp(10px,1.5vw,20px);left:clamp(-30px,-2vw,-8px);z-index:0;pointer-events:none;user-select:none;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(110px,20vw,280px);line-height:1;color:transparent;-webkit-text-stroke:1.8px var(--accent);letter-spacing:-.02em;opacity:.85">CONTACT</div>
 
   <div class="wrap" style="position:relative;z-index:2">
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:clamp(40px,6vw,110px);align-items:start">
