@@ -5,13 +5,13 @@
   summary{ list-style:none; }
   summary::-webkit-details-marker{ display:none; }
   a{ color:inherit; text-decoration:none; }
-  a:hover{ color:var(--accent); }
+  a:hover{ color:var(--accent-text); }
   ::selection{ background:rgba(var(--accent-rgb),.35); color:#fff; }
   :focus-visible{ outline:2px solid var(--accent); outline-offset:4px; border-radius:2px; }
 
 /* --- interactive states --- */
 .c1:hover, .c1:focus-visible{ top:16px !important; }
-.c2:hover .nav-name, .c2:focus-visible .nav-name{ color:var(--accent) !important; }
+.c2:hover .nav-name, .c2:focus-visible .nav-name{ color:var(--accent-text) !important; }
 @media (max-width:640px){ .nav-role{ display:none !important; } }
 .c3:hover{ color:#e9e7df !important; }
 .c4:hover{ color:#e9e7df !important; }
@@ -22,11 +22,11 @@
 .c9:hover{ color:#e9e7df !important; }
 .c10:hover{ color:#e9e7df !important; }
 .c11:hover{ color:#e9e7df !important; }
-.c12:hover{ color:var(--accent) !important; gap:14px !important; }
-.c13:hover{ border-color:#3a3a38 !important; }
-.c14:hover{ border-color:#3a3a38 !important; }
+.c12:hover{ color:var(--accent-text) !important; gap:14px !important; }
+.c13:hover{ border-color:#63625c !important; }
+.c14:hover{ border-color:#63625c !important; }
 .c15:hover{ border-color:var(--accent) !important; background:rgba(var(--accent-rgb),.05) !important; }
-.c16:hover{ color:var(--accent) !important; }
+.c16:hover{ color:var(--accent-text) !important; }
 
 @media (prefers-reduced-motion: reduce){
   *, *::before, *::after{ animation-duration:.01ms !important; transition-duration:.01ms !important; }

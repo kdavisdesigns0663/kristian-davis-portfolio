@@ -68,7 +68,7 @@ class Portfolio {
     const play = () => {
       if (this.heroPlayed) return;
       this.heroPlayed = true;
-      if (ghost) ghost.style.opacity = '0.35';
+      if (ghost) ghost.style.opacity = '0.55';
 
       if (this.reduced) {
         lines.forEach(function (l) { l.style.transition = 'opacity .4s ease'; l.style.opacity = '1'; l.style.setProperty('--reveal', '100%'); });
