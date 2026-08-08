@@ -10,6 +10,9 @@ class Portfolio {
     this.timers = [];
     this.reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     this.fall = 1;
+    // The hero drop falls slower than the work cascade: it is the one moment the visitor
+    // is asked to just watch, so it gets room to breathe.
+    this.heroFall = 1.6;
     this.initHero();
     // Bands are put into their hidden state BEFORE the drop is wired: the reverse order lets
     // a fast observer reveal a band and then have initBands reset it to invisible.
@@ -18,7 +21,6 @@ class Portfolio {
     this.initSpine();
     this.initContact();
     this.initDropdown();
-    this.initMobileNav();
     this.initAnchors();
     this.applyIncomingHash();
   }
@@ -48,12 +50,12 @@ class Portfolio {
       // Constant pace in ems, so both phrases read as one sweep regardless of their width.
       // The reflection is driven off the same delay and duration, so each mirrored phrase
       // surfaces in step with the real one rather than fading in as a block.
-      const EM_PER_SEC = 11;
+      const EM_PER_SEC = 6;
       let delay = 0;
       lines.forEach(function (l, i) {
         const em = parseFloat(getComputedStyle(l).fontSize) || 16;
         const dur = l.getBoundingClientRect().width / (em * EM_PER_SEC);
-        if (i === 1) delay += 0.5;
+        if (i === 1) delay += 0.9;
         [l, reflLines[i]].forEach(function (el) {
           if (!el) return;
           el.style.transitionDelay = delay + 's';
@@ -68,7 +70,7 @@ class Portfolio {
     const play = () => {
       if (this.heroPlayed) return;
       this.heroPlayed = true;
-      if (ghost) ghost.style.opacity = '0.55';
+      if (ghost) ghost.style.opacity = '0.35';
 
       if (this.reduced) {
         lines.forEach(function (l) { l.style.transition = 'opacity .4s ease'; l.style.opacity = '1'; l.style.setProperty('--reveal', '100%'); });
@@ -85,7 +87,7 @@ class Portfolio {
       wrap.style.opacity = '0';
       wrap.style.filter = 'blur(0px)';
       void wrap.offsetHeight;
-      wrap.style.transition = 'transform ' + this.fall + 's cubic-bezier(.36,.06,.29,.99), opacity .22s ease';
+      wrap.style.transition = 'transform ' + this.heroFall + 's cubic-bezier(.36,.06,.29,.99), opacity .3s ease';
       wrap.style.transform = 'translate(-50%,0px) scaleY(1.45)';
       wrap.style.opacity = '1';
 
@@ -103,15 +105,15 @@ class Portfolio {
 
         line.style.opacity = '1';
         line.style.transform = 'scaleX(1)';
-        this.ripples(stage, 3, 560, 0);
+        this.ripples(stage, 3, 640, 0);
         wipe();
         // The reflection surfaces disturbed, then settles.
-        refl.style.animation = 'reflWobble 2.1s cubic-bezier(.22,1,.36,1)';
-        this.wait(function () { refl.style.animation = 'reflIdle 9s ease-in-out infinite'; }, 2100);
+        refl.style.animation = 'reflWobble 2.9s cubic-bezier(.22,1,.36,1)';
+        this.wait(function () { refl.style.animation = 'reflIdle 11s ease-in-out infinite'; }, 2900);
       };
 
       this.pendingHero = impact;
-      this.heroTimer = setTimeout(() => { this.pendingHero = null; impact(); }, this.fall * 1000 + 260);
+      this.heroTimer = setTimeout(() => { this.pendingHero = null; impact(); }, this.heroFall * 1000 + 300);
       this.timers.push(this.heroTimer);
       // Clicking mid-fall lands it now rather than making anyone wait.
       document.getElementById('hero').addEventListener('click', e => {
@@ -364,35 +366,7 @@ class Portfolio {
     document.addEventListener('pointerdown', function (e) { if (det.open && !det.contains(e.target)) close(); }, true);
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && det.open) { close(); summary.focus(); } });
     menu.addEventListener('click', function (e) { if (e.target.closest('a')) close(); });
-    window.addEventListener('scroll', function () {
-      if (window.matchMedia('(min-width:901px)').matches) close();
-    }, { passive: true });
-  }
-
-  // Mobile: the whole nav collapses into one dropdown. The project list stays a <details>
-  // inside it, so it reads as a second menu nested in the first.
-  initMobileNav() {
-    const nav = document.querySelector('nav');
-    const btn = document.getElementById('navToggle');
-    const menu = document.getElementById('navMenu');
-    if (!nav || !btn || !menu) return;
-
-    const set = open => {
-      nav.setAttribute('data-open', open ? 'true' : 'false');
-      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-      if (!open) { const d = menu.querySelector('details'); if (d) d.open = false; }
-    };
-    set(false);
-
-    btn.addEventListener('click', () => set(nav.getAttribute('data-open') !== 'true'));
-    menu.addEventListener('click', e => { if (e.target.closest('a')) set(false); });
-    document.addEventListener('pointerdown', e => {
-      if (nav.getAttribute('data-open') === 'true' && !nav.contains(e.target)) set(false);
-    }, true);
-    document.addEventListener('keydown', e => {
-      if (e.key === 'Escape' && nav.getAttribute('data-open') === 'true') { set(false); btn.focus(); }
-    });
-    window.matchMedia('(min-width:901px)').addEventListener('change', () => set(false));
+    window.addEventListener('scroll', close, { passive: true });
   }
 
   // Arriving from a project page with #about or #contact: re-apply the jump once laid out.
@@ -409,10 +383,14 @@ class Portfolio {
     this.wait(jump, 400);
   }
 
-  // Scroll snapping was removed from the stylesheet -- the page is one continuous scroll now,
-  // so there is nothing to suspend around a programmatic jump. Kept as a no-op because the
-  // anchor and incoming-hash paths both still call it.
-  suspendSnap() {}
+  // A programmatic jump can be dragged to the wrong section's snap point mid-flight, so
+  // snapping is lifted for the duration of the jump only.
+  suspendSnap(restoreAfter) {
+    const html = document.documentElement;
+    html.style.scrollSnapType = 'none';
+    clearTimeout(this.snapTimer);
+    this.snapTimer = setTimeout(function () { html.style.scrollSnapType = ''; }, restoreAfter || 260);
+  }
 
   // KD in the nav returns the page to its opening state and replays every reveal.
   resetAll() {
@@ -476,7 +454,7 @@ class Portfolio {
   }
 
   initAnchors() {
-    const brand = document.querySelector('nav a[aria-label="Kristian Davis, UX Consultant, home"]');
+    const brand = document.querySelector('nav a[aria-label^="Kristian Davis"]');
     if (brand) brand.addEventListener('click', e => { e.preventDefault(); this.resetAll(); });
     window.addEventListener('hashchange', () => this.applyIncomingHash());
     document.querySelectorAll('#page a[href^="#"]').forEach(a => {
@@ -491,4 +469,7 @@ class Portfolio {
   }
 }
 
-document.addEventListener('DOMContentLoaded', function () { new Portfolio().init(); });
+document.addEventListener('DOMContentLoaded', function () {
+  window.portfolio = new Portfolio();
+  window.portfolio.init();
+});
