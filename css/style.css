@@ -185,7 +185,14 @@
   /* Enough top padding for the ghost word to clear the portrait, but only just: the image sits
      right under it rather than colliding with it. */
   #about{ padding-top:clamp(130px,33vw,200px) !important; }
-  #bioGhost{ top:clamp(24px,5vw,44px) !important; font-size:clamp(84px,22vw,190px) !important; }
+  /* BIO carries the same weight as WORK and CONTACT here. All four ghosts were always the same
+     var(--accent); what made this one read as a dimmer purple was a thinner stroke at a lower
+     opacity (1.2px/.4 against their 1.8px/.85), which at this size reads as a different colour
+     rather than as the same colour drawn lighter. Mobile only -- desktop is untouched. */
+  #bioGhost{
+    top:clamp(24px,5vw,44px) !important; font-size:clamp(84px,22vw,190px) !important;
+    -webkit-text-stroke-width:1.8px !important; opacity:.85 !important;
+  }
 }
 @media (max-width:640px){
   .nav-role{ display:none !important; }
