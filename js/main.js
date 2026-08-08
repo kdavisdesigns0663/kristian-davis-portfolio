@@ -87,19 +87,7 @@ class Portfolio {
 
       const wrap = stage.querySelector('[data-drop-wrap]');
       const flash = stage.querySelector('[data-flash]');
-      const dist = Math.round(window.innerHeight * 0.6);
-      wrap.style.transition = 'none';
-      wrap.style.transform = 'translate(-50%,' + -dist + 'px) scaleY(1)';
-      wrap.style.opacity = '0';
-      wrap.style.filter = 'blur(0px)';
-      wrap.style.clipPath = 'inset(0 0 0 0)';
-      void wrap.offsetHeight;
-      wrap.style.transition = 'transform ' + this.heroFall + 's cubic-bezier(.36,.06,.29,.99), opacity .3s ease';
-      wrap.style.transform = 'translate(-50%,0px) scaleY(1.45)';
-      wrap.style.opacity = '1';
 
-      // Nothing is written while the drop falls. The headline, the line and the reflection all
-      // originate at the hit, so the drop reads as the thing that creates them.
       const impact = () => {
         // Flattens into the surface and is gone in about a sixth of a second, at the same
         // moment the first ring is born.
@@ -116,17 +104,30 @@ class Portfolio {
         // the line is still at scaleX(0) here, so its rect measures zero width.
         const lw = line.offsetWidth;
         const ox = Math.max(0, Math.min(lw, stage.offsetLeft - line.offsetLeft));
+        const pct = lw ? (ox / lw) * 100 : 0;
+        // transform-origin alone was not enough to SEE the line being born at the hit: the
+        // stock gradient is brightest at the element's own left edge, so however the box was
+        // scaled the visual weight sat at x=0 and it read as sweeping in from the left. The
+        // bright stop is moved onto the hit instead. It survives the scale because the origin
+        // and the stop are the same point of the box, so the core stays pinned to the impact
+        // while the line grows outward from it in both directions.
+        const stop = v => Math.max(0, Math.min(100, v)).toFixed(1) + '%';
+        line.style.background =
+          'linear-gradient(90deg,' +
+          ' transparent ' + stop(pct - 30) + ',' +
+          ' rgba(var(--accent-rgb),.28) ' + stop(pct - 11) + ',' +
+          ' rgba(var(--accent-rgb),.55) ' + stop(pct) + ',' +
+          ' rgba(var(--accent-rgb),.18) ' + stop(pct + 28) + ',' +
+          ' transparent ' + stop(pct + 60) + ')';
         line.style.transformOrigin = ox.toFixed(1) + 'px 50%';
         line.style.transition = 'opacity .28s ease, transform 1.15s cubic-bezier(.12,.86,.16,1)';
         line.style.opacity = '1';
         line.style.transform = 'scaleX(1)';
 
         this.ripples(stage, 3, 640, 0);
-        // Both phrases are written by the hit: the first starts with the line, the second once
-        // the first has finished sweeping. PHRASE_PAUSE is the one deliberate gap in the hero.
-        const PHRASE_PAUSE = 0.9;
-        const d0 = wipe(0);
-        this.wait(function () { wipe(1); }, (d0 + PHRASE_PAUSE) * 1000);
+        // The purple phrase is what the hit writes. The white one is already up by now — it is
+        // what called the drop down in the first place.
+        wipe(1);
         // The reflection surfaces disturbed, then settles.
         refl.style.animation = 'reflWobble 2.9s cubic-bezier(.22,1,.36,1)';
         this.wait(function () { refl.style.animation = 'reflIdle 11s ease-in-out infinite'; }, 2900);
@@ -143,12 +144,37 @@ class Portfolio {
         clearTimeout(this.heroTimer);
         impact();
       };
-      this.pendingHero = impact;
-      wrap.addEventListener('transitionend', function (e) {
-        if (e.propertyName === 'transform') landOnce();
-      });
-      this.heroTimer = setTimeout(landOnce, this.heroFall * 1000 + 120);
-      this.timers.push(this.heroTimer);
+
+      // The drop is not released until the white phrase has finished writing itself, so the
+      // fall is armed here rather than at the top of play().
+      const startFall = () => {
+        const dist = Math.round(window.innerHeight * 0.6);
+        wrap.style.transition = 'none';
+        wrap.style.transform = 'translate(-50%,' + -dist + 'px) scaleY(1)';
+        wrap.style.opacity = '0';
+        wrap.style.filter = 'blur(0px)';
+        wrap.style.clipPath = 'inset(0 0 0 0)';
+        void wrap.offsetHeight;
+        wrap.style.transition = 'transform ' + this.heroFall + 's cubic-bezier(.36,.06,.29,.99), opacity .3s ease';
+        wrap.style.transform = 'translate(-50%,0px) scaleY(1.45)';
+        wrap.style.opacity = '1';
+
+        this.pendingHero = impact;
+        wrap.addEventListener('transitionend', function (e) {
+          if (e.propertyName === 'transform') landOnce();
+        });
+        this.heroTimer = setTimeout(landOnce, this.heroFall * 1000 + 120);
+        this.timers.push(this.heroTimer);
+      };
+
+      // The whole hero in order: a beat of nothing, the white phrase writes itself, and only
+      // once it has landed does the drop fall. Everything purple waits for the hit.
+      const INTRO_PAUSE = 0.45;
+      this.wait(() => {
+        const d0 = wipe(0);
+        this.wait(startFall, d0 * 1000);
+      }, INTRO_PAUSE * 1000);
+
       // Clicking mid-fall lands it now rather than making anyone wait.
       document.getElementById('hero').addEventListener('click', e => {
         if (!this.pendingHero || e.target.closest('a')) return;
@@ -435,7 +461,7 @@ class Portfolio {
     document.querySelectorAll('#heroHeadline [data-line]').forEach(function (l) {
       l.style.transition = 'none';
       l.style.opacity = '0';
-      l.style.setProperty('--reveal', '0%');
+      l.style.setProperty('--reveal', '-26%');
       l.style.transitionDelay = '0s';
       void l.offsetWidth;
       l.style.transition = 'opacity .15s ease, --reveal 2s linear';
@@ -448,7 +474,7 @@ class Portfolio {
       rf.querySelectorAll('[data-refl]').forEach(function (el) {
         el.style.transition = 'none';
         el.style.opacity = '0';
-        el.style.setProperty('--reveal', '0%');
+        el.style.setProperty('--reveal', '-26%');
         el.style.transitionDelay = '0s';
         void el.offsetWidth;
         el.style.transition = 'opacity .14s ease, --reveal 2s linear';

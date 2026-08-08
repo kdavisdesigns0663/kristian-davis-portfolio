@@ -22,7 +22,12 @@
   summary::-webkit-details-marker{ display:none; }
   ::selection{ background:rgba(var(--accent-rgb),.35); color:#fff; }
   :focus-visible{ outline:2px solid var(--accent); outline-offset:4px; border-radius:2px; }
-  @property --reveal{ syntax:'<percentage>'; inherits:false; initial-value:0%; }
+  /* Starts at -26%, not 0%: the reveal marks the TRAILING edge of a 26%-wide soft sweep, so at
+     0% a whole 26% band of the phrase was already painted before the sweep had moved, and the
+     opacity fade popped it in as a chunk. Off the left edge, the line begins genuinely empty and
+     the sweep is the only thing that writes it. 26% of the element, not a fixed em, so the soft
+     edge stays proportional on a short line and a long one. */
+  @property --reveal{ syntax:'<percentage>'; inherits:false; initial-value:-26%; }
   /* Headings that exist for the document outline only: the work and bio sections are labelled
      visually by their ghost words, which are decorative and hidden from assistive tech. */
   .vh{ position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden;
