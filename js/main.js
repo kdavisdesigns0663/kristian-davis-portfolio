@@ -98,9 +98,8 @@ class Portfolio {
       wrap.style.transform = 'translate(-50%,0px) scaleY(1.45)';
       wrap.style.opacity = '1';
 
-      // First phrase reads while the drop is still falling.
-      wipe(0);
-
+      // Nothing is written while the drop falls. The headline, the line and the reflection all
+      // originate at the hit, so the drop reads as the thing that creates them.
       const impact = () => {
         // Flattens into the surface and is gone in about a sixth of a second, at the same
         // moment the first ring is born.
@@ -123,23 +122,37 @@ class Portfolio {
         line.style.transform = 'scaleX(1)';
 
         this.ripples(stage, 3, 640, 0);
-        // The purple phrase arrives on the hit, with the line.
-        wipe(1);
+        // Both phrases are written by the hit: the first starts with the line, the second once
+        // the first has finished sweeping. PHRASE_PAUSE is the one deliberate gap in the hero.
+        const PHRASE_PAUSE = 0.9;
+        const d0 = wipe(0);
+        this.wait(function () { wipe(1); }, (d0 + PHRASE_PAUSE) * 1000);
         // The reflection surfaces disturbed, then settles.
         refl.style.animation = 'reflWobble 2.9s cubic-bezier(.22,1,.36,1)';
         this.wait(function () { refl.style.animation = 'reflIdle 11s ease-in-out infinite'; }, 2900);
       };
 
+      // Fired by the fall's own transitionend, not a timer guessed from the duration: the old
+      // heroFall*1000 + 300 left the drop sitting on the waterline for a third of a second
+      // before anything happened, which is what broke the sense that the hit caused the text.
+      // The timeout is only a fallback for a dropped/interrupted transitionend, and the guard
+      // matters because impact() starts its own transform transition on the same element.
+      const landOnce = () => {
+        if (!this.pendingHero) return;
+        this.pendingHero = null;
+        clearTimeout(this.heroTimer);
+        impact();
+      };
       this.pendingHero = impact;
-      this.heroTimer = setTimeout(() => { this.pendingHero = null; impact(); }, this.heroFall * 1000 + 300);
+      wrap.addEventListener('transitionend', function (e) {
+        if (e.propertyName === 'transform') landOnce();
+      });
+      this.heroTimer = setTimeout(landOnce, this.heroFall * 1000 + 120);
       this.timers.push(this.heroTimer);
       // Clicking mid-fall lands it now rather than making anyone wait.
       document.getElementById('hero').addEventListener('click', e => {
         if (!this.pendingHero || e.target.closest('a')) return;
-        clearTimeout(this.heroTimer);
-        const fn = this.pendingHero;
-        this.pendingHero = null;
-        fn();
+        landOnce();
       });
     };
     this.heroPlay = play;
