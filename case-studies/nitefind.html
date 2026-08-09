@@ -88,10 +88,18 @@
     <div class="wrap" style="position:relative;z-index:1">
       <a class="c12" href="../index.html#work" style="display:inline-flex;align-items:center;gap:9px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a09c92;transition:color .3s ease,gap .35s cubic-bezier(.19,1,.22,1)"><span aria-hidden="true">←</span> back to work</a>
 
-      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:clamp(40px,6vw,72px)">
-        <span style="padding:3px 8px;border:1px solid rgba(var(--accent-rgb),.4);border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;color:var(--accent)">UX / UI DESIGN</span>
-        <span style="padding:3px 8px;border:1px solid #2c2c2a;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;color:#a09c92">MOBILE APP</span>
-        <span style="padding:3px 8px;border:1px solid #2c2c2a;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;color:#a09c92">CONCEPT</span>
+      <!-- These are labels, not controls. A padded box with a border and a corner radius is the
+           button signature on this site, and the first one was additionally set in the accent,
+           which is the colour every link and hover state uses -- so all three read as things you
+           could press. The box is gone entirely and they now use the same flat mono/grey idiom
+           as the "Mobile product · UX/UI · 10 weeks" meta line further down this same header.
+           Wider tracking does the work the border used to: it reads as a label at a glance. -->
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:clamp(40px,6vw,72px);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;color:#7d786f">
+        <span>UX / UI DESIGN</span>
+        <span aria-hidden="true" style="color:#393834">·</span>
+        <span>MOBILE APP</span>
+        <span aria-hidden="true" style="color:#393834">·</span>
+        <span>CONCEPT</span>
       </div>
 
       <h1 style="margin-top:clamp(20px,2.4vw,32px);font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(52px,9vw,132px);line-height:.98;letter-spacing:-.035em">Nitefind</h1>
@@ -177,11 +185,11 @@
       <div style="display:grid;gap:clamp(20px,2.6vw,36px);grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));margin-top:clamp(36px,4.6vw,64px)">
         <figure style="margin:0">
           <div class="shot"><img src="../img/nitefind/moodboard-midnight-grid.jpg" alt="Midnight Grid mood board: black and violet, sleek, sophisticated, futuristic" width="5334" height="3000" loading="lazy"></div>
-          <figcaption style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase"><span style="display:inline-block;padding:2px 7px;border:1px solid rgba(var(--accent-rgb),.4);border-radius:3px;color:var(--accent)">Midnight Grid · chosen</span><span style="display:block;margin-top:10px;color:#a09c92;letter-spacing:0;text-transform:none;font-size:13px">Quieter direction. Better product fit.</span></figcaption>
+          <figcaption style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase"><span style="display:inline-block;color:#e9e7df">Midnight Grid · chosen</span><span style="display:block;margin-top:10px;color:#a09c92;letter-spacing:0;text-transform:none;font-size:13px">Quieter direction. Better product fit.</span></figcaption>
         </figure>
         <figure style="margin:0">
           <div class="shot" style="opacity:.62"><img src="../img/nitefind/moodboard-alt-scene.jpg" alt="Alt Scene mood board: rebellious, authentic, eclectic, warm reds and oranges" width="5334" height="3000" loading="lazy"></div>
-          <figcaption style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase"><span style="display:inline-block;padding:2px 7px;border:1px solid #2c2c2a;border-radius:3px;color:#7d786f">Alt Scene · rejected</span><span style="display:block;margin-top:10px;color:#7d786f;letter-spacing:0;text-transform:none;font-size:13px">Stronger personality. Weaker product fit.</span></figcaption>
+          <figcaption style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase"><span style="display:inline-block;color:#7d786f">Alt Scene · rejected</span><span style="display:block;margin-top:10px;color:#7d786f;letter-spacing:0;text-transform:none;font-size:13px">Stronger personality. Weaker product fit.</span></figcaption>
         </figure>
       </div>
     </div>
@@ -243,11 +251,11 @@
       <div style="display:grid;gap:clamp(48px,7vw,96px);grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));margin-top:clamp(24px,2.6vw,34px);max-width:700px;margin-inline:auto;padding-inline:clamp(0px,2vw,24px)">
         <figure style="margin:0">
           <div class="shot"><img src="../img/nitefind/ab-home-screen-1.jpg" alt="Nitefind home screen, variant A: plain black behind the nav" width="390" height="844" loading="lazy"></div>
-          <figcaption style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase"><span style="display:inline-block;padding:2px 7px;border:1px solid rgba(var(--accent-rgb),.4);border-radius:3px;color:var(--accent)">A · plain black · won</span></figcaption>
+          <figcaption style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase"><span style="display:inline-block;color:#e9e7df">A · plain black · won</span></figcaption>
         </figure>
         <figure style="margin:0">
           <div class="shot"><img src="../img/nitefind/ab-home-screen-2.jpg" alt="Nitefind home screen, variant B: faint grid texture behind the nav" width="390" height="844" loading="lazy"></div>
-          <figcaption style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase"><span style="display:inline-block;padding:2px 7px;border:1px solid #2c2c2a;border-radius:3px;color:#7d786f">B · grid texture</span></figcaption>
+          <figcaption style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase"><span style="display:inline-block;color:#7d786f">B · grid texture</span></figcaption>
         </figure>
       </div>
     </div>
