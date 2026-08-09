@@ -1,6 +1,9 @@
 /* Case study pages. Each page sets its own --accent in an inline block; everything else
    is shared. Layout and colour are inline on the elements. */
+:root{ --gut:clamp(20px,4.6vw,72px); --maxw:1440px; }
 *{ margin:0; padding:0; box-sizing:border-box; }
+/* Same measure as the homepage, so the two pages share one left and right edge. */
+.wrap{ width:100%; max-width:var(--maxw); margin-inline:auto; padding-inline:var(--gut); }
   body{ background:#050505; color:#e9e7df; font-family:'Inter',sans-serif; line-height:1.6; -webkit-font-smoothing:antialiased; }
   summary{ list-style:none; }
   summary::-webkit-details-marker{ display:none; }
@@ -35,4 +38,37 @@
 
 @media (prefers-reduced-motion: reduce){
   *, *::before, *::after{ animation-duration:.01ms !important; transition-duration:.01ms !important; }
+}
+
+/* Case-study specific: gallery frames and section ghosts. Hover states use the page's own
+   --accent, which each case study sets to its project colour. */
+.shot{ position:relative; border-radius:18px; overflow:hidden; background:#0b0b0a;
+       box-shadow:0 30px 64px -30px rgba(0,0,0,.95), 0 0 0 1px rgba(255,255,255,.07);
+       transition:transform .5s cubic-bezier(.19,1,.22,1), box-shadow .5s ease; }
+.shot img{ display:block; width:100%; height:auto; }
+.shot:hover{ transform:translateY(-4px);
+  box-shadow:0 36px 74px -30px rgba(0,0,0,.95), 0 0 0 1px rgba(var(--accent-rgb),.55),
+             0 0 28px -6px rgba(var(--accent-rgb),.35); }
+.ghost{ position:absolute; left:clamp(-26px,-2vw,-8px); z-index:0; pointer-events:none;
+        user-select:none; font-family:'Space Grotesk',sans-serif; font-weight:700; line-height:1;
+        color:transparent; -webkit-text-stroke:1.8px var(--accent); letter-spacing:-.02em;
+        font-size:clamp(84px,15vw,210px); opacity:.85; }
+.ghost.quiet{ opacity:.4; -webkit-text-stroke-width:1.2px; }
+.pin{ color:var(--accent); }
+@media (max-width:700px){ .ghost{ font-size:clamp(64px,17vw,120px); } }
+
+/* Global contact block, same states as the homepage's. */
+.c17:hover, .c17:focus-visible{ border-color:var(--accent) !important; color:var(--accent) !important; background-size:100% 100% !important; }
+.c18:hover, .c18:focus-visible{ color:#e9e7df !important; border-color:var(--accent) !important; }
+.c19:hover, .c19:focus-visible{ color:var(--accent) !important; border-color:var(--accent) !important; transform:translateY(-3px) !important; }
+
+
+/* Nav: full list on desktop, right-side dropdown below 760px. */
+.mnav{ display:none; }
+.mnav > summary::-webkit-details-marker{ display:none; }
+.mnav a:hover, .mnav summary:hover{ color:#e9e7df; }
+@media (max-width:760px){
+  .navlist{ display:none !important; }
+  .mnav{ display:block; }
+  .nav-role{ display:none; }
 }

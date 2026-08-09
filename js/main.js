@@ -1,5 +1,5 @@
 const BANDS = {
-  nitefind:   { rgb:'176,74,214' },
+  nitefind:   { rgb:'162,89,255' },
   smiteforge: { rgb:'224,184,74' },
   zentra:     { rgb:'79,191,130' },
   amun:       { rgb:'143,143,143' },
@@ -168,7 +168,10 @@ class Portfolio {
         wrap.style.transform = 'translate(-50%,' + -dist + 'px) scaleY(1)';
         wrap.style.opacity = '0';
         wrap.style.filter = 'blur(0px)';
-        wrap.style.clipPath = 'inset(0 0 0 0)';
+        // No clip-path here. The drop inside is a square rotated 135deg, so its corners reach
+        // size*sqrt(2) -- 15.56px for an 11px drop -- while this wrapper's own box is only 11px.
+        // An inset(0) clip trimmed 2.28px off every corner, and the corner pointing up is the
+        // tip, which is what makes it read as a raindrop rather than a blob.
         void wrap.offsetHeight;
         wrap.style.transition = 'transform ' + this.heroFall + 's cubic-bezier(.36,.06,.29,.99), opacity .3s ease';
         wrap.style.transform = 'translate(-50%,0px) scaleY(1.45)';
@@ -512,7 +515,6 @@ class Portfolio {
     });
     const wrap = document.querySelector('#dropStage [data-drop-wrap]');
     wrap.style.transition = 'none';
-    wrap.style.clipPath = 'inset(0 0 0 0)';
     wrap.style.opacity = '0';
     wrap.style.filter = 'blur(0px)';
     document.querySelectorAll('#dropStage div[style*="border-radius:4"]').forEach(function (r) { r.remove(); });

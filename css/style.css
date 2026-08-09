@@ -259,7 +259,7 @@ br[data-mob]{ display:none; }
 
 /* Each project's title takes its own colour on hover, not the site accent: the generic a:hover
    rule would otherwise turn every one of them purple. */
-[data-band="nitefind"]:hover h3, [data-band="nitefind"]:focus-visible h3{ color:#b04ad6 !important; }
+[data-band="nitefind"]:hover h3, [data-band="nitefind"]:focus-visible h3{ color:#a259ff !important; }
 [data-band="smiteforge"]:hover h3, [data-band="smiteforge"]:focus-visible h3{ color:#e0b84a !important; }
 [data-band="zentra"]:hover h3, [data-band="zentra"]:focus-visible h3{ color:#4fbf82 !important; }
 [data-band="amun"]:hover h3, [data-band="amun"]:focus-visible h3{ color:#c9c5bc !important; }
