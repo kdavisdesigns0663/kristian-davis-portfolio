@@ -165,10 +165,21 @@
 .about-media{ grid-area:media; }
 .about-text{ grid-area:text; }
 @media (min-width:901px){
-  .about-row{ grid-template-columns:minmax(0,1fr) minmax(0,.58fr);
+  /* Equal halves. The photo used to take .58fr and was additionally capped at 400px, so it
+     read as a sidebar next to the copy rather than as its equal. The media area spans both
+     grid rows, so stretching it matches the full height of the lede plus the body plus the
+     support lists -- the whole left column, not just the paragraph beside it. No max-width,
+     or the cap would stop it filling the half it has been given. */
+  .about-row{ grid-template-columns:minmax(0,1fr) minmax(0,1fr);
               grid-template-areas:'lede media' 'text media'; align-items:start; }
-  .about-media{ width:100%; max-width:min(400px,32vw); justify-self:end; align-self:stretch; }
-  .about-photo{ height:100% !important; }
+  .about-media{ position:relative; width:100%; justify-self:stretch; align-self:stretch; min-height:0; }
+  /* Taken out of flow on purpose. Left in flow, the photo contributes its own intrinsic height
+     to track sizing -- 800x1000 at a 618px column wants 772px -- so the grid grew to fit the
+     PHOTO and the copy ended up 8px short of it, which is backwards: the copy should set the
+     height and the photo should match it. Absolute inside a stretched, relative .about-media,
+     it contributes nothing to sizing and simply fills whatever height the copy produces. The
+     img is already object-fit:cover, so it crops rather than distorting at any ratio. */
+  .about-photo{ position:absolute !important; inset:0; height:auto !important; }
   /* Support lists sit two-up in the copy column: design | development over focus | platforms. */
   .about-text dl{ grid-template-columns:repeat(2,minmax(0,1fr)) !important; max-width:56ch; }
   .about-text dl > div:nth-child(3){ order:2; }
