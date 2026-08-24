@@ -1,5 +1,8 @@
 class Page {
   init() {
+    // Before the nav guard below, which returns early on any page without a dropdown.
+    this.initMotion();
+
     const det = document.querySelector('nav details');
     if (!det) return;
     this.det = det;
@@ -29,6 +32,24 @@ class Page {
     if (menu) menu.addEventListener('click', e => { if (e.target.closest('a')) close(); });
     this.onScrollClose = () => close();
     window.addEventListener('scroll', this.onScrollClose, { passive: true });
+  }
+
+  // An autoplaying <video loop> is untouched by the stylesheet's prefers-reduced-motion block,
+  // which can only flatten CSS animations and transitions. This repo's rule is that every
+  // animation answers a question the visitor is already asking, so a looping one has to be
+  // stoppable by the same preference everything else here respects. The poster frame stays,
+  // so the figure still shows the mark rather than going blank.
+  initMotion() {
+    const videos = document.querySelectorAll('video[autoplay]');
+    if (!videos.length) return;
+    const q = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const apply = () => videos.forEach(v => {
+      if (q.matches) { v.pause(); v.removeAttribute('autoplay'); v.currentTime = 0; }
+      else if (v.paused) { v.play().catch(() => {}); }
+    });
+    apply();
+    // Honour the preference being changed while the page is open, not only at load.
+    q.addEventListener ? q.addEventListener('change', apply) : q.addListener(apply);
   }
 }
 

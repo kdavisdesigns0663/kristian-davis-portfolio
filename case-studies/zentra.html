@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="robots" content="noindex,nofollow">
 <title>Zentra — Kristian Davis</title>
 <meta name="description" content="Zentra — a goal-based personal savings app concept. Case study by Kristian Davis, UX consultant and product designer in Denver, Colorado.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,7 +25,19 @@
   .ghost{ opacity:.5 !important; }
   main img{ max-height:200mm; object-fit:contain; }
 </style>
-<style>:root{ --accent:#4fbf82; --accent-rgb:79,191,130; }</style>
+<style>
+  :root{ --accent:#4fbf82; --accent-rgb:79,191,130; }
+  /* Screen grids: fixed column counts so every phone shot lands on the same 415x900 frame and
+     the rows stay even. object-fit:contain guarantees no screen gets cropped. */
+  .screens{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:clamp(26px,3vw,38px) clamp(18px,2.2vw,28px); }
+  .trio{ display:grid; grid-template-columns:repeat(3,minmax(0,300px)); gap:clamp(20px,2.4vw,32px); }
+  .screens .shot, .trio .shot, .dec .shot{ aspect-ratio:415/900; }
+  .screens .shot img, .trio .shot img, .dec .shot img{ width:100%; height:100%; object-fit:contain; }
+  .dec{ display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:clamp(32px,4.4vw,72px); align-items:start; }
+  @media (max-width:900px){ .dec{ grid-template-columns:minmax(0,1fr); } .dec figure{ max-width:300px; } }
+  @media (max-width:860px){ .screens{ grid-template-columns:repeat(2,minmax(0,1fr)); } .trio{ grid-template-columns:repeat(2,minmax(0,300px)); } }
+  @media (max-width:520px){ .trio{ grid-template-columns:minmax(0,300px); } }
+</style>
 </head>
 <body>
 <div style="position:relative;min-height:100dvh;display:flex;flex-direction:column">
@@ -82,34 +93,272 @@
 
 <main id="body" style="flex:1">
 
-  <!-- ============================================================================
-       CONTENT INTENTIONALLY EMPTY.
+  <!-- ============ HERO ============ -->
+  <header style="position:relative;padding:clamp(56px,7vw,96px) 0 0;overflow:hidden">
+    <div aria-hidden="true" class="ghost quiet" style="top:clamp(150px,18vw,244px)">ZENTRA</div>
 
-       The case study that was here has been removed so the page can be designed
-       fresh. Everything OUTSIDE this <main> is current and should be kept as-is:
-         - green/gold accent tokens are already set in the <style> block above
-         - nav is in the live order (Nitefind, Zentra, SmiteForge, Amun) and this
-           page correctly marks itself aria-current in BOTH its desktop and its
-           mobile nav
-         - meta, og tags, canonical and favicon already point at Zentra
-         - the print stylesheet and skip link are shared with the other case studies
+    <div class="wrap" style="position:relative;z-index:1">
+      <a class="c12" href="../index.html#work" style="display:inline-flex;align-items:center;gap:9px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a09c92;transition:color .3s ease,gap .35s cubic-bezier(.19,1,.22,1)"><span aria-hidden="true">←</span> back to work</a>
 
-       Artwork is already imported, resized and committed at ../img/zentra/ :
-         hero-onboarding-cascade.jpg   2000x1300   hero
-         hero-goal-tracking-pair.jpg   2000x1300   alternate hero, unused
-         responsive-laptop.jpg         2000x1500   larger-screen reflow
-         multi-goal-dashboard.jpg       415x900    five goals, one system
-         home-dashboard.jpg             415x900    goals + budget snapshot
-         onboarding-splash.jpg          415x900    cheetah mark in motion
-         usability-fix-tooltip.jpg      415x900    tooltip explaining the math
-         usability-fix-loading.jpg      420x900    building-plan loading state
-         goal-creation-flow.jpg         420x900    labelled entry point
-         goal-detail-hawaii.jpg         420x900    single goal detail
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:clamp(40px,6vw,72px);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;color:#7d786f">
+        <span>UX / UI DESIGN</span>
+        <span aria-hidden="true" style="color:#393834">·</span>
+        <span>MOBILE APP</span>
+        <span aria-hidden="true" style="color:#393834">·</span>
+        <span>CONCEPT</span>
+      </div>
 
-       Structural conventions to match live in case-studies/nitefind.html:
-       ghost word per section, numbered "01 / label" section headers, .shot
-       figures with figcaption, and a dl of observation-to-response rows.
-       ============================================================================ -->
+      <h1 style="margin-top:clamp(20px,2.4vw,32px);font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(52px,9vw,132px);line-height:.98;letter-spacing:-.035em">Zentra</h1>
+
+      <p style="margin-top:clamp(18px,2vw,26px);padding-left:22px;border-left:2px solid var(--accent);max-width:34ch;font-size:clamp(17px,1.5vw,22px);line-height:1.55;color:#cfcabc;text-wrap:pretty">Save with clarity. Spend with purpose.</p>
+      <p style="margin-top:clamp(16px,1.8vw,24px);padding-left:24px;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.06em;color:#7d786f">Mobile product · UX/UI · Sole designer, end to end</p>
+    </div>
+
+    <div style="margin-top:clamp(44px,6vw,88px)">
+      <img src="../img/zentra/hero-onboarding-cascade.jpg" alt="Three Zentra onboarding screens cascading across a green and gold gradient" width="2000" height="1300" style="display:block;width:100%;height:auto">
+    </div>
+  </header>
+
+  <!-- ============ WHY THIS EXISTS ============ -->
+  <section aria-label="Why this exists" style="position:relative;padding:clamp(84px,11vw,164px) 0;border-bottom:1px solid #131312;overflow:hidden">
+    <div aria-hidden="true" class="ghost" style="top:clamp(30px,4vw,60px)">WHY</div>
+    <div class="wrap" style="position:relative;z-index:1;padding-top:clamp(46px,7vw,110px);display:grid;gap:clamp(28px,4vw,64px);grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));align-items:start">
+      <div>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)">01 / why this exists</span>
+        <p style="margin-top:clamp(18px,2vw,26px);font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:clamp(26px,3.2vw,44px);line-height:1.14;letter-spacing:-.022em;max-width:20ch;text-wrap:pretty">Saving money is easy to measure and surprisingly hard to feel.</p>
+      </div>
+      <div>
+        <p style="font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty;max-width:52ch">Financial tools can tell you what you spent or what's left.</p>
+        <p style="margin-top:clamp(14px,1.6vw,20px);font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty;max-width:52ch">Zentra explored something more motivating: connecting those numbers to the things someone is actually saving for, then making progress visible enough to keep moving.</p>
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px clamp(12px,1.6vw,20px);margin-top:clamp(32px,4vw,52px);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#7d786f">
+          <span style="white-space:nowrap">2 personas</span><span aria-hidden="true" style="color:var(--accent)">→</span>
+          <span style="white-space:nowrap;color:#cfcabc">1 shared need</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ THE SIGNAL ============ -->
+  <section aria-label="The signal" style="position:relative;padding:clamp(84px,11vw,164px) 0;border-bottom:1px solid #131312;overflow:hidden">
+    <div aria-hidden="true" class="ghost" style="top:clamp(30px,4vw,60px)">SIGNAL</div>
+    <div class="wrap" style="position:relative;z-index:1;padding-top:clamp(46px,7vw,110px)">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)">02 / the signal</span>
+      <p style="margin-top:clamp(18px,2vw,26px);max-width:56ch;font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty">Two people, two very different relationships with money, same underlying need.</p>
+
+      <figure style="margin:clamp(36px,4.4vw,60px) 0 0">
+        <div class="shot"><img src="../img/zentra/personas-user-stories.jpg" width="1440" height="1800" alt="Persona boards for Samantha Rios, a freelance designer in Denver, and Jason Patel, a grad student in Austin: each with goals, user stories, frustrations, device habits, and tech comfort and financial confidence levels" loading="lazy" onerror="const f=this.closest('figure'); if(f) f.style.display='none';"></div>
+        <figcaption style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase"><span style="display:inline-block;color:#e9e7df">two personas, built from research</span><span style="display:block;margin-top:10px;letter-spacing:0;text-transform:none;font-size:13px;color:#a09c92;text-wrap:pretty">Both boards were built from interview and survey patterns, then used to prioritize screens.</span></figcaption>
+      </figure>
+
+      <div style="display:grid;gap:clamp(20px,2.6vw,34px);grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));margin-top:clamp(36px,4.4vw,60px)">
+        <div style="padding:clamp(24px,2.6vw,34px);border:1px solid #1c1c1a;border-radius:16px;background:linear-gradient(180deg,#0a0a09,#080807)">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)">flexibility</span><span style="display:block;margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#7d786f">Samantha · the freelancer</span>
+          <p style="margin-top:14px;font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:clamp(19px,1.7vw,24px);line-height:1.25;letter-spacing:-.014em">The freelancer needs a system that bends.</p>
+          <p style="margin-top:12px;font-size:15px;line-height:1.7;color:#a09c92;text-wrap:pretty">Irregular income makes rigid financial planning harder to maintain.</p>
+          <p style="margin-top:14px;font-size:13px;line-height:1.6;color:#cfcabc;text-wrap:pretty">&ldquo;I want saving to feel rewarding, not like punishment.&rdquo;</p>
+        </div>
+        <div style="padding:clamp(24px,2.6vw,34px);border:1px solid #1c1c1a;border-radius:16px;background:linear-gradient(180deg,#0a0a09,#080807)">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)">clarity, without judgment</span><span style="display:block;margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#7d786f">Jason · the grad student</span>
+          <p style="margin-top:14px;font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:clamp(19px,1.7vw,24px);line-height:1.25;letter-spacing:-.014em">The grad student needs an honest, simple overview.</p>
+          <p style="margin-top:12px;font-size:15px;line-height:1.7;color:#a09c92;text-wrap:pretty">Limited money makes every decision matter, but the interface shouldn't make financial stress worse.</p>
+          <p style="margin-top:14px;font-size:13px;line-height:1.6;color:#cfcabc;text-wrap:pretty">&ldquo;I want to stay on track, not get lectured about my spending.&rdquo;</p>
+        </div>
+      </div>
+
+      <div style="margin-top:clamp(36px,4.6vw,64px);padding-top:clamp(28px,3.4vw,44px);border-top:1px solid #1c1c1a">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)">the insight</span>
+        <p style="margin-top:16px;font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:clamp(22px,2.6vw,36px);line-height:1.2;letter-spacing:-.02em;max-width:26ch;text-wrap:pretty">Different financial situations, same ask: make the progress visible, and never make it feel like a lecture.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ KEY DECISIONS ============ -->
+  <section aria-label="Key decisions" style="position:relative;padding:clamp(84px,11vw,164px) 0 clamp(56px,7vw,96px);overflow:hidden">
+    <div aria-hidden="true" class="ghost" style="top:clamp(28px,3.4vw,54px)">DECISIONS</div>
+    <div class="wrap" style="position:relative;z-index:1;padding-top:clamp(48px,7vw,120px)">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)">03 / key decisions</span>
+    </div>
+  </section>
+
+  <!-- 1. Progress as the product -->
+  <section aria-label="Progress as the product" style="padding:0 0 clamp(72px,9vw,128px);border-bottom:1px solid #131312">
+    <div class="wrap dec">
+      <div>
+        <div style="display:flex;align-items:baseline;gap:16px">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent)">01</span>
+          <h2 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(26px,3.2vw,42px);line-height:1.1;letter-spacing:-.022em">Progress as the product</h2>
+        </div>
+        <p style="margin-top:clamp(18px,2vw,26px);max-width:38ch;font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:clamp(19px,1.9vw,26px);line-height:1.35;letter-spacing:-.014em;color:#cfcabc;text-wrap:pretty">Zentra organizes saving around goals, not one abstract balance. A vacation, an emergency fund, a wedding, a car.</p>
+        <p style="margin-top:clamp(16px,1.8vw,24px);max-width:52ch;font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty">Each becomes something visible and measurable instead of disappearing into one total.</p>
+        <p style="margin-top:clamp(14px,1.6vw,20px);max-width:52ch;font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty">Progress rings, percentages, and dollar amounts turn "I should save more" into something concrete: where I am now and how far I have left.</p>
+      </div>
+
+      <figure style="margin:0">
+        <div class="shot"><img src="../img/zentra/multi-goal-dashboard.jpg" alt="Zentra goals screen: an overall progress ring at 30 percent above five individual goal cards, each with its own progress bar and dollar total" width="415" height="900" loading="lazy"></div>
+        <figcaption style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#7d786f">five goals, one system</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 2. Identity built around momentum -->
+  <section aria-label="Identity built around momentum" style="padding:clamp(72px,9vw,128px) 0;border-bottom:1px solid #131312">
+    <div class="wrap dec">
+      <div>
+        <div style="display:flex;align-items:baseline;gap:16px">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent)">02</span>
+          <h2 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(26px,3.2vw,42px);line-height:1.1;letter-spacing:-.022em">Identity built around momentum</h2>
+        </div>
+        <p style="margin-top:clamp(18px,2vw,26px);max-width:38ch;font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:clamp(19px,1.9vw,26px);line-height:1.35;letter-spacing:-.014em;color:#cfcabc;text-wrap:pretty">Zentra needed to feel like progress, not paperwork.</p>
+        <p style="margin-top:clamp(16px,1.8vw,24px);max-width:52ch;font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty">The cheetah mark runs. Deep green and gold carry growth and achievement, and the mark appears in motion wherever the app is working.</p>
+        <p style="margin-top:clamp(14px,1.6vw,20px);max-width:52ch;font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty">Nunito Sans for headlines and Open Sans for body keep the type rounded and readable, so the product can feel credible without intimidating someone who has never budgeted a day in their life.</p>
+      </div>
+
+      <figure style="margin:0">
+        <!-- Silent, looping, inline-on-iOS. No .webm sibling: avconvert (the only encoder on
+             this machine, ffmpeg is not installed) cannot produce VP9, and a <source> pointing
+             at a file that does not exist is just a guaranteed 404. H.264 MP4 is supported by
+             every current browser, so one source is sufficient. The poster is the same splash
+             still that used to stand here, so the frame is filled before the video decodes. -->
+        <div class="shot">
+          <video autoplay muted loop playsinline poster="../img/zentra/onboarding-splash.jpg" width="296" height="640" style="display:block;width:100%;height:auto" aria-label="The Zentra loading animation: the cheetah mark running inside a circular track">
+            <source src="../img/zentra/momentum-loop.mp4" type="video/mp4">
+          </video>
+        </div>
+        <figcaption style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#7d786f">the mark, in motion<span style="display:block;margin-top:8px;font-size:14px;line-height:1.55;letter-spacing:0;text-transform:none;color:#a09c92;text-wrap:pretty">The loading state animates this mark rather than showing a spinner.</span></figcaption>
+      </figure>
+    </div>
+
+    <div class="wrap" style="margin-top:clamp(40px,5vw,72px)">
+      <figure style="margin:0;max-width:680px">
+        <div class="shot"><img src="../img/zentra/style-guide-crop.jpg" width="1395" height="1800" alt="Zentra style guide: Nunito Sans and Open Sans typography rules, the deep green and gold colour palette with hex values, custom iconography, logo usage rules, and imagery direction" loading="lazy" onerror="const f=this.closest('figure'); if(f) f.style.display='none';"></div>
+        <figcaption style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#7d786f">the system, documented<span style="display:block;margin-top:8px;font-size:14px;line-height:1.55;letter-spacing:0;text-transform:none;color:#a09c92;text-wrap:pretty">Type, colour, iconography and imagery rules, written down so the product stays consistent.</span></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 3. Testing changed the interface -->
+  <section aria-label="Testing changed the interface" style="padding:clamp(72px,9vw,128px) 0;border-bottom:1px solid #131312">
+    <div class="wrap">
+      <div style="display:flex;align-items:baseline;gap:16px">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent)">03</span>
+        <h2 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(26px,3.2vw,42px);line-height:1.1;letter-spacing:-.022em">Testing changed the interface</h2>
+      </div>
+      <p style="margin-top:clamp(18px,2vw,26px);max-width:52ch;font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty">Three usability sessions surfaced real friction. Each one led to a specific change.</p>
+
+      <div style="display:grid;gap:8px clamp(16px,2vw,28px);grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);margin-top:clamp(30px,3.6vw,48px);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#7d786f">
+        <span>observation</span><span aria-hidden="true"></span><span style="color:var(--accent)">design response</span>
+      </div>
+      <dl style="margin:14px 0 0;display:flex;flex-direction:column;gap:0">
+        <div style="display:grid;gap:8px clamp(16px,2vw,28px);grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:start;padding:20px 0;border-top:1px solid #1c1c1a">
+          <dt style="font-size:15px;line-height:1.6;color:#a09c92;text-wrap:pretty">Wanted more explanation for how numbers were calculated</dt>
+          <span aria-hidden="true" style="font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--accent)">→</span>
+          <dd style="margin:0;font-size:15px;line-height:1.6;color:#e9e7df;text-wrap:pretty">added tooltips explaining the math</dd>
+        </div>
+        <div style="display:grid;gap:8px clamp(16px,2vw,28px);grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:start;padding:20px 0;border-top:1px solid #1c1c1a">
+          <dt style="font-size:15px;line-height:1.6;color:#a09c92;text-wrap:pretty">Found the "Building Plan" screen slightly confusing</dt>
+          <span aria-hidden="true" style="font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--accent)">→</span>
+          <dd style="margin:0;font-size:15px;line-height:1.6;color:#e9e7df;text-wrap:pretty">added a visual loading indicator</dd>
+        </div>
+        <div style="display:grid;gap:8px clamp(16px,2vw,28px);grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:start;padding:20px 0;border-top:1px solid #1c1c1a;border-bottom:1px solid #1c1c1a">
+          <dt style="font-size:15px;line-height:1.6;color:#a09c92;text-wrap:pretty">Took a moment to notice the "+" icon as the entry point for creating a goal</dt>
+          <span aria-hidden="true" style="font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--accent)">→</span>
+          <dd style="margin:0;font-size:15px;line-height:1.6;color:#e9e7df;text-wrap:pretty">added iconography and a supporting label</dd>
+        </div>
+      </dl>
+
+      <div class="trio" style="margin-top:clamp(36px,4.6vw,60px)">
+        <figure style="margin:0">
+          <div class="shot"><img src="../img/zentra/usability-fix-tooltip.jpg" alt="Zentra goals screen with a tooltip explaining how combined savings across active goals is calculated" width="415" height="900" loading="lazy"></div>
+          <figcaption style="margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#7d786f">tooltip<span style="display:block;margin-top:8px;font-size:14px;line-height:1.55;letter-spacing:0;text-transform:none;color:#a09c92;text-wrap:pretty">Explains the math where the number appears.</span></figcaption>
+        </figure>
+        <figure style="margin:0">
+          <div class="shot"><img src="../img/zentra/usability-fix-loading.jpg" alt="Zentra Building your plan screen with the cheetah mark as a loading indicator" width="420" height="900" loading="lazy"></div>
+          <figcaption style="margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#7d786f">loading state<span style="display:block;margin-top:8px;font-size:14px;line-height:1.55;letter-spacing:0;text-transform:none;color:#a09c92;text-wrap:pretty">Says the work is happening, and that it will end.</span></figcaption>
+        </figure>
+        <figure style="margin:0">
+          <div class="shot"><img src="../img/zentra/goal-creation-flow.jpg" alt="Zentra create new goal screen: six labelled category tiles, a name field and an amount field" width="420" height="900" loading="lazy"></div>
+          <figcaption style="margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#7d786f">goal creation<span style="display:block;margin-top:8px;font-size:14px;line-height:1.55;letter-spacing:0;text-transform:none;color:#a09c92;text-wrap:pretty">Labels the entry point instead of relying on an icon.</span></figcaption>
+        </figure>
+      </div>
+
+      <p style="margin-top:clamp(36px,4.6vw,60px);padding-top:clamp(24px,3vw,36px);border-top:1px solid #1c1c1a;max-width:52ch;font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty">Accessibility and contrast were part of the design review, not treated as separate from it.</p>
+      <p style="margin-top:clamp(20px,2.4vw,28px);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;color:#7d786f">production note · select imagery created with generative AI</p>
+    </div>
+  </section>
+
+  <!-- ============ THE WORK ============ -->
+  <section aria-label="The work" style="position:relative;padding:clamp(84px,11vw,164px) 0 clamp(72px,9vw,128px);border-bottom:1px solid #131312;overflow:hidden">
+    <div aria-hidden="true" class="ghost" style="top:clamp(28px,3.4vw,54px)">WORK</div>
+    <div class="wrap" style="position:relative;z-index:1;padding-top:clamp(48px,7vw,120px)">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)">04 / the work</span>
+      <p style="margin-top:clamp(18px,2vw,26px);max-width:52ch;font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty">Eight screens from the final build, in the order someone meets them: set up an account, create a plan, then live with it.</p>
+
+      <div class="screens" style="margin-top:clamp(36px,4.6vw,60px)">
+        <figure style="margin:0">
+          <div class="shot"><img src="../img/zentra/screen-signup.jpg" width="403" height="900" alt="Zentra sign up screen with full name, email, monthly income and password fields" loading="lazy"></div>
+          <figcaption style="margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#7d786f">sign up<span style="display:block;margin-top:8px;font-size:14px;line-height:1.55;letter-spacing:0;text-transform:none;color:#a09c92;text-wrap:pretty">Asks only what the savings plan needs to run.</span></figcaption>
+        </figure>
+        <figure style="margin:0">
+          <div class="shot"><img src="../img/zentra/screen-goal-select.jpg" width="409" height="900" alt="Zentra create new goal screen with the car category selected, a goal name and an amount field" loading="lazy"></div>
+          <figcaption style="margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#7d786f">new goal<span style="display:block;margin-top:8px;font-size:14px;line-height:1.55;letter-spacing:0;text-transform:none;color:#a09c92;text-wrap:pretty">Category, name, amount. Three decisions, one screen.</span></figcaption>
+        </figure>
+        <figure style="margin:0">
+          <div class="shot"><img src="../img/zentra/screen-reminder.jpg" width="409" height="900" alt="Zentra set a reminder screen with time, frequency and delivery options, plus a skip button" loading="lazy"></div>
+          <figcaption style="margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#7d786f">reminders<span style="display:block;margin-top:8px;font-size:14px;line-height:1.55;letter-spacing:0;text-transform:none;color:#a09c92;text-wrap:pretty">Opt in, choose the cadence, or skip it entirely.</span></figcaption>
+        </figure>
+        <figure style="margin:0">
+          <div class="shot"><img src="../img/zentra/goal-detail-hawaii.jpg" width="420" height="900" alt="Zentra plan locked screen for a Hawaii trip: fifty dollars per week, goal total, deadline and quick tips" loading="lazy"></div>
+          <figcaption style="margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#7d786f">plan locked<span style="display:block;margin-top:8px;font-size:14px;line-height:1.55;letter-spacing:0;text-transform:none;color:#a09c92;text-wrap:pretty">Leads with the weekly number, not the total.</span></figcaption>
+        </figure>
+        <figure style="margin:0">
+          <div class="shot"><img src="../img/zentra/home-dashboard.jpg" width="415" height="900" alt="Zentra home screen: monthly savings at 80 percent, active goal cards and a budget snapshot" loading="lazy"></div>
+          <figcaption style="margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#7d786f">home<span style="display:block;margin-top:8px;font-size:14px;line-height:1.55;letter-spacing:0;text-transform:none;color:#a09c92;text-wrap:pretty">Monthly progress, active goals and budget in one view.</span></figcaption>
+        </figure>
+        <figure style="margin:0">
+          <div class="shot"><img src="../img/zentra/screen-transactions.jpg" width="409" height="900" alt="Zentra transactions screen with a category donut chart, spend total and week over week change" loading="lazy"></div>
+          <figcaption style="margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#7d786f">transactions<span style="display:block;margin-top:8px;font-size:14px;line-height:1.55;letter-spacing:0;text-transform:none;color:#a09c92;text-wrap:pretty">Spending grouped by category and compared week to week.</span></figcaption>
+        </figure>
+        <figure style="margin:0">
+          <div class="shot"><img src="../img/zentra/screen-recent.jpg" width="406" height="900" alt="Zentra recent transactions screen filtered by income and expense with merchant logos and dates" loading="lazy"></div>
+          <figcaption style="margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#7d786f">history<span style="display:block;margin-top:8px;font-size:14px;line-height:1.55;letter-spacing:0;text-transform:none;color:#a09c92;text-wrap:pretty">Filterable history with recognizable merchants.</span></figcaption>
+        </figure>
+        <figure style="margin:0">
+          <div class="shot"><img src="../img/zentra/screen-settings.jpg" width="408" height="900" alt="Zentra settings screen with account fields, notification toggles and extras" loading="lazy"></div>
+          <figcaption style="margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#7d786f">settings<span style="display:block;margin-top:8px;font-size:14px;line-height:1.55;letter-spacing:0;text-transform:none;color:#a09c92;text-wrap:pretty">Account, notifications and extras, nothing buried.</span></figcaption>
+        </figure>
+      </div>
+
+      <figure style="margin:clamp(52px,7vw,96px) 0 0">
+        <div class="shot"><img src="../img/zentra/responsive-laptop.jpg" alt="Zentra goals view on a laptop: the overall progress ring beside a grid of goal cards and an insights row" width="2000" height="1500" loading="lazy"></div>
+        <figcaption style="margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#7d786f">larger screen<span style="display:block;margin-top:8px;font-size:14px;line-height:1.55;letter-spacing:0;text-transform:none;color:#a09c92;text-wrap:pretty">The same goal system, reflowed for a larger screen without losing the progress-first structure.</span></figcaption>
+      </figure>
+
+      <a class="c15" href="https://www.figma.com/proto/sRH5FAaHb0EUvixL9cW4X8/05--Animation--Branding--and-UI-Design-Portfolios?page-id=374%3A25742&amp;node-id=374-26470&amp;viewport=553%2C192%2C0.06&amp;t=kcKeHMiQ5MNKJuKb-1&amp;scaling=min-zoom&amp;content-scaling=fixed&amp;starting-point-node-id=374%3A26508" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:12px;margin-top:clamp(36px,4.6vw,60px);padding:16px 26px;border:1px solid #63625c;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.04em;color:#e9e7df;transition:border-color .35s ease,background .35s ease,gap .35s cubic-bezier(.19,1,.22,1)">explore the prototype <span aria-hidden="true" style="color:var(--accent)">→</span></a>
+    </div>
+  </section>
+
+  <!-- ============ WHERE IT STANDS ============ -->
+  <section aria-label="Where it stands" style="position:relative;padding:clamp(84px,11vw,164px) 0;overflow:hidden">
+    <div aria-hidden="true" class="ghost" style="top:clamp(30px,4vw,60px)">STATUS</div>
+    <div class="wrap" style="position:relative;z-index:1;padding-top:clamp(46px,7vw,110px);display:grid;gap:clamp(28px,4vw,64px);grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));align-items:start">
+      <div>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)">05 / where it stands</span>
+        <p style="margin-top:clamp(18px,2vw,26px);font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:clamp(24px,2.8vw,38px);line-height:1.16;letter-spacing:-.02em;max-width:16ch;text-wrap:pretty">Concept work, not shipped.</p>
+      </div>
+      <p style="max-width:54ch;font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty">Zentra sharpened something I'd carry forward: financial information can tell a story about progress instead of simply reporting numbers. The challenge is making that progress motivating without sacrificing clarity.</p>
+    </div>
+  </section>
+
+  <!-- ============ NEXT ============ -->
+  <div class="wrap" style="padding-top:clamp(8px,1vw,16px);padding-bottom:clamp(72px,9vw,120px)">
+    <div aria-disabled="true" style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;padding:clamp(28px,3.5vw,44px);border:1px solid #1c1c1a;border-radius:12px">
+      <div>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#7d786f">next project</span>
+        <div style="margin-top:10px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(22px,2.6vw,32px);line-height:1.15;color:#8c877d">SmiteForge <span style="font-family:'JetBrains Mono',monospace;font-weight:400;font-size:13px;letter-spacing:.06em">· soon</span></div>
+      </div>
+      <span aria-hidden="true" style="font-family:'JetBrains Mono',monospace;font-size:22px;color:#3a3a38">→</span>
+    </div>
+  </div>
 
 </main>
 
