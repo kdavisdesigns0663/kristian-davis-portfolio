@@ -3,30 +3,53 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="robots" content="noindex,nofollow">
 <title>SmiteForge — Kristian Davis</title>
-<meta name="description" content="SmiteForge — a case study by Kristian Davis, UX consultant and product designer in Denver, Colorado.">
+<meta name="description" content="SmiteForge — a Smite 2 companion app concept for iOS and Android. Case study by Kristian Davis, UX consultant and product designer in Denver, Colorado.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500&display=swap">
 <meta property="og:type" content="article">
 <meta property="og:title" content="SmiteForge — Kristian Davis">
-<meta property="og:description" content="SmiteForge — a case study by Kristian Davis, UX consultant and product designer in Denver, Colorado.">
+<meta property="og:description" content="SmiteForge — a Smite 2 companion app concept for iOS and Android. Case study by Kristian Davis, UX consultant and product designer in Denver, Colorado.">
 <meta property="og:image" content="https://kdavisdesigns0663.github.io/kristian-davis-portfolio/img/previews/smiteforge-preview.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="canonical" href="https://kdavisdesigns0663.github.io/kristian-davis-portfolio/case-studies/smiteforge.html">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23050505'/%3E%3Cpath d='M16 5c4.2 4.6 7 8 7 11.4A7 7 0 0 1 9 16.4C9 13 11.8 9.6 16 5z' fill='%23a06bff'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23050505'/%3E%3Cpath d='M16 5c4.2 4.6 7 8 7 11.4A7 7 0 0 1 9 16.4C9 13 11.8 9.6 16 5z' fill='%23e0b84a'/%3E%3C/svg%3E">
+<meta name="omelette-owns-print" content="1">
 <link rel="stylesheet" href="../css/case-study.css">
-<style>:root{ --accent:#e0b84a; --accent-rgb:224,184,74; }</style>
+<style media="print">
+  @page{ size:letter; margin:14mm; }
+  html,body{ background:#050505 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  nav, .c1{ display:none !important; }
+  section, header, figure, .shot, dl > div{ break-inside:avoid; page-break-inside:avoid; }
+  .ghost{ opacity:.5 !important; }
+  main img{ max-height:200mm; object-fit:contain; }
+</style>
+<style>
+  :root{ --accent:#e0b84a; --accent-rgb:224,184,74; }
+  /* The two platform boards sit side by side so iOS and Android can be read against each
+     other, which is the whole point of the comparison. They stack below 860px, where two
+     columns of this density stop being legible. */
+  /* Two screens inside one pair, so the same screen can be read across both platforms, and
+     two pairs per row on desktop. Below 900px a pair keeps its two columns -- phones are the
+     one thing that stays legible side by side on a narrow screen -- but only one pair per row. */
+  .pairs{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:clamp(34px,4vw,60px) clamp(22px,2.8vw,40px); }
+  .duo{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:clamp(10px,1.2vw,16px); align-items:start; }
+  @media (max-width:900px){ .pairs{ grid-template-columns:minmax(0,1fr); max-width:560px; margin-inline:auto; } }
+</style>
 </head>
 <body>
 <div style="position:relative;min-height:100dvh;display:flex;flex-direction:column">
 
 <a class="c1" href="#body" style="position:absolute;top:-100px;left:16px;z-index:100;padding:12px 20px;background:#0d0d0c;border:1px solid var(--accent);font-family:'JetBrains Mono',monospace;font-size:13px">skip to content</a>
 
-<nav aria-label="Primary" style="position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:clamp(14px,1.7vw,19px) clamp(24px,5vw,64px);border-bottom:1px solid #1c1c1a;background:rgba(5,5,5,.86);backdrop-filter:blur(12px)">
-  <a class="c2" href="../index.html" aria-label="Kristian Davis, home" style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:18px;transition:color .3s ease,letter-spacing .4s cubic-bezier(.19,1,.22,1)">KD</a>
-  <ul style="display:flex;gap:clamp(18px,3vw,32px);list-style:none;font-family:'JetBrains Mono',monospace;font-size:13px">
+<nav aria-label="Primary" style="position:sticky;top:0;z-index:20;padding:clamp(14px,1.7vw,19px) 0;border-bottom:1px solid #1c1c1a;background:rgba(5,5,5,.86);backdrop-filter:blur(12px)">
+  <div class="wrap" style="display:flex;align-items:center;justify-content:space-between;gap:clamp(16px,3vw,40px)">
+  <a class="c2" href="../index.html" aria-label="Kristian Davis, UX Consultant, home" style="display:inline-flex;align-items:baseline;gap:10px;min-width:0;transition:color .3s ease">
+      <span class="nav-name" style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:17px;letter-spacing:-.01em;color:#e9e7df;white-space:nowrap;transition:color .3s ease">Kristian Davis</span>
+      <span class="nav-role" aria-hidden="true" style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:#7d786f;white-space:nowrap"><span style="color:var(--accent)">•</span> UX Consultant</span>
+    </a>
+  <ul class="navlist" style="display:flex;gap:clamp(18px,3vw,32px);list-style:none;font-family:'JetBrains Mono',monospace;font-size:13px">
     <li><a class="c3" href="../index.html" style="color:#a09c92;transition:color .3s ease">home</a></li>
     <li style="position:relative">
     <details style="position:relative">
@@ -43,160 +66,280 @@
     <li><a class="c10" href="../index.html#about" style="color:#a09c92;transition:color .3s ease">about</a></li>
     <li><a class="c11" href="../index.html#contact" style="color:#a09c92;transition:color .3s ease">contact</a></li>
   </ul>
+
+  <details class="mnav" style="position:relative">
+    <summary aria-label="Menu" style="display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:5px;width:44px;height:44px;cursor:pointer;list-style:none"><span aria-hidden="true" style="display:block;width:22px;height:1.5px;background:#e9e7df"></span><span aria-hidden="true" style="display:block;width:22px;height:1.5px;background:#e9e7df"></span><span aria-hidden="true" style="display:block;width:22px;height:1.5px;background:#e9e7df"></span></summary>
+    <ul style="position:absolute;top:calc(100% + 14px);right:0;min-width:236px;display:flex;flex-direction:column;gap:2px;list-style:none;padding:8px;border:1px solid #1c1c1a;border-radius:11px;background:#0b0b0a;box-shadow:0 28px 60px -22px rgba(0,0,0,.95);font-family:'JetBrains Mono',monospace;font-size:13px">
+      <li><a href="../index.html" style="display:block;padding:11px 12px;border-radius:7px;color:#a09c92">home</a></li>
+      <li>
+        <details>
+          <summary style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 12px;border-radius:7px;color:#a09c92;cursor:pointer;list-style:none">work<span aria-hidden="true" style="font-size:8px">▼</span></summary>
+          <ul style="display:flex;flex-direction:column;gap:2px;list-style:none;margin:2px 0 6px;padding:0 0 0 12px;border-left:1px solid #1c1c1a">
+            <li><a href="nitefind.html" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:7px;font-size:12px;color:#a09c92"><span aria-hidden="true" style="flex-shrink:0;width:7px;height:7px;border-radius:50%;background:#a259ff"></span>Nitefind</a></li>
+            <li><a href="zentra.html" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:7px;font-size:12px;color:#a09c92"><span aria-hidden="true" style="flex-shrink:0;width:7px;height:7px;border-radius:50%;background:#4fbf82"></span>Zentra</a></li>
+            <li><a href="smiteforge.html" aria-current="page" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:7px;font-size:12px;color:#e9e7df;background:rgba(255,255,255,.05)"><span aria-hidden="true" style="flex-shrink:0;width:7px;height:7px;border-radius:50%;background:#e0b84a"></span>SmiteForge</a></li>
+            <li><a aria-disabled="true" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:7px;font-size:12px;color:#a09c92"><span aria-hidden="true" style="flex-shrink:0;width:7px;height:7px;border-radius:50%;background:#8f8f8f"></span>Amun <span style="color:#8c877d">· soon</span></a></li>
+            <li><a href="../index.html#work" style="display:block;padding:9px 12px;border-radius:7px;font-size:12px;color:#8c877d">all work →</a></li>
+          </ul>
+        </details>
+      </li>
+      <li><a href="../index.html#about" style="display:block;padding:11px 12px;border-radius:7px;color:#a09c92">about</a></li>
+      <li><a href="../index.html#contact" style="display:block;padding:11px 12px;border-radius:7px;color:#a09c92">contact</a></li>
+    </ul>
+  </details>
+  </div>
 </nav>
 
 <main id="body" style="flex:1">
 
-  <!-- ============ HEADER ============ -->
-  <header style="position:relative;padding:clamp(64px,9vw,120px) clamp(24px,5vw,64px) clamp(48px,6vw,80px);border-bottom:1px solid #1c1c1a;overflow:hidden">
-    <div aria-hidden="true" style="position:absolute;top:clamp(4px,1vw,16px);left:clamp(-24px,-2vw,-8px);z-index:0;pointer-events:none;user-select:none;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(96px,17vw,240px);line-height:1;color:transparent;-webkit-text-stroke:1px var(--accent);letter-spacing:-.02em;opacity:.28">CASE</div>
+  <!-- ============ HERO ============ -->
+  <header style="position:relative;padding:clamp(40px,6vw,80px) 0 0;overflow:hidden">
+    <div aria-hidden="true" class="ghost quiet" style="top:clamp(150px,18vw,244px)">SMITEFORGE</div>
 
-    <div style="position:relative;z-index:1;max-width:1280px;margin:0 auto">
+    <div class="wrap" style="position:relative;z-index:1">
       <a class="c12" href="../index.html#work" style="display:inline-flex;align-items:center;gap:9px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a09c92;transition:color .3s ease,gap .35s cubic-bezier(.19,1,.22,1)"><span aria-hidden="true">←</span> back to work</a>
 
-      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:clamp(36px,5vw,56px)">
-        <span style="padding:6px 13px;border:1px solid rgba(var(--accent-rgb),.4);border-radius:999px;background:rgba(var(--accent-rgb),.08);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;color:var(--accent)">UX / UI DESIGN</span>
-        <span style="padding:6px 13px;border:1px solid #3a3a38;border-radius:999px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;color:#a09c92">WEB + MOBILE</span>
-        <span style="padding:6px 13px;border:1px solid #3a3a38;border-radius:999px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;color:#a09c92">2025</span>
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:clamp(40px,6vw,72px);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;color:#7d786f">
+        <span>UX / UI DESIGN</span>
+        <span aria-hidden="true" style="color:#393834">·</span>
+        <span>MOBILE APP</span>
+        <span aria-hidden="true" style="color:#393834">·</span>
+        <span>CONCEPT</span>
       </div>
 
-      <h1 style="margin-top:26px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(38px,6.4vw,88px);line-height:1.02;letter-spacing:-.02em;max-width:16ch;text-wrap:balance">SmiteForge.</h1>
+      <h1 style="margin-top:clamp(20px,2.4vw,32px);font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(52px,9vw,132px);line-height:.98;letter-spacing:-.035em">SmiteForge</h1>
 
-      <p style="margin-top:32px;margin-left:clamp(0px,2vw,28px);padding-left:24px;border-left:2px solid var(--accent);font-size:clamp(17px,1.6vw,20px);line-height:1.65;color:#a09c92;max-width:52ch;text-wrap:pretty">One brand, two very different platforms. Replace this with one or two sentences stating the problem in plain language and the outcome. It is the only paragraph most visitors will read, so it should stand on its own.</p>
+      <p style="margin-top:clamp(18px,2vw,26px);padding-left:22px;border-left:2px solid var(--accent);max-width:38ch;font-size:clamp(17px,1.5vw,22px);line-height:1.55;color:#cfcabc;text-wrap:pretty">A Smite 2 companion app designed for iOS and Android without making either feel like the other.</p>
+      <p style="margin-top:clamp(16px,1.8vw,24px);padding-left:24px;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.06em;color:#7d786f">Mobile companion app · Sole designer</p>
+    </div>
 
-      <dl style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:clamp(24px,3vw,44px);margin-top:clamp(48px,6vw,76px);padding-top:32px;border-top:1px solid #1c1c1a">
-        <div>
-          <dt style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#7d786f">role</dt>
-          <dd style="margin:9px 0 0;font-size:15px;color:#e9e7df;line-height:1.55">Lead UX &amp; UI designer</dd>
-        </div>
-        <div>
-          <dt style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#7d786f">timeline</dt>
-          <dd style="margin:9px 0 0;font-size:15px;color:#e9e7df;line-height:1.55">8 weeks</dd>
-        </div>
-        <div>
-          <dt style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#7d786f">team</dt>
-          <dd style="margin:9px 0 0;font-size:15px;color:#e9e7df;line-height:1.55">Solo, with a developer</dd>
-        </div>
-        <div>
-          <dt style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#7d786f">tools</dt>
-          <dd style="margin:9px 0 0;font-size:15px;color:#e9e7df;line-height:1.55">Figma, FigJam</dd>
-        </div>
-      </dl>
+    <div style="margin-top:clamp(44px,6vw,88px)">
+      <img src="../img/smiteforge/hero-device.jpg" alt="The SmiteForge splash screen shown on an Android phone and an iOS phone, over blurred Smite key art" width="2000" height="1172" style="display:block;width:100%;height:auto">
     </div>
   </header>
 
-  <!-- ============ HERO IMAGE ============ -->
-  <div style="max-width:1280px;margin:0 auto;padding:clamp(48px,6vw,88px) clamp(24px,5vw,64px) 0">
-    <div style="position:relative;aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:#0a0a0a;box-shadow:0 40px 100px -32px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center">
-      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.08em;color:#7d786f">HERO IMAGE — 16:9</span>
-      <span aria-hidden="true" style="position:absolute;inset:0;background:radial-gradient(circle at 78% 16%, rgba(var(--accent-rgb),.16), transparent 58%)"></span>
+  <!-- ============ WHY THIS EXISTS ============ -->
+  <section aria-label="Why this exists" style="position:relative;padding:clamp(84px,11vw,164px) 0;border-bottom:1px solid #131312;overflow:hidden">
+    <div aria-hidden="true" class="ghost" style="top:clamp(30px,4vw,60px)">WHY</div>
+    <div class="wrap" style="position:relative;z-index:1;padding-top:clamp(46px,7vw,110px);display:grid;gap:clamp(28px,4vw,64px);grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));align-items:start">
+      <div>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)">01 / why this exists</span>
+        <p style="margin-top:clamp(18px,2vw,26px);font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:clamp(26px,3.2vw,44px);line-height:1.14;letter-spacing:-.022em;max-width:20ch;text-wrap:pretty">Smite information existed. Getting to it quickly on a phone was the problem.</p>
+      </div>
+      <div>
+        <p style="font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty;max-width:52ch">Fan resources existed, but they were cluttered and built for desktop.</p>
+        <p style="margin-top:clamp(14px,1.6vw,20px);font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty;max-width:52ch">SmiteForge explored what quick, mobile-first reference could look like instead, checked mid-match or between games, not dug through on a laptop later.</p>
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px clamp(12px,1.6vw,20px);margin-top:clamp(32px,4vw,52px);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#7d786f">
+          <span style="white-space:nowrap">3 player interviews</span><span aria-hidden="true" style="color:var(--accent)">→</span>
+          <span style="white-space:nowrap">1 preference survey</span><span aria-hidden="true" style="color:var(--accent)">→</span>
+          <span style="white-space:nowrap;color:#cfcabc">2 platform languages</span>
+        </div>
+      </div>
     </div>
-    <p style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#8c877d">Caption: what the reader is looking at.</p>
-  </div>
+  </section>
 
-  <!-- ============ SECTIONS ============ -->
-  <div style="max-width:1280px;margin:0 auto;padding:0 clamp(24px,5vw,64px)">
+  <!-- ============ THE SIGNAL ============ -->
+  <section aria-label="The signal" style="position:relative;padding:clamp(84px,11vw,164px) 0;border-bottom:1px solid #131312;overflow:hidden">
+    <div aria-hidden="true" class="ghost" style="top:clamp(28px,3.4vw,54px)">SIGNAL</div>
+    <div class="wrap" style="position:relative;z-index:1;padding-top:clamp(46px,7vw,110px)">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)">02 / the signal</span>
+      <p style="margin-top:clamp(18px,2vw,26px);max-width:56ch;font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty">I spoke with three Smite players, ran a feature-preference survey, and worked with one recurring tester throughout the project.</p>
 
-    <!-- 01 THE PROBLEM -->
-    <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:clamp(28px,5vw,80px);padding:clamp(64px,8vw,112px) 0;border-bottom:1px solid #131312">
-      <div>
-        <div style="display:flex;align-items:baseline;gap:16px">
-          <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent)">01</span>
-          <h2 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(26px,3vw,38px);line-height:1.12;letter-spacing:-.01em">The problem</h2>
+      <!-- The full persona boards, cut from the 3840px source rather than the clipped
+           fragments that shipped in the package. Each carries its own bio, goals, frustrations
+           and quote, so the research reads as research instead of as a stock photo. -->
+      <figure style="margin:clamp(36px,4.4vw,60px) 0 0">
+        <div class="shot"><img src="../img/smiteforge/persona-elias-card.jpg" alt="Elias Rivera, hardcore player: age 34, software engineer, PC, plays daily. Goals include checking stats between matches and saving multiple builds per god. Frustrations include cluttered fan sites not optimised for mobile." width="1600" height="1172" loading="lazy" style="display:block;width:100%;height:auto"></div>
+        <figcaption style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase"><span style="display:inline-block;color:#e9e7df">Elias Rivera · hardcore player</span></figcaption>
+      </figure>
+
+      <figure style="margin:clamp(28px,3.4vw,48px) 0 0">
+        <div class="shot"><img src="../img/smiteforge/persona-alyssa-card.jpg" alt="Alyssa Moore, casual player: age 28, marketing specialist, PlayStation, plays a few times a week with friends. Goals include referencing builds during a match and learning new gods visually. Frustrations include god info sites feeling overwhelming or outdated." width="1600" height="1202" loading="lazy" style="display:block;width:100%;height:auto"></div>
+        <figcaption style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase"><span style="display:inline-block;color:#e9e7df">Alyssa Moore · casual player</span></figcaption>
+      </figure>
+
+      <div style="margin-top:clamp(36px,4.6vw,64px);padding-top:clamp(28px,3.4vw,44px);border-top:1px solid #1c1c1a">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)">the insight</span>
+        <p style="margin-top:16px;font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:clamp(22px,2.6vw,36px);line-height:1.2;letter-spacing:-.02em;max-width:26ch;text-wrap:pretty">Different depth, same ask: get out of the way.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ KEY DECISIONS ============ -->
+  <section aria-label="Key decisions" style="position:relative;padding:clamp(84px,11vw,164px) 0 clamp(56px,7vw,96px);overflow:hidden">
+    <div aria-hidden="true" class="ghost" style="top:clamp(28px,3.4vw,54px)">DECISIONS</div>
+    <div class="wrap" style="position:relative;z-index:1;padding-top:clamp(48px,7vw,120px)">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)">03 / key decisions</span>
+    </div>
+  </section>
+
+  <!-- 1. One brand, two platform languages -->
+  <section aria-label="One brand, two platform languages" style="padding:0 0 clamp(72px,9vw,128px);border-bottom:1px solid #131312">
+    <div class="wrap">
+      <div style="display:flex;align-items:baseline;gap:16px">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent)">01</span>
+        <h2 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(26px,3.2vw,42px);line-height:1.1;letter-spacing:-.022em">One brand, two platform languages</h2>
+      </div>
+      <p style="margin-top:clamp(18px,2vw,26px);max-width:38ch;font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:clamp(19px,1.9vw,26px);line-height:1.35;letter-spacing:-.014em;color:#cfcabc;text-wrap:pretty">The content and identity stayed consistent. The interface language changed with the platform.</p>
+      <p style="margin-top:clamp(16px,1.8vw,24px);max-width:64ch;font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty">On iOS: SF Pro, softer containers, generous edge spacing. A lighter, more fluid interface.</p>
+      <p style="margin-top:clamp(14px,1.6vw,20px);font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty;max-width:64ch">On Android: Roboto, stronger blocks, depth and color. A more structured hierarchy.</p>
+      <p style="margin-top:clamp(14px,1.6vw,20px);font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty;max-width:64ch;color:#7d786f;font-size:15px">These are design interpretations informed by each platform, not claims about universal iOS or Android rules.</p>
+
+      <p style="margin-top:clamp(28px,3.4vw,44px);max-width:64ch;font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty">Both builds are shown in full further down, side by side.</p>
         </div>
-      </div>
-      <div>
-        <p style="font-size:16px;line-height:1.75;color:#a09c92;max-width:60ch;text-wrap:pretty">What was actually going wrong, for whom, and how you know. Name the evidence: what you heard in interviews, what the analytics showed, where people gave up. Resist describing the solution here.</p>
-        <blockquote style="margin:32px 0 0;padding:22px 26px;border-left:2px solid var(--accent);background:rgba(var(--accent-rgb),.05);border-radius:0 8px 8px 0">
-          <p style="font-family:'Space Grotesk',sans-serif;font-size:19px;line-height:1.5;color:#e9e7df;text-wrap:pretty">A short verbatim quote from a real user that makes the problem impossible to argue with.</p>
-          <footer style="margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#8c877d">— participant 4, first round of interviews</footer>
-        </blockquote>
-      </div>
-    </section>
+  </section>
 
-    <!-- 02 RESEARCH -->
-    <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:clamp(28px,5vw,80px);padding:clamp(64px,8vw,112px) 0;border-bottom:1px solid #131312">
-      <div>
-        <div style="display:flex;align-items:baseline;gap:16px">
-          <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent)">02</span>
-          <h2 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(26px,3vw,38px);line-height:1.12;letter-spacing:-.01em">What I found</h2>
-        </div>
+  <!-- 2. Make it feel connected to Smite -->
+  <section aria-label="Make it feel connected to Smite" style="padding:clamp(72px,9vw,128px) 0;border-bottom:1px solid #131312">
+    <div class="wrap">
+      <div style="display:flex;align-items:baseline;gap:16px">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent)">02</span>
+        <h2 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(26px,3.2vw,42px);line-height:1.1;letter-spacing:-.022em">Make it feel connected to Smite</h2>
       </div>
-      <div>
-        <p style="font-size:16px;line-height:1.75;color:#a09c92;max-width:60ch;text-wrap:pretty">How you looked into it, and the two or three findings that changed the direction of the work. Findings, not activities. Nobody needs to know you made an affinity map unless it changed your mind about something.</p>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:16px;margin-top:32px">
-          <div style="padding:22px;border:1px solid #1c1c1a;border-radius:10px">
-            <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:34px;line-height:1;color:var(--accent)">00%</div>
-            <p style="margin-top:10px;font-size:14px;line-height:1.55;color:#a09c92">What this number measured and why it mattered.</p>
-          </div>
-          <div style="padding:22px;border:1px solid #1c1c1a;border-radius:10px">
-            <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:34px;line-height:1;color:var(--accent)">00</div>
-            <p style="margin-top:10px;font-size:14px;line-height:1.55;color:#a09c92">A second figure, or cut this card if you only have one.</p>
-          </div>
-        </div>
-      </div>
-    </section>
+      <p style="margin-top:clamp(18px,2vw,26px);max-width:64ch;font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty">Gold and blue echo Smite&rsquo;s own branding, so the app feels connected to the game instead of like a generic stats tool.</p>
+      <p style="margin-top:clamp(14px,1.6vw,20px);font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty;max-width:64ch">The interface system still gives SmiteForge its own structure.</p>
 
-    <!-- 03 DECISIONS -->
-    <section style="padding:clamp(64px,8vw,112px) 0;border-bottom:1px solid #131312">
+      <!-- Attribution sits with the decision it applies to, not in the footer. -->
+      <blockquote style="margin:clamp(28px,3.4vw,44px) 0 0;padding:clamp(20px,2.4vw,28px) clamp(22px,2.6vw,32px);border:1px solid #1c1c1a;border-left:2px solid var(--accent);border-radius:0 12px 12px 0;background:rgba(var(--accent-rgb),.04);max-width:64ch">
+        <p style="font-size:15px;line-height:1.7;color:#a09c92;text-wrap:pretty">This project references visual content from the Smite universe, sourced from public fan and wiki material. I don&rsquo;t own that content. Original icons are my own design, labeled as such.</p>
+      </blockquote>
+    </div>
+  </section>
+
+  <!-- 3. Testing changed the interface -->
+  <section aria-label="Testing changed the interface" style="padding:clamp(72px,9vw,128px) 0;border-bottom:1px solid #131312">
+    <div class="wrap">
       <div style="display:flex;align-items:baseline;gap:16px">
         <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent)">03</span>
-        <h2 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(26px,3vw,38px);line-height:1.12;letter-spacing:-.01em">The decisions</h2>
+        <h2 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(26px,3.2vw,42px);line-height:1.1;letter-spacing:-.022em">Testing changed the interface</h2>
       </div>
-      <p style="margin-top:20px;font-size:16px;line-height:1.75;color:#a09c92;max-width:62ch;text-wrap:pretty">This is the section that earns the site's thesis. For each meaningful call, say what you chose, what you gave up, and why. Duplicate the block below per decision.</p>
+      <p style="margin-top:clamp(18px,2vw,26px);max-width:52ch;font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty">Testing surfaced two real problems. Each led to a specific change.</p>
 
-      <div style="display:flex;flex-direction:column;gap:20px;margin-top:40px">
-        <article class="c13" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:clamp(20px,3vw,44px);padding:clamp(24px,3vw,36px);border:1px solid #1c1c1a;border-radius:12px;transition:border-color .35s ease">
-          <div>
-            <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#7d786f">decision 01</span>
-            <h3 style="margin-top:12px;font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:21px;line-height:1.3;text-wrap:pretty">A short, declarative statement of what you decided.</h3>
-            <p style="margin-top:14px;font-size:15px;line-height:1.7;color:#a09c92;text-wrap:pretty">The reasoning, the option you rejected, and what it cost. Two or three sentences is plenty.</p>
+      <div style="display:grid;gap:8px clamp(16px,2vw,28px);grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);margin-top:clamp(30px,3.6vw,48px);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#7d786f">
+        <span>observation</span><span aria-hidden="true"></span><span style="color:var(--accent)">design response</span>
+      </div>
+      <dl style="margin:14px 0 0;display:flex;flex-direction:column;gap:0">
+          <div style="display:grid;gap:8px clamp(16px,2vw,28px);grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:start;padding:20px 0;border-top:1px solid #1c1c1a">
+            <dt style="font-size:15px;line-height:1.6;color:#a09c92;text-wrap:pretty">Users couldn&rsquo;t immediately tell what SmiteForge was for</dt>
+            <span aria-hidden="true" style="font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--accent)">→</span>
+            <dd style="margin:0;font-size:15px;line-height:1.6;color:#e9e7df;text-wrap:pretty">added a short onboarding sequence introducing the product before dropping players into the interface</dd>
           </div>
-          <div style="aspect-ratio:4/3;border-radius:8px;background:#0a0a0a;box-shadow:0 0 0 1px rgba(255,255,255,.05) inset;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;color:#7d786f">SCREEN / BEFORE-AFTER</div>
-        </article>
-
-        <article class="c14" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:clamp(20px,3vw,44px);padding:clamp(24px,3vw,36px);border:1px solid #1c1c1a;border-radius:12px;transition:border-color .35s ease">
-          <div>
-            <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#7d786f">decision 02</span>
-            <h3 style="margin-top:12px;font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:21px;line-height:1.3;text-wrap:pretty">The second call you had to make.</h3>
-            <p style="margin-top:14px;font-size:15px;line-height:1.7;color:#a09c92;text-wrap:pretty">The reasoning, the option you rejected, and what it cost.</p>
+          <div style="display:grid;gap:8px clamp(16px,2vw,28px);grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:start;padding:20px 0;border-top:1px solid #1c1c1a;border-bottom:1px solid #1c1c1a">
+            <dt style="font-size:15px;line-height:1.6;color:#a09c92;text-wrap:pretty">Logged-out users tried to save builds and weren&rsquo;t sure why it failed</dt>
+            <span aria-hidden="true" style="font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--accent)">→</span>
+            <dd style="margin:0;font-size:15px;line-height:1.6;color:#e9e7df;text-wrap:pretty">disabled the Save action until login, with a clear visual treatment</dd>
           </div>
-          <div style="aspect-ratio:4/3;border-radius:8px;background:#0a0a0a;box-shadow:0 0 0 1px rgba(255,255,255,.05) inset;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;color:#7d786f">SCREEN / BEFORE-AFTER</div>
-        </article>
-      </div>
-    </section>
+      </dl>
+      <p style="margin-top:clamp(28px,3.4vw,44px);max-width:60ch;font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty">Both fixes are visible in the platform boards above: the onboarding screen in the top row, and the Save Build sheet with its Log In and Sign Up options at the bottom.</p>
+    </div>
+  </section>
 
-    <!-- 04 OUTCOME -->
-    <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:clamp(28px,5vw,80px);padding:clamp(64px,8vw,112px) 0;border-bottom:1px solid #131312">
-      <div>
-        <div style="display:flex;align-items:baseline;gap:16px">
-          <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent)">04</span>
-          <h2 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(26px,3vw,38px);line-height:1.12;letter-spacing:-.01em">Where it landed</h2>
-        </div>
-      </div>
-      <div>
-        <p style="font-size:16px;line-height:1.75;color:#a09c92;max-width:60ch;text-wrap:pretty">What shipped, and what changed as a result. If you have numbers, use them. If you don't, say what you observed and be honest that it's qualitative. Then: what you'd do differently, and what you're still unsure about. That paragraph is worth more to a hiring manager than another screenshot.</p>
-      </div>
-    </section>
+  <!-- ============ SIDE BY SIDE ============ -->
+  <section aria-label="Side by side" style="position:relative;padding:clamp(84px,11vw,164px) 0 clamp(72px,9vw,128px);border-bottom:1px solid #131312;overflow:hidden">
+    <div aria-hidden="true" class="ghost" style="top:clamp(28px,3.4vw,54px)">PLATFORMS</div>
+    <div class="wrap" style="position:relative;z-index:1;padding-top:clamp(48px,7vw,120px)">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)">04 / side by side</span>
+      <p style="margin-top:clamp(18px,2vw,26px);max-width:56ch;font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty">The same core tasks, carried across both versions. Typography, spacing, containers, and hierarchy adapted to each platform.</p>
 
-  </div>
+      <div class="pairs" style="margin-top:clamp(14px,1.6vw,20px)">
+        <figure style="margin:0">
+          <span style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(10px,1.2vw,16px);margin-bottom:8px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#7d786f"><span>iOS</span><span>Android</span></span>
+          <div class="duo">
+            <div class="shot"><img src="../img/smiteforge/screens/ios-splash.jpg" alt="Splash on iOS" width="620" height="1183" loading="lazy"></div>
+            <div class="shot"><img src="../img/smiteforge/screens/and-splash.jpg" alt="Splash on Android" width="620" height="1157" loading="lazy"></div>
+          </div>
+          <figcaption style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase"><span style="display:inline-block;color:#e9e7df">Splash</span><span style="display:block;margin-top:8px;font-size:13px;line-height:1.55;letter-spacing:0;text-transform:none;color:#a09c92;text-wrap:pretty">The launch screen, same art, different frame.</span></figcaption>
+        </figure>
+        <figure style="margin:0">
+          <span style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(10px,1.2vw,16px);margin-bottom:8px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#7d786f"><span>iOS</span><span>Android</span></span>
+          <div class="duo">
+            <div class="shot"><img src="../img/smiteforge/screens/ios-onboarding.jpg" alt="Onboarding on iOS" width="620" height="1189" loading="lazy"></div>
+            <div class="shot"><img src="../img/smiteforge/screens/and-onboarding.jpg" alt="Onboarding on Android" width="620" height="1162" loading="lazy"></div>
+          </div>
+          <figcaption style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase"><span style="display:inline-block;color:#e9e7df">Onboarding</span><span style="display:block;margin-top:8px;font-size:13px;line-height:1.55;letter-spacing:0;text-transform:none;color:#a09c92;text-wrap:pretty">Value props before the interface, on both.</span></figcaption>
+        </figure>
+        <figure style="margin:0">
+          <span style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(10px,1.2vw,16px);margin-bottom:8px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#7d786f"><span>iOS</span><span>Android</span></span>
+          <div class="duo">
+            <div class="shot"><img src="../img/smiteforge/screens/ios-gods-grid.jpg" alt="God browse on iOS" width="620" height="1189" loading="lazy"></div>
+            <div class="shot"><img src="../img/smiteforge/screens/and-gods-grid.jpg" alt="God browse on Android" width="620" height="1162" loading="lazy"></div>
+          </div>
+          <figcaption style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase"><span style="display:inline-block;color:#e9e7df">God browse</span><span style="display:block;margin-top:8px;font-size:13px;line-height:1.55;letter-spacing:0;text-transform:none;color:#a09c92;text-wrap:pretty">iOS centres the title; Android leads with a search field and a hamburger.</span></figcaption>
+        </figure>
+        <figure style="margin:0">
+          <span style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(10px,1.2vw,16px);margin-bottom:8px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#7d786f"><span>iOS</span><span>Android</span></span>
+          <div class="duo">
+            <div class="shot"><img src="../img/smiteforge/screens/ios-god-detail.jpg" alt="God detail on iOS" width="620" height="1186" loading="lazy"></div>
+            <div class="shot"><img src="../img/smiteforge/screens/and-god-detail.jpg" alt="God detail on Android" width="620" height="1162" loading="lazy"></div>
+          </div>
+          <figcaption style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase"><span style="display:inline-block;color:#e9e7df">God detail</span><span style="display:block;margin-top:8px;font-size:13px;line-height:1.55;letter-spacing:0;text-transform:none;color:#a09c92;text-wrap:pretty">Softer stacked cards on iOS, blocked sections and an overflow menu on Android.</span></figcaption>
+        </figure>
+        <figure style="margin:0">
+          <span style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(10px,1.2vw,16px);margin-bottom:8px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#7d786f"><span>iOS</span><span>Android</span></span>
+          <div class="duo">
+            <div class="shot"><img src="../img/smiteforge/screens/ios-create-build.jpg" alt="Create build on iOS" width="620" height="1186" loading="lazy"></div>
+            <div class="shot"><img src="../img/smiteforge/screens/and-create-build.jpg" alt="Create build on Android" width="620" height="1162" loading="lazy"></div>
+          </div>
+          <figcaption style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase"><span style="display:inline-block;color:#e9e7df">Create build</span><span style="display:block;margin-top:8px;font-size:13px;line-height:1.55;letter-spacing:0;text-transform:none;color:#a09c92;text-wrap:pretty">The same build flow, with Android carrying a heavier item row.</span></figcaption>
+        </figure>
+        <figure style="margin:0">
+          <span style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(10px,1.2vw,16px);margin-bottom:8px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#7d786f"><span>iOS</span><span>Android</span></span>
+          <div class="duo">
+            <div class="shot"><img src="../img/smiteforge/screens/ios-my-builds.jpg" alt="Saved builds on iOS" width="620" height="1183" loading="lazy"></div>
+            <div class="shot"><img src="../img/smiteforge/screens/and-my-builds.jpg" alt="Saved builds on Android" width="620" height="1162" loading="lazy"></div>
+          </div>
+          <figcaption style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase"><span style="display:inline-block;color:#e9e7df">Saved builds</span><span style="display:block;margin-top:8px;font-size:13px;line-height:1.55;letter-spacing:0;text-transform:none;color:#a09c92;text-wrap:pretty">"My Builds" on iOS, "Saved Builds" on Android, each with its own row treatment.</span></figcaption>
+        </figure>
+        <figure style="margin:0">
+          <span style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(10px,1.2vw,16px);margin-bottom:8px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#7d786f"><span>iOS</span><span>Android</span></span>
+          <div class="duo">
+            <div class="shot"><img src="../img/smiteforge/screens/ios-login.jpg" alt="Login on iOS" width="620" height="1183" loading="lazy"></div>
+            <div class="shot"><img src="../img/smiteforge/screens/and-login.jpg" alt="Login on Android" width="620" height="1162" loading="lazy"></div>
+          </div>
+          <figcaption style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase"><span style="display:inline-block;color:#e9e7df">Login</span><span style="display:block;margin-top:8px;font-size:13px;line-height:1.55;letter-spacing:0;text-transform:none;color:#a09c92;text-wrap:pretty">A segmented control on iOS; Android splits Login and Sign Up into pills.</span></figcaption>
+        </figure>
+        <figure style="margin:0">
+          <span style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(10px,1.2vw,16px);margin-bottom:8px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#7d786f"><span>iOS</span><span>Android</span></span>
+          <div class="duo">
+            <div class="shot"><img src="../img/smiteforge/screens/ios-save-build.jpg" alt="Save build on iOS" width="620" height="1175" loading="lazy"></div>
+            <div class="shot"><img src="../img/smiteforge/screens/and-save-build.jpg" alt="Save build on Android" width="620" height="1162" loading="lazy"></div>
+          </div>
+          <figcaption style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase"><span style="display:inline-block;color:#e9e7df">Save build</span><span style="display:block;margin-top:8px;font-size:13px;line-height:1.55;letter-spacing:0;text-transform:none;color:#a09c92;text-wrap:pretty">The usability fix in place: saving is gated behind an account on both platforms.</span></figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ WHERE IT STANDS ============ -->
+  <section aria-label="Where it stands" style="position:relative;padding:clamp(84px,11vw,164px) 0;overflow:hidden">
+    <div aria-hidden="true" class="ghost" style="top:clamp(30px,4vw,60px)">STATUS</div>
+    <div class="wrap" style="position:relative;z-index:1;padding-top:clamp(46px,7vw,110px);display:grid;gap:clamp(28px,4vw,64px);grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));align-items:start">
+      <div>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)">05 / where it stands</span>
+        <p style="margin-top:clamp(18px,2vw,26px);font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:clamp(24px,2.8vw,38px);line-height:1.16;letter-spacing:-.02em;max-width:16ch;text-wrap:pretty">Concept work, not shipped.</p>
+      </div>
+      <p style="max-width:54ch;font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty">SmiteForge stayed a concept project, but it changed how I think about cross-platform design. Consistency doesn&rsquo;t require identical interfaces. The product can stay the same while each platform speaks its own language.</p>
+    </div>
+  </section>
 
   <!-- ============ NEXT ============ -->
-  <div style="max-width:1280px;margin:0 auto;padding:clamp(56px,7vw,96px) clamp(24px,5vw,64px) clamp(72px,9vw,120px)">
+  <div class="wrap" style="padding-top:clamp(8px,1vw,16px);padding-bottom:clamp(72px,9vw,120px)">
     <a class="c15" aria-disabled="true" style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;padding:clamp(28px,3.5vw,44px);border:1px solid #1c1c1a;border-radius:12px;transition:border-color .35s ease,background .35s ease">
       <div>
         <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#7d786f">next project</span>
-        <div style="margin-top:10px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(22px,2.6vw,32px);line-height:1.15">Zentra</div>
+        <div style="margin-top:10px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(22px,2.6vw,32px);line-height:1.15">Amun</div>
       </div>
-      <span aria-hidden="true" style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.08em;color:#6b675f">soon</span>
+      <span aria-hidden="true" style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.08em;color:#8c877d">soon</span>
     </a>
   </div>
 
 </main>
 
-<footer style="display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;padding:clamp(22px,2.6vw,32px) clamp(24px,5vw,64px);border-top:1px solid #1c1c1a;font-family:'JetBrains Mono',monospace;font-size:12px;color:#8c877d">
-  <span>© 2026 Kristian Davis</span>
-  <a class="c16" href="mailto:kdavisdesigns94@gmail.com" style="transition:color .3s ease">kdavisdesigns94@gmail.com</a>
+<footer style="padding:clamp(22px,2.6vw,32px) 0;border-top:1px solid #1c1c1a;font-family:'JetBrains Mono',monospace;font-size:12px;color:#8c877d">
+  <div class="wrap" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between">
+    <span>© 2026 Kristian Davis</span>
+    <a class="c16" href="mailto:kdavisdesigns94@gmail.com" style="transition:color .3s ease">kdavisdesigns94@gmail.com</a>
+  </div>
 </footer>
 
 </div>
