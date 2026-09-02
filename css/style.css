@@ -247,9 +247,12 @@
    620px down the break is switched on and the size is driven by viewport width (7.6vw) so the
    longer of the two lines always clears the available column. The indents are dropped there to
    reclaim the width, and the reflection is kept on identical metrics so it stays in register. */
+/* One line above the mobile breakpoint, two below it. "People don't experience your design."
+   is 16.96em wide; against the ~327px column a 375px phone gives it, one line would mean a
+   19px headline, so below 900px the break is switched on and the phrase takes two lines. */
 br[data-mob]{ display:none; }
+@media (max-width:900px){ br[data-mob]{ display:inline; } }
 @media (max-width:620px){
-  br[data-mob]{ display:inline; }
   #heroHeadline{
     /* Upper bound is 41px, not 34px: 6.6vw crosses 41px at 621px, so the size is continuous
        across the breakpoint instead of jumping 20% on a 1px change. */
@@ -373,7 +376,7 @@ footer a{ min-height:44px; display:inline-flex; align-items:center; }
    every width, and the headline is capped by viewport HEIGHT as well as width -- one variable
    drives the headline, the reflection and the reflection well, so they cannot drift apart. */
 #hero{
-  --hero-fs: min(clamp(34px,6.6vw,104px), 11.4vh);
+  --hero-fs: min(clamp(34px,4.2vw,64px), 11.4vh);
   width:100%;
   min-height:100svh !important;
   padding-top:clamp(96px,11vh,118px) !important;
@@ -394,7 +397,7 @@ footer a{ min-height:44px; display:inline-flex; align-items:center; }
   #heroFoot{ margin-top:clamp(16px,2.2vh,30px) !important; }
 }
 @media (max-height:700px) and (min-width:900.02px){
-  #hero{ --hero-fs: min(clamp(34px,6.6vw,104px), 10.2vh); }
+  #hero{ --hero-fs: min(clamp(34px,4.2vw,64px), 10.2vh); }
 }
 
 /* Mobile keeps its own padding, but the same height cap applies so a short phone in landscape

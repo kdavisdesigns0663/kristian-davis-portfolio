@@ -141,8 +141,9 @@ class Portfolio {
         line.style.opacity = '1';
         line.style.transform = 'scaleX(1)';
         this.ripples(stage, 4, 660, 0, 1.8);
-        // The payoff arrives with the impact, not before it.
-        wipe(3);
+        // The payoff arrives with the impact, not before it. Indexed off lines.length, not
+        // hardcoded: the headline was four spans when this was written and is three now.
+        wipe(lines.length - 1);
         // The reflection is sliced into horizontal bands. The hit displaces the band nearest
         // the surface first; the disturbance travels down band by band and loses energy fast,
         // so the word never moves as one object. Each band ends on its own resting offset,
@@ -172,13 +173,21 @@ class Portfolio {
       // released early enough that its impact lands exactly on the last line's cue.
       const OVERLAP = 90;
       seatStage();
+      // Driven by how many lines there actually are. This was a hardcoded run of four, so
+      // merging "People don't experience" and "your design." into one line left the last cue
+      // pointing past the end of the list and the drop scheduled against a cue that no longer
+      // existed. Nothing here needs editing again if the headline is re-broken.
+      const last = lines.length - 1;
       const at = [1150];
-      for (let i = 1; i < 4; i++) at[i] = at[i - 1] + Math.max(0, litAt(i - 1) * 1000 - OVERLAP);
-      this.wait(function () { wipe(0); }, at[0]);
-      this.wait(function () { wipe(1); }, at[1]);
-      this.wait(function () { seatStage(); wipe(2); }, at[2]);
+      for (let i = 1; i <= last; i++) at[i] = at[i - 1] + Math.max(0, litAt(i - 1) * 1000 - OVERLAP);
+      for (let i = 0; i < last; i++) {
+        const idx = i;
+        // The stage is re-seated on the cue before the impact, when the layout above the
+        // waterline has stopped moving.
+        this.wait(function () { if (idx === last - 1) seatStage(); wipe(idx); }, at[idx]);
+      }
       // impact() writes the last line, so the fall is scheduled backwards from its cue.
-      this.wait(drop, Math.max(0, at[3] - this.heroFall * 1000 - 200));
+      this.wait(drop, Math.max(0, at[last] - this.heroFall * 1000 - 200));
 
       // Clicking mid-fall lands it now rather than making anyone wait.
       document.getElementById('hero').addEventListener('click', e => {

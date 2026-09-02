@@ -78,6 +78,17 @@ _originals/            full-resolution masters the served sizes were cut from.
   is no second mobile stage and no JS layout switch — earlier versions had both,
   and a `display:none` stage that still ran its timers was the reason. The band is a
   row on desktop and becomes a bordered card below 900px, all in `css/style.css`.
+- **The hero headline's size is set by the first phrase, not by taste.** "People don't
+  experience your design." measures 16.96em in Space Grotesk 700 at the tracking used
+  here, and it has to hold one line. The column the hero leaves it is the viewport less
+  the asymmetric indent and the right padding, and that column stops growing at 1104px,
+  so `--hero-fs` is capped at `min(clamp(34px,4.2vw,64px), 11.4vh)`. Raising either
+  number re-breaks the phrase. Below 900px one line would mean a 19px headline, so the
+  `<br data-mob>` is switched on instead and the phrase takes two lines there.
+- **The hero timeline is driven by `lines.length`.** It used to be a hardcoded run of
+  four `wipe()` calls; merging two lines left the last cue pointing past the end of the
+  list and the drop scheduled against a cue that no longer existed. Re-break the headline
+  freely, the sequence follows.
 - **The hero reflection has to sit directly under `#surface`.** It mirrors the
   headline across the waterline, so anything between the two breaks it. It arrived
   once placed after `#heroSub` and rendered as a detached blurred smear below the
