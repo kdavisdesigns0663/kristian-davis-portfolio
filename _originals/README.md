@@ -1,7 +1,7 @@
 # Source images, kept out of the deploy
 
-Underscore-prefixed, so Jekyll leaves this directory out of what GitHub Pages publishes.
-Same mechanism as `_dev/`.
+Underscore-prefixed, so Jekyll leaves this directory out of what GitHub Pages publishes
+(there is no `.nojekyll` file, so the Jekyll build runs and skips anything starting with `_`).
 
 Nothing on the site references any of these, but they were sitting under `img/` where the
 whole directory is published, so 13MB of full-resolution originals were downloadable from

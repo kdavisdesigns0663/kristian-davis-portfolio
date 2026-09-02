@@ -4,18 +4,21 @@ Static HTML/CSS/JS, no build tooling, no framework, no package.json. Deployed vi
 GitHub Pages at `https://kdavisdesigns0663.github.io/kristian-davis-portfolio/`.
 Repo: `github.com/kdavisdesigns0663/kristian-davis-portfolio`.
 
-The live files are the source of truth. `HANDOFF.md` is project history — rejected
-directions, locked copy decisions, rationale — and is worth reading for *why*
-things are the way they are, but its technical descriptions are stale and several
-of them now actively contradict the code. Trust the files.
+The live files are the source of truth. `HANDOFF.md` carries the decisions and the
+project notes — rejected directions, locked copy rules, where each project stands —
+and is worth reading for *why* things are the way they are. It deliberately does not
+describe the code, because the version that did drifted badly enough to cause real
+rework. Anything about how something works belongs here or in the file itself.
 
 ## Locked design system (won't change without the owner explicitly asking)
 - Fonts: Space Grotesk (display), Inter (body), JetBrains Mono (code/system accents)
 - Palette: near-black background (`#050505`), off-white text, **one** violet accent
   (`--accent:#a06bff`) used sparingly — no gradients-as-decoration, no multi-color
   palette. Case study pages are the one exception: each carries a single per-project
-  accent instead of the violet (nitefind `#b04ad6`, smiteforge `#e0b84a`, zentra
+  accent instead of the violet (nitefind `#a259ff`, smiteforge `#e0b84a`, zentra
   `#4fbf82`, amun `#8f8f8f`), set in a small inline block in that page's head.
+  Each one also appears twice in `index.html`, on that project's band edge and its
+  flood gradient. Change one, change all three.
 - No em dashes, no AI-sounding phrasing, anywhere in body copy — a hard style rule
 - Oversized-outline "ghost word" per section, bleeding off the left edge, as a
   wayfinding/rhythm device
@@ -34,11 +37,13 @@ properties, keyframes, and the hover/focus/active states (generated as `.i*`,
 index.html            homepage: #hero, #work, #about, #contact. Nav lives inside
                        #hero, footer inside #contact.
 css/style.css          homepage tokens, resets, keyframes, state rules
-js/main.js             homepage logic in one `Portfolio` class: hero wipe, work
-                       raindrop + ripple (desktop) / pill selector (mobile),
-                       background bloom, contact pulse, nav dropdown, KD reset
-case-studies/          nitefind, smiteforge, zentra, amun — all four from one
-                       template, content past the header is still placeholder
+js/main.js             homepage logic in one `Portfolio` class: hero wipe and
+                       raindrop, work raindrop + ripples + band reveal, the work
+                       wash, spine progress dot, contact pulse, nav dropdown,
+                       anchor/hash handling, KD reset
+case-studies/          nitefind, zentra and smiteforge are built. amun is an empty
+                       noindex shell — its page, and the entries pointing at it,
+                       are the only placeholders left
 css/case-study.css     shared by all four
 js/case-study.js       nav dropdown, and the viewport-driven playback for the
                        Zentra loop video
@@ -49,10 +54,9 @@ link.html              mobile-only links screen reached by QR code, noindex
 css/link.css, js/link.js
 img/kristian-about-crop-800.jpg        desktop bio photo, 4:5
 img/kristian-about-mobile-crop-900.jpg mobile bio photo, tighter crop
-_dev/                  design mockups and a stale spec. Underscore-prefixed, so
-                       Jekyll keeps the directory out of the Pages build
 _originals/            full-resolution masters the served sizes were cut from.
-                       Same underscore, same reason: 13MB nothing links to
+                       Underscore-prefixed, so Jekyll keeps the directory out of
+                       the Pages build: 13MB nothing links to
 ```
 
 ## Things that are easy to get wrong here
@@ -61,10 +65,11 @@ _originals/            full-resolution masters the served sizes were cut from.
   submission. Programmatic jumps briefly set `scroll-snap-type:none` via
   `suspendSnap()`, because a snap point can otherwise drag a deep link to the
   wrong section mid-flight.
-- **The mobile and desktop work sections are switched in JS, not CSS.** A
-  `display:none` stage still runs its timers, and the desktop sequence used to
-  overwrite the mobile bloom's origin with a zeroed coordinate. `syncLayout()`
-  owns that switch; keep it that way.
+- **The work section is one set of bands at every width, reshaped in CSS.** There
+  is no second mobile stage and no JS layout switch — earlier versions had both,
+  and a `display:none` stage that still ran its timers was the reason. Three
+  states, all in `css/style.css`: the four-column band above 1080px, a grouped
+  two-column row down to 760px, and discrete cards below that.
 - **The raindrop falls on `transform`, not `top`.** A `top` transition between a
   viewport unit and a percentage is not interpolable and silently teleports.
 - Rings need an explicit `0` size plus a forced reflow between setting the
