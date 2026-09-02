@@ -1,5 +1,5 @@
 const BANDS = {
-  nitefind:   { rgb:'162,89,255' },
+  nitefind:   { rgb:'176,74,214' },
   smiteforge: { rgb:'224,184,74' },
   zentra:     { rgb:'79,191,130' },
   amun:       { rgb:'143,143,143' },
@@ -10,9 +10,8 @@ class Portfolio {
     this.timers = [];
     this.reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     this.fall = 1;
-    // The hero drop falls slower than the work cascade: it is the one moment the visitor
-    // is asked to just watch, so it gets room to breathe.
-    this.heroFall = 1.6;
+    // The hero drop falls at the live site's pace; the work drop keeps its own.
+    this.heroFall = 3.6;
     this.initHero();
     // Bands are put into their hidden state BEFORE the drop is wired: the reverse order lets
     // a fast observer reveal a band and then have initBands reset it to invisible.
@@ -21,6 +20,8 @@ class Portfolio {
     this.initSpine();
     this.initContact();
     this.initDropdown();
+    this.initMobileNav();
+    this.initNavReveal();
     this.initAnchors();
     this.applyIncomingHash();
   }
@@ -41,53 +42,66 @@ class Portfolio {
     const ghost = document.getElementById('heroGhost');
     const lines = Array.prototype.slice.call(document.querySelectorAll('#heroHeadline [data-line]'));
     const line = document.getElementById('waterline');
-    const refl = document.getElementById('reflection');
+    const refl = document.getElementById('decisionsRefl');
     const stage = document.getElementById('heroDropStage');
     if (!lines.length || !stage) return;
 
-    const reflLines = Array.prototype.slice.call(document.querySelectorAll('#reflection [data-refl]'));
-
-    // Park the drop's landing point on the waterline's own centre line, so it vanishes exactly
-     // where the line is created rather than a stray pixel below the headline block.
+    // The drop is aimed at the left end of the waterline, so the hit is the point the line
+    // spreads out of and the point the purple word starts writing from.
+    const surface = document.getElementById('surface');
     const seatStage = function () {
-      if (!line) return;
-      stage.style.top = (line.offsetTop + line.offsetHeight / 2) + 'px';
+      if (!line || !surface) return;
+      stage.style.left = Math.round(line.offsetLeft) + 'px';
     };
     seatStage();
-    window.addEventListener('resize', seatStage);
-    // Seating it once at init is not enough. On a cold load this runs while Space Grotesk is
-    // still downloading, so the headline is measured in fallback metrics and the waterline is
-    // read ~86px lower than where it finally lands (measured at 1280px). The stage kept that
-    // stale seat and the drop hit well below the line. Re-seat when the fonts settle, and
-    // again in startFall() below, which is the only moment the number actually has to be right.
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(seatStage);
-    // One phrase at a time. Constant pace in ems, so both read as the same sweep regardless of
-    // width, and the reflection is driven off the same duration so each mirrored phrase surfaces
-    // in step with the real one rather than fading in as a block.
-    const wipe = function (i) {
+    window.addEventListener('resize', seatStage);
+
+    // Each phrase is revealed on its own cue: a constant pace in ems, so a long phrase and a
+    // short one read as the same gesture. The pace is deliberately slow -- the mask creeps
+    // across the words the way water spreads, and the cues overlap so the sequence never
+    // resolves into separate steps.
+    const EM_PER_SEC = 3.2;
+    const durOf = function (i) {
       const l = lines[i];
       if (!l) return 0;
       const em = parseFloat(getComputedStyle(l).fontSize) || 16;
-      const dur = l.getBoundingClientRect().width / (em * 6);
-      [l, reflLines[i]].forEach(function (el) {
-        if (!el) return;
-        el.style.transitionDelay = '0s';
-        el.style.transitionDuration = '0.14s, ' + dur + 's';
-        el.style.opacity = '1';
-        el.style.setProperty('--reveal', '100%');
-      });
+      return l.getBoundingClientRect().width / (em * EM_PER_SEC);
+    };
+    const wipe = function (i) {
+      const l = lines[i];
+      if (!l) return 0;
+      const dur = durOf(i);
+      l.style.transitionDelay = '0s';
+      l.style.transitionTimingFunction = 'ease, linear';
+      l.style.transitionDuration = '0.66s, ' + dur + 's';
+      l.style.opacity = '1';
+      l.style.setProperty('--reveal', '100%');
       return dur;
+    };
+
+    // The wavefront lights the last glyph before --reveal reaches 100%: the mask feathers 1.6em
+    // ahead of the front, so the tail of each transition is empty travel. The next line is cued
+    // when the front clears the last glyph, not when the transition ends -- that empty tail is
+    // what read as a pause between lines.
+    const FEATHER_EM = 1.6;
+    const litAt = function (i) {
+      const l = lines[i];
+      if (!l) return 0;
+      const em = parseFloat(getComputedStyle(l).fontSize) || 16;
+      const w = l.getBoundingClientRect().width || 1;
+      return durOf(i) * Math.max(0.4, 1 - (FEATHER_EM * em) / w);
     };
 
     const play = () => {
       if (this.heroPlayed) return;
       this.heroPlayed = true;
-      if (ghost) ghost.style.opacity = '0.4';
+      if (ghost) ghost.style.opacity = '0.55';
 
       if (this.reduced) {
         lines.forEach(function (l) { l.style.transition = 'opacity .4s ease'; l.style.opacity = '1'; l.style.setProperty('--reveal', '100%'); });
         line.style.opacity = '1'; line.style.transform = 'scaleX(1)';
-        reflLines.forEach(function (el) { el.style.transition = 'opacity .4s ease'; el.style.opacity = '1'; el.style.setProperty('--reveal', '100%'); });
+        if (refl) refl.style.opacity = '1';
         return;
       }
 
@@ -97,32 +111,23 @@ class Portfolio {
       const impact = () => {
         // Flattens into the surface and is gone in about a sixth of a second, at the same
         // moment the first ring is born.
-        wrap.style.transition = 'transform .17s cubic-bezier(.22,.9,.3,1), opacity .15s ease-out .04s, filter .17s ease-out';
+        wrap.style.transition = 'transform .34s cubic-bezier(.3,.7,.3,1), opacity .3s ease-out .06s, filter .34s ease-out';
         wrap.style.transform = 'translate(-50%,4px) scale(2.4,0.06)';
         wrap.style.opacity = '0';
         wrap.style.filter = 'blur(1px)';
-        flash.style.transition = 'transform .38s cubic-bezier(.16,1,.3,1), opacity .36s ease-out';
+        flash.style.transition = 'transform .8s cubic-bezier(.16,1,.3,1), opacity .74s ease-out';
         flash.style.opacity = '1'; void flash.offsetWidth;
         flash.style.transform = 'translate(-50%,-50%) scale(9)';
         flash.style.opacity = '0';
 
-        // The line spreads out of the point of impact. Layout geometry, not the bounding rect —
-        // the line is still at scaleX(0) here, so its rect measures zero width.
+        // The line is born AT the hit and spreads out of it in both directions. Layout geometry,
+        // not the bounding rect: the line is still at scaleX(0) here, so its rect has no width.
+        // The gradient's bright core is moved onto the impact too -- the stock gradient is
+        // brightest at the element's own left edge, so however the box was scaled the visual
+        // weight sat at x=0 and it read as sweeping in from the left.
         const lw = line.offsetWidth;
         const ox = Math.max(0, Math.min(lw, stage.offsetLeft - line.offsetLeft));
         const pct = lw ? (ox / lw) * 100 : 0;
-        // transform-origin alone was not enough to SEE the line being born at the hit: the
-        // stock gradient is brightest at the element's own left edge, so however the box was
-        // scaled the visual weight sat at x=0 and it read as sweeping in from the left. The
-        // bright stop is moved onto the hit instead. It survives the scale because the origin
-        // and the stop are the same point of the box, so the core stays pinned to the impact
-        // while the line grows outward from it in both directions.
-        // Full-strength accent at the core, the same colour the purple phrase is set in and the
-        // same colour the drop is, so the drop, the line and the words read as one material
-        // rather than three. drop-shadow rather than box-shadow: box-shadow would trace the
-        // element's box and hang a glow out over the stretch where the gradient is transparent,
-        // whereas drop-shadow follows the painted alpha, so the halo only exists where there is
-        // actually liquid, and it compresses with the scale into a bright point at the impact.
         const stop = v => Math.max(0, Math.min(100, v)).toFixed(1) + '%';
         line.style.background =
           'linear-gradient(90deg,' +
@@ -132,71 +137,56 @@ class Portfolio {
           ' rgba(var(--accent-rgb),.34) ' + stop(pct + 28) + ',' +
           ' transparent ' + stop(pct + 60) + ')';
         line.style.transformOrigin = ox.toFixed(1) + 'px 50%';
-        line.style.transition = 'opacity .28s ease, transform 1.15s cubic-bezier(.12,.86,.16,1)';
+        line.style.transition = 'opacity .6s ease, transform 2.5s cubic-bezier(.14,.8,.16,1)';
         line.style.opacity = '1';
         line.style.transform = 'scaleX(1)';
-
-        this.ripples(stage, 3, 640, 0);
-        // The purple phrase is what the hit writes. The white one is already up by now — it is
-        // what called the drop down in the first place.
-        wipe(1);
-        // The reflection surfaces disturbed, then settles.
-        refl.style.animation = 'reflWobble 2.9s cubic-bezier(.22,1,.36,1)';
-        this.wait(function () { refl.style.animation = 'reflIdle 11s ease-in-out infinite'; }, 2900);
+        this.ripples(stage, 4, 660, 0, 1.8);
+        // The payoff arrives with the impact, not before it.
+        wipe(3);
+        // The reflection is sliced into horizontal bands. The hit displaces the band nearest
+        // the surface first; the disturbance travels down band by band and loses energy fast,
+        // so the word never moves as one object. Each band ends on its own resting offset,
+        // which is what keeps the settled reflection optically broken rather than legible.
+        refl.style.opacity = '1';
+        this.reflRipple(refl);
       };
 
-      // Fired by the fall's own transitionend, not a timer guessed from the duration: the old
-      // heroFall*1000 + 300 left the drop sitting on the waterline for a third of a second
-      // before anything happened, which is what broke the sense that the hit caused the text.
-      // The timeout is only a fallback for a dropped/interrupted transitionend, and the guard
-      // matters because impact() starts its own transform transition on the same element.
-      const landOnce = () => {
-        if (!this.pendingHero) return;
-        this.pendingHero = null;
-        clearTimeout(this.heroTimer);
-        impact();
-      };
-
-      // The drop is not released until the white phrase has finished writing itself, so the
-      // fall is armed here rather than at the top of play().
-      const startFall = () => {
-        // Last word on where the drop is aimed, taken after the headline has finished writing
-        // itself and the layout has settled for good.
-        seatStage();
+      const drop = () => {
         const dist = Math.round(window.innerHeight * 0.6);
         wrap.style.transition = 'none';
         wrap.style.transform = 'translate(-50%,' + -dist + 'px) scaleY(1)';
         wrap.style.opacity = '0';
         wrap.style.filter = 'blur(0px)';
-        // No clip-path here. The drop inside is a square rotated 135deg, so its corners reach
-        // size*sqrt(2) -- 15.56px for an 11px drop -- while this wrapper's own box is only 11px.
-        // An inset(0) clip trimmed 2.28px off every corner, and the corner pointing up is the
-        // tip, which is what makes it read as a raindrop rather than a blob.
         void wrap.offsetHeight;
-        wrap.style.transition = 'transform ' + this.heroFall + 's cubic-bezier(.36,.06,.29,.99), opacity .3s ease';
+        wrap.style.transition = 'transform ' + this.heroFall + 's cubic-bezier(.42,.05,.34,1), opacity .6s ease';
         wrap.style.transform = 'translate(-50%,0px) scaleY(1.45)';
         wrap.style.opacity = '1';
 
         this.pendingHero = impact;
-        wrap.addEventListener('transitionend', function (e) {
-          if (e.propertyName === 'transform') landOnce();
-        });
-        this.heroTimer = setTimeout(landOnce, this.heroFall * 1000 + 120);
+        this.heroTimer = setTimeout(() => { this.pendingHero = null; impact(); }, this.heroFall * 1000 + 200);
         this.timers.push(this.heroTimer);
       };
 
-      // The whole hero in order: a beat of nothing, the white phrase writes itself, and only
-      // once it has landed does the drop fall. Everything purple waits for the hit.
-      const INTRO_PAUSE = 0.45;
-      this.wait(() => {
-        const d0 = wipe(0);
-        this.wait(startFall, d0 * 1000);
-      }, INTRO_PAUSE * 1000);
+      // One sweep, top to bottom. Each line is cued the moment the front above it clears its
+      // last glyph, minus a small overlap, so the wavefront never stops travelling. The drop is
+      // released early enough that its impact lands exactly on the last line's cue.
+      const OVERLAP = 90;
+      seatStage();
+      const at = [1150];
+      for (let i = 1; i < 4; i++) at[i] = at[i - 1] + Math.max(0, litAt(i - 1) * 1000 - OVERLAP);
+      this.wait(function () { wipe(0); }, at[0]);
+      this.wait(function () { wipe(1); }, at[1]);
+      this.wait(function () { seatStage(); wipe(2); }, at[2]);
+      // impact() writes the last line, so the fall is scheduled backwards from its cue.
+      this.wait(drop, Math.max(0, at[3] - this.heroFall * 1000 - 200));
 
       // Clicking mid-fall lands it now rather than making anyone wait.
       document.getElementById('hero').addEventListener('click', e => {
         if (!this.pendingHero || e.target.closest('a')) return;
-        landOnce();
+        clearTimeout(this.heroTimer);
+        const fn = this.pendingHero;
+        this.pendingHero = null;
+        fn();
       });
     };
     this.heroPlay = play;
@@ -294,20 +284,16 @@ class Portfolio {
     // where a band is taller than the viewport; both paths go through the same guard.
     this.observe(bands[0] || section, 0.45, play, null);
     // getBoundingClientRect() inside a scroll handler forces a synchronous layout, so the check
-    // is deferred to a rAF and coalesced: a burst of scroll events measures once per frame
-    // instead of once per event. The listener still detaches the moment the work has played.
-    let queued = false;
+    // is coalesced into a rAF: a burst of scroll events measures once per frame, not once per
+    // event. The listener still detaches the moment the work has played.
+    let queuedWork = false;
     const check = () => {
-      queued = false;
+      queuedWork = false;
       if (this.workRevealed) { window.removeEventListener('scroll', this.onWorkScroll); return; }
       const r = (bands[0] || section).getBoundingClientRect();
       if (r.top < window.innerHeight * 0.8 && r.bottom > 0) play();
     };
-    this.onWorkScroll = () => {
-      if (queued) return;
-      queued = true;
-      requestAnimationFrame(check);
-    };
+    this.onWorkScroll = () => { if (queuedWork) return; queuedWork = true; requestAnimationFrame(check); };
     window.addEventListener('scroll', this.onWorkScroll, { passive: true });
     check();
 
@@ -321,26 +307,61 @@ class Portfolio {
     }, true);
   }
 
+  // Slice-wise surface disturbance. Amplitude decays with depth and with time; the phase is
+  // offset per band so the bands never swing together. Not a fluid sim -- just impact,
+  // propagation, dissipation, stillness, inside ~1s.
+  reflRipple(refl) {
+    const slices = Array.prototype.slice.call(refl.querySelectorAll('[data-rs]'));
+    slices.forEach(function (el, i) {
+      const rest = el.style.transform;
+      const restX = parseFloat((rest.match(/translateX\((-?[\d.]+)px\)/) || [0, 0])[1]) || 0;
+      const sx = (rest.match(/scaleX\(([\d.]+)\)/) || [0, '1'])[1];
+      const baseBlur = parseFloat((el.style.filter.match(/blur\(([\d.]+)px\)/) || [0, 0])[1]) || 0;
+      const depth = Math.exp(-0.14 * i);          // energy left by the time it reaches this band
+      const amp = 30 * depth;
+      const dir = i % 2 ? -1 : 1;                 // adjacent bands shear against each other
+      const phase = i * 0.55;
+      const frames = [0, 0.1, 0.22, 0.35, 0.48, 0.62, 0.76, 0.88, 1].map(function (t) {
+        const decay = Math.exp(-2.3 * t);
+        const x = restX + dir * amp * decay * Math.sin(Math.PI * (t * 2.6 + phase * 0.18));
+        const squash = 1 + dir * 0.018 * decay;   // slight horizontal stretch, no vertical bounce
+        return {
+          offset: t,
+          transform: 'translateX(' + x.toFixed(2) + 'px) scaleX(' + (parseFloat(sx) * squash).toFixed(4) + ')',
+          filter: 'blur(' + (baseBlur + 2.2 * decay).toFixed(2) + 'px)'
+        };
+      });
+      frames[frames.length - 1].transform = rest;
+      frames[frames.length - 1].filter = el.style.filter;
+      if (!el.animate) return;
+      el.animate(frames, {
+        duration: 3300 - i * 55,
+        delay: i * 104,                            // the wave arrives later the deeper it goes
+        easing: 'linear',
+        fill: 'none'
+      });
+    });
+  }
+
   // Rings are flattened: a ripple on a surface you are looking across is an ellipse.
-  //
-  // Two of the five animated properties are gone. `filter` used to run blur(0) -> blur(5px)
-  // across the whole 1.5s, which makes the compositor re-run a Gaussian over a ring up to 640px
-  // wide on every frame, for two or three overlapping rings at once -- by a distance the most
-  // expensive thing in the sequence, and on a phone the one that showed. It is a constant now:
-  // the ring is drawn soft and dissolves by fading, which is what the eye was reading anyway
-  // while the opacity ran to zero underneath the blur. `border-width` went the same way, since
-  // 3.2px to 0.5px is not legible under a fade-out and every step of it forced another layout.
-  // Width and height stay animated on purpose: they keep the stroke a constant weight at every
-  // size and the ring crisp, which scaling a transform cannot do.
-  ripples(container, count, max, atY) {
+  ripples(container, count, max, atY, slow) {
     const y = atY || 0;
+    const s = slow || 1;
     let d = 0;
     for (let i = 0; i < count; i++) {
       const ring = document.createElement('div');
       const j = function () { return 48 + Math.random() * 6; };
       // Each successive ring carries less of the impact: thinner, fainter, shorter reach.
       const strength = 1 - i * 0.26;
-      const dur = 1.5 * (1 + i * 0.12);
+      const dur = 1.5 * s * (1 + i * 0.12);
+      // `filter` used to run blur(0) -> blur(5px) across the whole life of the ring, which makes
+      // the compositor re-run a Gaussian over a ring up to 640px wide on every frame, for two or
+      // three overlapping rings at once. By a distance the most expensive thing in the sequence,
+      // and on a phone the one that showed. It is a constant now: the ring is drawn soft and
+      // dissolves by fading, which is what the eye was reading anyway while the opacity ran to
+      // zero underneath the blur. `border-width` went the same way -- 3.2px to 0.5px is not
+      // legible under a fade-out and every step of it forced another layout. Width and height
+      // stay animated on purpose: they keep the stroke a constant weight at every size.
       ring.style.cssText = 'position:absolute;top:' + y + 'px;left:0;z-index:2;width:0;height:0;border:' +
         (0.8 + 1.5 * strength).toFixed(2) + 'px solid var(--accent);transform:translate(-50%,-50%) scaleY(0.16);opacity:0;' +
         'filter:blur(2.2px);border-radius:' + j() + '% ' + j() + '% ' + j() + '% ' + j() + '%';
@@ -354,7 +375,7 @@ class Portfolio {
         ring.style.opacity = '0';
       }, d);
       this.wait(function () { ring.remove(); }, d + dur * 1000 + 120);
-      d += 170;
+      d += 170 * s;
     }
   }
 
@@ -385,17 +406,15 @@ class Portfolio {
       b.style.clipPath = 'inset(0 0 100% 0)';
       b.style.transition = 'opacity .5s ease, clip-path .95s cubic-bezier(.19,1,.22,1)';
 
-      // Amun has no href while its page is unbuilt, so it gets no pointer response at all:
-      // flooding the row and lifting the screenshot promised a destination that is not there.
-      // It still takes the reveal above, and revealBand() still flares its edge.
-      if (!b.getAttribute('href')) return;
-
       const rgb = BANDS[b.dataset.band].rgb;
       const flood = b.querySelector('[data-flood]');
       const edge = b.querySelector('[data-edge]');
       const shot = b.querySelector('[data-shot]');
       const img = shot.querySelector('img');
       const row = b.querySelector('[data-row]');
+      const cta = b.querySelector('[data-cta]');
+      const arrow = b.querySelector('[data-arrow]');
+      const dim = b.dataset.band === 'amun';
 
       const set = function (on) {
         flood.style.transform = 'scaleX(' + (on ? 1 : 0) + ')';
@@ -404,9 +423,15 @@ class Portfolio {
         shot.style.boxShadow = on
           ? '0 26px 60px -16px rgba(' + rgb + ',.45), 0 0 0 1px rgba(' + rgb + ',.4)'
           : '0 18px 44px -14px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.06)';
-        img.style.filter = on ? 'saturate(1) brightness(1)' : 'saturate(.82) brightness(.86)';
+        img.style.filter = on ? 'saturate(1) brightness(1)' : (dim ? 'saturate(.62) brightness(.78)' : 'saturate(.82) brightness(.86)');
         row.style.transform = on ? 'translateX(9px)' : 'translateX(0)';
+        if (cta) cta.style.gap = on ? '13px' : '8px';
+        if (arrow) arrow.style.transform = on ? 'translate(2px,-2px)' : 'translate(0,0)';
       };
+      // Amun has no href while its page is unbuilt, so it gets no pointer response at all:
+      // flooding the row and lifting the screenshot promised a destination that is not there.
+      // It still takes the reveal above, and revealBand() still flares its edge.
+      if (!b.getAttribute('href')) return;
       // Mouse only where a pointer can actually leave. On a touchscreen mouseenter fires on tap
       // and no mouseleave ever answers it, so the flood, the row shift and the lifted screenshot
       // stayed on after the tap, and came back looking stuck on a back-navigation.
@@ -420,22 +445,17 @@ class Portfolio {
   }
 
   // The spine answers "where am I" without a fixed list of links taking up space.
-  //
-  // The scroll handler used to read scrollHeight and innerHeight on every scroll event, which
-  // forces a synchronous layout in the middle of the scroll -- the one place it costs the most,
-  // because it happens on every frame of a gesture that is asking to look smooth. Neither
-  // number changes while scrolling, so both are cached and refreshed on resize, and the write
-  // is deferred to a rAF so a burst of scroll events still only moves the dot once per frame.
   initSpine() {
     const spine = document.getElementById('spine');
     const dot = document.getElementById('spineDot');
     if (!spine || !dot) return;
+    // scrollHeight and innerHeight were read on every scroll event, forcing a synchronous
+    // layout on every frame of the one gesture that most needs to stay smooth. Neither changes
+    // while scrolling, so both are cached and refreshed on resize, and the write is deferred to
+    // a rAF so a burst of scroll events still only moves the dot once per frame.
     const wide = window.matchMedia('(min-width:1100px)');
     let max = 0, queued = false;
-
-    const measure = function () {
-      max = document.documentElement.scrollHeight - window.innerHeight;
-    };
+    const measure = function () { max = document.documentElement.scrollHeight - window.innerHeight; };
     const paint = function () {
       queued = false;
       if (!wide.matches) { spine.style.display = 'none'; return; }
@@ -443,16 +463,10 @@ class Portfolio {
       const p = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
       dot.style.top = 'calc(14vh + ' + (p * 72) + 'vh)';
     };
-    const schedule = function () {
-      if (queued) return;
-      queued = true;
-      requestAnimationFrame(paint);
-    };
-
+    const schedule = function () { if (queued) return; queued = true; requestAnimationFrame(paint); };
     window.addEventListener('scroll', schedule, { passive: true });
     window.addEventListener('resize', function () { measure(); schedule(); });
-    // The bands and the case-study images land after this runs, so the page gets taller than it
-    // was at init and the dot would otherwise reach the bottom early.
+    // Images land after this runs, so the page gets taller than it was at init.
     window.addEventListener('load', function () { measure(); schedule(); });
     measure();
     paint();
@@ -480,7 +494,7 @@ class Portfolio {
       menu.style.opacity = '0';
       menu.style.transform = 'translateY(-10px) scale(.97)';
       void menu.offsetHeight;
-      menu.style.transition = 'opacity .2s ease, transform .32s cubic-bezier(.19,1,.22,1)';
+      menu.style.transition = 'opacity .5s cubic-bezier(.19,1,.22,1), transform .5s cubic-bezier(.19,1,.22,1)';
       menu.style.opacity = '1';
       menu.style.transform = 'translateY(0) scale(1)';
     });
@@ -490,7 +504,35 @@ class Portfolio {
     document.addEventListener('pointerdown', function (e) { if (det.open && !det.contains(e.target)) close(); }, true);
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && det.open) { close(); summary.focus(); } });
     menu.addEventListener('click', function (e) { if (e.target.closest('a')) close(); });
-    window.addEventListener('scroll', close, { passive: true });
+    window.addEventListener('scroll', function () {
+      if (window.matchMedia('(min-width:901px)').matches) close();
+    }, { passive: true });
+  }
+
+  // Mobile: the whole nav collapses into one dropdown. The project list stays a <details>
+  // inside it, so it reads as a second menu nested in the first.
+  initMobileNav() {
+    const nav = document.querySelector('nav');
+    const btn = document.getElementById('navToggle');
+    const menu = document.getElementById('navMenu');
+    if (!nav || !btn || !menu) return;
+
+    const set = open => {
+      nav.setAttribute('data-open', open ? 'true' : 'false');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (!open) { const d = menu.querySelector('details'); if (d) d.open = false; }
+    };
+    set(false);
+
+    btn.addEventListener('click', () => set(nav.getAttribute('data-open') !== 'true'));
+    menu.addEventListener('click', e => { if (e.target.closest('a')) set(false); });
+    document.addEventListener('pointerdown', e => {
+      if (nav.getAttribute('data-open') === 'true' && !nav.contains(e.target)) set(false);
+    }, true);
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && nav.getAttribute('data-open') === 'true') { set(false); btn.focus(); }
+    });
+    window.matchMedia('(min-width:901px)').addEventListener('change', () => set(false));
   }
 
   // Arriving from a project page with #about or #contact: re-apply the jump once laid out.
@@ -507,14 +549,10 @@ class Portfolio {
     this.wait(jump, 400);
   }
 
-  // A programmatic jump can be dragged to the wrong section's snap point mid-flight, so
-  // snapping is lifted for the duration of the jump only.
-  suspendSnap(restoreAfter) {
-    const html = document.documentElement;
-    html.style.scrollSnapType = 'none';
-    clearTimeout(this.snapTimer);
-    this.snapTimer = setTimeout(function () { html.style.scrollSnapType = ''; }, restoreAfter || 260);
-  }
+  // Scroll snapping was removed from the stylesheet -- the page is one continuous scroll now,
+  // so there is nothing to suspend around a programmatic jump. Kept as a no-op because the
+  // anchor and incoming-hash paths both still call it.
+  suspendSnap() {}
 
   // KD in the nav returns the page to its opening state and replays every reveal.
   resetAll() {
@@ -528,24 +566,21 @@ class Portfolio {
     document.querySelectorAll('#heroHeadline [data-line]').forEach(function (l) {
       l.style.transition = 'none';
       l.style.opacity = '0';
-      l.style.setProperty('--reveal', '-26%');
+      l.style.setProperty('--reveal', '0%');
       l.style.transitionDelay = '0s';
       void l.offsetWidth;
       l.style.transition = 'opacity .15s ease, --reveal 2s linear';
     });
     const wl = document.getElementById('waterline');
-    const rf = document.getElementById('reflection');
+    const rf = document.getElementById('decisionsRefl');
     if (wl) { wl.style.transition = 'none'; wl.style.opacity = '0'; wl.style.transform = 'scaleX(0)'; void wl.offsetWidth; wl.style.transition = 'opacity .5s ease, transform 1.5s cubic-bezier(.19,1,.22,1)'; }
     if (rf) {
-      rf.style.animation = 'none';
-      rf.querySelectorAll('[data-refl]').forEach(function (el) {
-        el.style.transition = 'none';
-        el.style.opacity = '0';
-        el.style.setProperty('--reveal', '-26%');
-        el.style.transitionDelay = '0s';
-        void el.offsetWidth;
-        el.style.transition = 'opacity .14s ease, --reveal 2s linear';
+      rf.style.transition = 'none'; rf.style.opacity = '0';
+      rf.querySelectorAll('[data-rs]').forEach(function (s) {
+        if (s.getAnimations) s.getAnimations().forEach(function (a) { a.cancel(); });
       });
+      void rf.offsetWidth;
+      rf.style.transition = 'opacity 1.1s ease';
     }
     document.querySelectorAll('#heroDropStage [data-ring]').forEach(function (r) { r.remove(); });
     this.heroPlayed = false;
@@ -577,8 +612,27 @@ class Portfolio {
     }, 60);
   }
 
+  // The bar is absent on load so the hero reads as one uninterrupted view; it arrives once the
+  // visitor has left the hero behind.
+  initNavReveal() {
+    const nav = document.getElementById('siteNav');
+    const hero = document.getElementById('hero');
+    if (!nav || !hero) return;
+    let shown = null;
+    const sync = () => {
+      const past = window.scrollY > hero.offsetHeight * 0.72;
+      if (past === shown) return;
+      shown = past;
+      nav.setAttribute('data-shown', past ? 'true' : 'false');
+      if (!past) nav.setAttribute('data-open', 'false');
+    };
+    window.addEventListener('scroll', sync, { passive: true });
+    window.addEventListener('resize', sync);
+    sync();
+  }
+
   initAnchors() {
-    const brand = document.querySelector('nav a[aria-label^="Kristian Davis"]');
+    const brand = document.querySelector('nav a[aria-label="Kristian Davis, UX Consultant, home"]');
     if (brand) brand.addEventListener('click', e => { e.preventDefault(); this.resetAll(); });
     window.addEventListener('hashchange', () => this.applyIncomingHash());
     document.querySelectorAll('#page a[href^="#"]').forEach(a => {
@@ -593,7 +647,4 @@ class Portfolio {
   }
 }
 
-document.addEventListener('DOMContentLoaded', function () {
-  window.portfolio = new Portfolio();
-  window.portfolio.init();
-});
+document.addEventListener('DOMContentLoaded', function () { new Portfolio().init(); });

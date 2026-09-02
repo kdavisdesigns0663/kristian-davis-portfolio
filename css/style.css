@@ -2,38 +2,59 @@
    Layout and colour live as inline styles on the elements themselves; the rules below are
    only the things an inline style cannot express: resets, custom properties, keyframes, and
    the hover/focus/active states. */
-:root{ --accent:#a06bff; --accent-rgb:160,107,255; --gut:clamp(20px,4.6vw,72px); --maxw:1440px; }
-
-/* One measure for the whole page: nav, hero, work rows, bio, contact and footer all resolve
-   to the same left and right edge at every width, so nothing drifts between sections. */
-.wrap{ width:100%; max-width:var(--maxw); margin-inline:auto; padding-inline:var(--gut); }
+/* --accent is the brand purple: decoration (ghost words, strokes, glows, rules, focus ring) and
+   LARGE text, where AAA asks 4.5:1 and #a06bff gives 5.86:1. --accent-text is used ONLY where
+   accent lands on small body-size text, which AAA holds to 7:1. Decorative elements are exempt
+   from contrast rules altogether, so nothing aria-hidden was ever lightened. */
+/* Background system: one continuous soft-black environment. --bg is the only page background;
+   the two raised surfaces are for genuinely lifted panels (menus, image frames) and nothing else.
+   --hairline replaces the old flat #1c1c1a so dividers ride on top of the base rather than
+   fighting it. The purple atmosphere lives on body as fixed radial light, ~4-5% peak alpha:
+   light absorbed into the dark, not a gradient background. */
+:root{
+  --accent:#a06bff; --accent-rgb:160,107,255; --accent-text:#b48cff;
+  --bg:#09090B; --bg-raise-1:#0D0D11; --bg-raise-2:#111116;
+  --hairline:rgba(255,255,255,.08);
+}
   *{ margin:0; padding:0; box-sizing:border-box; }
-  html{ scroll-snap-type:y proximity; scroll-behavior:smooth; }
-  /* Scrolling animation removed on mobile only -- section-to-section movement (and the native
-     snap settle) is instant there instead of gliding. scroll-snap-type stays proximity on both;
-     this touches nothing else -- no other animation, hero included, is affected. */
-  @media (max-width:700px){
-    html{ scroll-behavior:auto; }
-  }
-  body{ background:#050505; color:#e9e7df; font-family:'Inter',sans-serif; line-height:1.6; -webkit-font-smoothing:antialiased; overflow-x:hidden; }
+  /* smooth on every breakpoint -- an instant/auto mobile override was tried here and reverted
+     the same week: an abrupt, unglided snap is what read as "fighting the scroll" on a phone,
+     not the smooth motion itself. proximity (not mandatory) is the other half of this -- see the
+     "easy to get wrong" note in CLAUDE.md for why mandatory measurably breaks scrolling here. */
+  html{ scroll-behavior:smooth; }
+  /* html carries the base colour so body's background is NOT propagated to the canvas -- with
+     propagation the pools below are positioned against the viewport-sized root box and all
+     collapse into the first screen. Owning the base here keeps body's box (the full document)
+     as the positioning area. */
+  html{ background:var(--bg); }
+  body{
+    background-color:transparent;
+    /* Mood lighting, not a background colour: a handful of wide, low-alpha pools scattered down
+       the document (attachment:scroll, so they are pinned to the page, not the viewport) plus
+       the hero's own light in #hero::before. Each pool should read as a lift in the black, never
+       as a purple area. */
+    background-image:
+      radial-gradient(900px 620px at 14% 30%, rgba(var(--accent-rgb),.058), rgba(var(--accent-rgb),0) 72%),
+      radial-gradient(1000px 640px at 93% 51%, rgba(var(--accent-rgb),.052), rgba(var(--accent-rgb),0) 72%),
+      radial-gradient(760px 540px at 32% 73%, rgba(var(--accent-rgb),.045), rgba(var(--accent-rgb),0) 74%),
+      radial-gradient(880px 600px at 78% 92%, rgba(var(--accent-rgb),.055), rgba(var(--accent-rgb),0) 72%);
+    background-attachment:scroll; background-repeat:no-repeat;
+    color:#e9e7df; font-family:'Inter',sans-serif; line-height:1.6; -webkit-font-smoothing:antialiased; overflow-x:hidden; }
   a{ color:inherit; text-decoration:none; }
-  /* a[href], not a: the Amun entries are anchors with no href on purpose, and the bare a:hover
-     lit them up as though they went somewhere. */
-  @media (hover:hover){ a[href]:hover{ color:var(--accent); } }
+  /* a[href], not a: the Amun entries are anchors with no href on purpose, and the bare
+     a:hover lit them up as though they went somewhere. */
+  @media (hover:hover){ a[href]:hover{ color:var(--accent-text); } }
   summary{ list-style:none; }
   summary::-webkit-details-marker{ display:none; }
   ::selection{ background:rgba(var(--accent-rgb),.35); color:#fff; }
-  :focus-visible{ outline:2px solid var(--accent); outline-offset:4px; border-radius:2px; }
-  /* Starts at -26%, not 0%: the reveal marks the TRAILING edge of a 26%-wide soft sweep, so at
-     0% a whole 26% band of the phrase was already painted before the sweep had moved, and the
-     opacity fade popped it in as a chunk. Off the left edge, the line begins genuinely empty and
-     the sweep is the only thing that writes it. 26% of the element, not a fixed em, so the soft
-     edge stays proportional on a short line and a long one. */
-  @property --reveal{ syntax:'<percentage>'; inherits:false; initial-value:-26%; }
-  /* Headings that exist for the document outline only: the work and bio sections are labelled
-     visually by their ghost words, which are decorative and hidden from assistive tech. */
-  .vh{ position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden;
-       clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap; border:0; }
+  :focus-visible{ outline:3px solid var(--accent); outline-offset:3px; border-radius:2px; box-shadow:0 0 0 6px rgba(9,9,11,.9); }
+  /* Hero: the light sits in the top-right quadrant, off the headline, so the type reads against
+     clean black and the corner carries the glow. */
+  #hero::before{
+    content:''; position:absolute; inset:0; z-index:0; pointer-events:none;
+    background:radial-gradient(ellipse 58% 64% at 84% 12%, rgba(var(--accent-rgb),.085), rgba(var(--accent-rgb),0) 70%);
+  }
+  @property --reveal{ syntax:'<percentage>'; inherits:false; initial-value:0%; }
   
   
   
@@ -45,6 +66,11 @@
     100%{ width:52px; height:52px; opacity:0; }
   }
 
+@keyframes btnGlowPulse{
+  0%,100%{ opacity:.34; }
+  50%{ opacity:.92; }
+}
+
 /* --- interactive states ---
    Hover is wrapped in (hover:hover). A touchscreen has no hover state to leave, so :hover
    latches on tap and the element stays lit until the next tap lands elsewhere, which reads as
@@ -53,22 +79,24 @@
    There is no .i8 any more. It was the Amun dropdown entry, which has no href because the page
    does not exist yet, so lighting it on hover offered a link that was not there. */
 .i1:focus-visible{ top:16px !important; }
-.i2:focus-visible .nav-name{ color:var(--accent) !important; }
+.i2:focus-visible .nav-name{ color:var(--accent-text) !important; }
 .i3:focus-visible, .i10:focus-visible, .i11:focus-visible{ background-size:100% 1px !important; color:#e9e7df !important; }
-.i14:focus-visible{ border-color:var(--accent) !important; color:var(--accent) !important; background-size:100% 100% !important; }
+.i14:focus-visible{ border-color:var(--accent) !important; color:var(--accent-text) !important; background-size:100% 100% !important; }
+.i14:focus-visible .i14-glow{ animation:none !important; opacity:.92 !important; }
 @media (hover:hover){
   .i1:hover{ top:16px !important; }
-  .i2:hover .nav-name{ color:var(--accent) !important; }
+  .i2:hover .nav-name{ color:var(--accent-text) !important; }
   .i3:hover, .i10:hover, .i11:hover{ background-size:100% 1px !important; color:#e9e7df !important; transform:translateY(-2px) !important; }
   .i4:hover{ color:#e9e7df !important; }
   .i5:hover{ color:#e9e7df !important; background:rgba(255,255,255,.06) !important; }
   .i6:hover{ color:#e9e7df !important; background:rgba(255,255,255,.06) !important; }
   .i7:hover{ color:#e9e7df !important; background:rgba(255,255,255,.06) !important; }
   .i9:hover{ color:#e9e7df !important; }
-  .i14:hover{ border-color:var(--accent) !important; color:var(--accent) !important; background-size:100% 100% !important; }
+  .i14:hover{ border-color:var(--accent) !important; color:var(--accent-text) !important; background-size:100% 100% !important; }
+  .i14:hover .i14-glow{ animation:none !important; opacity:.92 !important; }
   .i15:hover{ color:#e9e7df !important; border-color:var(--accent) !important; }
-  .i16:hover{ color:var(--accent) !important; border-color:var(--accent) !important; transform:translateY(-3px) !important; }
-  .i17:hover{ color:var(--accent) !important; border-color:var(--accent) !important; transform:translateY(-3px) !important; }
+  .i16:hover{ color:var(--accent-text) !important; border-color:var(--accent) !important; background-size:100% 100% !important; }
+  .i17:hover{ color:var(--accent-text) !important; border-color:var(--accent) !important; background-size:100% 100% !important; }
 }
 
 @media (prefers-reduced-motion: reduce){
@@ -87,165 +115,129 @@
   100%{ transform:translateY(0) scaleY(1) skewX(0deg); }
 }
 
-/* Work rows: three states. Wide screens keep the four-column band. Mid widths group the copy
-   into one column with the screenshot beside it. Narrow screens become discrete cards so each
-   project reads as one object rather than a run of hairlines. */
-[data-shot] img{ background:#050505; }
+/* Below 900px the row regroups into a card layout (see below): the screenshot runs the full
+   height down the left edge and all copy stacks to its right. */
 
-/* 760.02px, not 761px. Viewport width is not an integer -- a zoomed page, a fractional device
-   pixel ratio or a scrollbar can land it on 760.5 -- and between max-width:760px and
-   min-width:761px sat a real gap where neither the card layout nor the mid layout applied and
-   the row fell back to the four-column desktop grid. Same reason for 900.02px in the bio grid. */
-@media (max-width:1080px) and (min-width:760.02px){
-  [data-row]{
-    grid-template-columns:minmax(0,1fr) auto !important;
-    grid-template-areas:'num shot' 'title shot' 'dec shot' !important;
-    align-items:start !important;
-    gap:14px clamp(22px,3.4vw,40px) !important;
-  }
-  [data-row] > *:nth-child(1){ grid-area:num; }
-  [data-row] > *:nth-child(2){ grid-area:title; }
-  [data-row] > *:nth-child(3){ grid-area:dec; padding-left:0 !important; border-left:0 !important; }
-  [data-row] > *:nth-child(4){ grid-area:shot; align-self:center; width:clamp(132px,17vw,168px) !important; }
-  [data-row] p{ max-width:52ch !important; }
-}
-
-@media (max-width:760px){
-  #bands{ display:flex; flex-direction:column; gap:18px; padding-inline:var(--gut); }
+/* On desktop, a shared row height and one continuous divider between bands is enough for the
+   title/decision/screenshot to read as one project. Stacked on mobile that same divider-only
+   approach left title, tags, "the decision" label and the image reading as separate floating
+   text blocks with no shared edge tying them together. Each band becomes its own bordered card
+   instead -- the divider that used to separate rows becomes the gap BETWEEN cards. #bands' own
+   border-top is dropped at the same breakpoint: at this width it sat only ~9px under #workGhost
+   (measured), close enough to read as a line drawn through the ghost word itself; the top of the
+   first card provides its own edge now, further down, so nothing is lost. */
+@media (max-width:900px){
+  #bands{ border-top:0 !important; margin-top:20px; }
   [data-band]{
-    position:relative;
-    border:1px solid #201f1c !important;
-    border-radius:20px;
-    overflow:hidden;
-    background:linear-gradient(180deg,#0c0c0b,#080807);
-    box-shadow:0 30px 60px -34px rgba(0,0,0,.95), inset 0 1px 0 rgba(255,255,255,.04);
+    display:block !important; margin:0 clamp(16px,4vw,20px) 16px !important;
+    border:1px solid rgba(255,255,255,.08) !important; border-radius:16px !important;
+    background:rgba(255,255,255,.018) !important;
   }
-  /* The band's accent edge becomes the card's top rule, so each project still announces its colour. */
-  [data-band] [data-edge]{
-    top:0 !important; bottom:auto !important; left:0 !important; right:0 !important;
-    width:auto !important; height:2px !important;
-    transform:none !important; opacity:.85;
-  }
-  .band-inner{
-    max-width:none !important;
-    padding-inline:clamp(17px,4.6vw,24px) !important;
-    padding-top:clamp(22px,5.4vw,28px) !important;
-    padding-bottom:clamp(20px,5vw,26px) !important;
-  }
-  [data-row]{
-    grid-template-columns:minmax(0,1fr) auto !important;
-    grid-template-areas:'num shot' 'title shot' 'dec dec' !important;
+  [data-band]:last-of-type{ margin-bottom:clamp(16px,4vw,20px) !important; }
+  [data-band] > div{ padding:0 !important; }
+
+  /* The screenshot runs the full height of the card down the left edge and every word sits to
+     its right, so the card reads as one object instead of a stack of loose text blocks. The
+     image is flush to the card's rounded corner -- no padding on the row, the padding moves
+     onto the text column. */
+  [data-band] [data-row]{
+    display:grid !important;
+    grid-template-columns:clamp(104px,29vw,136px) minmax(0,1fr) !important;
+    grid-template-rows:auto auto 1fr !important;
     align-items:start !important;
-    gap:12px clamp(16px,4.4vw,24px) !important;
+    gap:0 !important;
   }
-  [data-row] > *:nth-child(1){ grid-area:num; }
-  [data-row] > *:nth-child(2){ grid-area:title; align-self:center; }
-  [data-row] > *:nth-child(3){
-    grid-area:dec; margin-top:6px; padding:16px 0 0 0 !important;
-    border-left:0 !important; border-top:1px solid #1c1c1a;
+  /* title + tagline + tags */
+  [data-band] [data-row] > div:nth-of-type(2){ grid-column:2; grid-row:1 / 3; padding:18px 18px 0 clamp(14px,4vw,18px); }
+  /* the decision */
+  [data-band] [data-row] > div:nth-of-type(3){
+    grid-column:2; grid-row:3; align-self:end;
+    margin:16px 18px 18px clamp(14px,4vw,18px);
+    padding:14px 0 0 0 !important;
+    border-left:0 !important; border-top:1px solid rgba(255,255,255,.08);
   }
-  [data-row] > *:nth-child(4){
-    grid-area:shot; align-self:center; width:clamp(104px,29vw,132px) !important;
-    padding:4px !important; border-radius:16px !important;
+  /* the screenshot */
+  [data-band] [data-shot]{
+    grid-column:1; grid-row:1 / -1; align-self:stretch !important;
+    width:100% !important; margin-right:0 !important; aspect-ratio:auto !important; min-height:100%;
+    border-radius:15px 0 0 15px !important;
+    box-shadow:none !important; border-right:1px solid rgba(255,255,255,.08);
   }
-  [data-row] > *:nth-child(4) img{ border-radius:12px !important; }
-  [data-row] p{ max-width:none !important; }
+  [data-band] [data-shot] img{ object-position:top center !important; }
+
+  [data-band] h3{ font-size:clamp(22px,6vw,28px) !important; }
+  [data-band] [data-row] > div:nth-of-type(2) p{ font-size:13.5px !important; }
 }
-/* --- hero water surface --- */
-@keyframes reflWobble{
-  0%{ transform:scaleY(-1) skewX(0deg) scaleX(1); filter:blur(4px); }
-  26%{ transform:scaleY(-1) skewX(-1.6deg) scaleX(1.012); filter:blur(2.6px); }
-  54%{ transform:scaleY(-1) skewX(1deg) scaleX(.995); filter:blur(2px); }
-  78%{ transform:scaleY(-1) skewX(-.4deg) scaleX(1.002); filter:blur(1.7px); }
-  100%{ transform:scaleY(-1) skewX(0deg) scaleX(1); filter:blur(1.6px); }
+@media (max-width:400px){
+  [data-band] [data-row]{ grid-template-columns:106px minmax(0,1fr) !important; }
 }
-@keyframes reflIdle{
-  0%,100%{ transform:scaleY(-1) skewX(0deg); }
-  50%{ transform:scaleY(-1) skewX(-.5deg); }
+
+/* --- hero water surface ---
+   The payoff word is mirrored once, beneath the supporting copy, as ten horizontal slices
+   (see #decisionsRefl in index.html). Each slice carries its own resting displacement, blur
+   and opacity, so the settled reflection is an optically broken form rather than readable
+   upside-down type; the impact response is driven per slice in JS (reflRipple), not by a
+   single keyframe on the whole word. */
+}
 }
 
 /* --- hero scroll cue --- */
 .i-scroll:focus-visible{ border-color:var(--accent) !important; gap:18px !important; }
 @media (hover:hover){ .i-scroll:hover{ border-color:var(--accent) !important; gap:18px !important; } }
 
-/* --- bio: one grid, two arrangements. Wide screens run the copy down the left with the
-   portrait spanning the full height beside it. Narrow screens put the portrait between the
-   lede and the body copy, so the image breaks the text instead of preceding all of it. --- */
-.about-row{ display:grid; gap:clamp(26px,3.4vw,44px) clamp(32px,5vw,80px);
-            grid-template-columns:minmax(0,1fr); grid-template-areas:'lede' 'media' 'text'; }
-.about-lede{ grid-area:lede; }
-.about-media{ grid-area:media; }
-.about-text{ grid-area:text; }
-@media (min-width:900.02px){
-  /* Equal halves. The photo used to take .58fr and was additionally capped at 400px, so it
-     read as a sidebar next to the copy rather than as its equal. The media area spans both
-     grid rows, so stretching it matches the full height of the lede plus the body plus the
-     support lists -- the whole left column, not just the paragraph beside it. No max-width,
-     or the cap would stop it filling the half it has been given. */
-  .about-row{ grid-template-columns:minmax(0,1fr) minmax(0,1fr);
-              grid-template-areas:'lede media' 'text media'; align-items:start; }
-  .about-media{ position:relative; width:100%; justify-self:stretch; align-self:stretch; min-height:0; }
-  /* Taken out of flow on purpose. Left in flow, the photo contributes its own intrinsic height
-     to track sizing -- 800x1000 at a 618px column wants 772px -- so the grid grew to fit the
-     PHOTO and the copy ended up 8px short of it, which is backwards: the copy should set the
-     height and the photo should match it. Absolute inside a stretched, relative .about-media,
-     it contributes nothing to sizing and simply fills whatever height the copy produces. The
-     img is already object-fit:cover, so it crops rather than distorting at any ratio. */
-  .about-photo{ position:absolute !important; inset:0; height:auto !important; }
-  /* Support lists sit two-up in the copy column: design | development over focus | platforms. */
-  .about-text dl{ grid-template-columns:repeat(2,minmax(0,1fr)) !important; max-width:56ch; }
-  .about-text dl > div:nth-child(3){ order:2; }
-  .about-text dl > div:nth-child(4){ order:1; }
-}
-@media (max-width:900px){
-  .about-row{ grid-template-areas:'media' 'lede' 'text' !important; }
-  .about-media{ max-width:420px; }
-  .about-photo{ aspect-ratio:4/5; height:auto !important; }
-  /* Support lists sit two-up in the copy column: design | development over focus | platforms. */
-  .about-text dl{ grid-template-columns:repeat(2,minmax(0,1fr)) !important; max-width:56ch; }
-  .about-text dl > div:nth-child(3){ order:2; }
-  .about-text dl > div:nth-child(4){ order:1; }
-  /* Enough top padding for the ghost word to clear the portrait, but only just: the image sits
-     right under it rather than colliding with it. */
-  #about{ padding-top:clamp(130px,33vw,200px) !important; }
-  /* BIO carries the same weight as WORK and CONTACT here. All four ghosts were always the same
-     var(--accent); what made this one read as a dimmer purple was a thinner stroke at a lower
-     opacity (1.2px/.4 against their 1.8px/.85), which at this size reads as a different colour
-     rather than as the same colour drawn lighter. Mobile only -- desktop is untouched. */
-  #bioGhost{
-    top:clamp(24px,5vw,44px) !important; font-size:clamp(84px,22vw,190px) !important;
-    -webkit-text-stroke-width:1.8px !important; opacity:.85 !important;
-  }
-}
-@media (max-width:640px){
-  .nav-role{ display:none !important; }
-}
-
-/* --- mobile: nav links need a real tap target, not a 13px line of text ---
-   12px, not 10px: at 10px the top-level links measured 41px and the project items in the
-   dropdown 39px, both under the 44px this project holds itself to. min-height carries the
-   dropdown items, whose padding is inline and would otherwise need overriding twice. */
-@media (max-width:900px){
-  nav ul{ gap:clamp(14px,3.6vw,22px) !important; }
-  nav ul a, nav ul summary{ padding-top:12px !important; padding-bottom:12px !important; }
-  nav details ul a{ min-height:44px; align-items:center; }
-  #contact{ min-height:auto !important; padding-top:clamp(150px,40vw,210px) !important; padding-bottom:clamp(72px,16vw,120px) !important; }
-  #contactGhost{ top:clamp(26px,6vw,44px) !important; font-size:clamp(84px,22vw,190px) !important; }
-  #about{ padding-bottom:clamp(72px,14vw,110px) !important; }
-}
 /* The work dropdown is right-aligned under the "work" item, which sits about 178px from the
    left on a 320px screen. min-width:200px then put its own left edge at -16px, so the project
    dots and the left of every project name were off the side of the display, with nothing to
-   scroll to because overflow to the left is not reachable. The menu's content only asks for
-   137px, so below 420px it is allowed to be as wide as it needs and no wider. */
+   scroll to because overflow to the left is not reachable. The menu asks for 137px, so below
+   420px it is allowed to be as wide as it needs and no wider. */
 @media (max-width:420px){
   nav details > ul{ min-width:0 !important; }
 }
 
+/* --- about ---
+   Source order is copy-then-photo now. The skills list moved out of the photo column and sits
+   under the body copy, so the left column is one continuous read: heading, rule, paragraphs,
+   skills. The photo column stretches (align-items:stretch on .about-row) to exactly the height
+   of that copy and takes an equal share of the width, so it reads as a slab matched to the text
+   block rather than a thumbnail beside it. --- */
+@media (min-width:900.02px){
+  .about-text{ order:1; flex:1 1 0 !important; }
+  .about-media{ order:2; flex:1 1 0 !important; }
+}
+@media (max-width:900px){
+  /* Stacked, the photo has no sibling to take its height from, so it gets an explicit ratio.
+     It follows the copy and the skills list -- the BIO ghost sits behind the heading at the top
+     of the section, which is text over a decorative stroke, not an opaque block covering it. */
+  .about-row{ align-items:flex-start !important; }
+  .about-text{ order:1; flex:1 1 100% !important; }
+  .about-media{ order:2; flex:1 1 100% !important; max-width:none !important; margin-top:clamp(10px,3vw,22px) !important; }
+  .about-media > div{ aspect-ratio:4/5; min-height:0 !important; }
+}
+@media (max-width:900px) and (min-width:640.02px){
+  .about-media > div{ aspect-ratio:3/2; }
+}
+@media (max-width:520px){
+  .about-media > div{ aspect-ratio:4/4.4; }
+}
+
+@media (max-width:640px){
+  .nav-role{ display:none !important; }
+}
+
+/* --- mobile: nav links need a real tap target, not a 13px line of text --- */
+@media (max-width:900px){
+  nav ul{ gap:clamp(14px,3.6vw,22px) !important; }
+  nav ul a, nav ul summary{ padding-top:10px !important; padding-bottom:10px !important; }
+  #contact{ min-height:auto !important; padding-bottom:clamp(72px,16vw,120px) !important; }
+  /* same split as desktop: the full gap sits above #about, half of it either side of the
+     #about/#contact seam */
+  #about{ padding-top:clamp(72px,14vw,110px) !important; padding-bottom:clamp(36px,7vw,55px) !important; }
+  #contact{ padding-top:clamp(36px,7vw,55px) !important; }
+}
 /* Ghost words are decorative; on narrow screens they were wider than the viewport and forced
    a horizontal scroll on some Android browsers. */
 @media (max-width:600px){
-  #heroGhost{ font-size:clamp(96px,30vw,190px) !important; }
+  #heroGhost{ font-size:clamp(64px,17vw,110px) !important; }
   #workGhost{ font-size:clamp(84px,26vw,180px) !important; }
 }
 
@@ -258,7 +250,7 @@
 br[data-mob]{ display:none; }
 @media (max-width:620px){
   br[data-mob]{ display:inline; }
-  #heroHeadline, #reflection{
+  #heroHeadline{
     /* Upper bound is 41px, not 34px: 6.6vw crosses 41px at 621px, so the size is continuous
        across the breakpoint instead of jumping 20% on a 1px change. */
     font-size:clamp(22px,7.6vw,41px) !important;
@@ -266,39 +258,186 @@ br[data-mob]{ display:none; }
     max-width:none !important;
     margin-left:0 !important;
   }
-  .hero-block, #surface{ margin-left:0 !important; }
-  #heroHeadline [data-line="b"], #reflection [data-refl="b"]{ margin-left:clamp(12px,3.4vw,26px) !important; }
+  .hero-block{ margin-left:0 !important; }
+  #heroHeadline [data-line="b"], #heroHeadline [data-line="c"]{ margin-left:clamp(12px,3.4vw,26px) !important; }
+  #decisionsRefl{ margin-left:clamp(12px,3.4vw,26px) !important; }
 }
 
-/* --- hero rhythm on mobile ---
-   The two phrases get a little air between them (applied to headline and reflection alike so the
-   mirror stays in register), the sub-line moves up under the headline by shortening the reflection
-   reserve, and the CTA detaches onto its own rule so it reads as a separate action. */
-@media (max-width:700px){
-  #heroHeadline [data-line="b"], #reflection [data-refl="b"]{ margin-top:.16em; }
-  #reflSpace{ height:calc(.78 * clamp(22px,7.6vw,41px)) !important; }
-  #heroFoot{
-    margin-top:14px !important;
-    flex-direction:column; align-items:flex-start !important; gap:0 !important;
-  }
-  #heroFoot > a{
-    justify-content:space-between;
-    margin-top:32px; padding-top:24px;
-    border-top:1px solid #1c1c1a; border-bottom:0 !important;
-    padding-bottom:0; width:100%;
-  }
-}
-
-/* Each project's title takes its own colour on hover, not the site accent: the generic
-   a[href]:hover rule would otherwise turn every one of them purple. Amun is not listed: its
-   band has no href while the page is unbuilt, so it stays inert under a pointer. */
-[data-band="nitefind"]:focus-visible h3{ color:#a259ff !important; }
-[data-band="smiteforge"]:focus-visible h3{ color:#e0b84a !important; }
-[data-band="zentra"]:focus-visible h3{ color:#4fbf82 !important; }
-[data-band]:focus-visible{ color:inherit; }
+/* --- work bands: the project title picks up its own project colour on hover, not the
+   site accent. The whole band is an <a>, so the global a:hover rule was tinting the
+   inherited h3 purple regardless of which project it belonged to. --- */
+[data-band] h3{ transition:color .35s ease; }
+/* Gated on (hover:hover), and Amun is not listed: its band has no href while the page is
+   unbuilt, so it stays inert under a pointer instead of promising a link that is not there. */
+[data-band="nitefind"]:focus-visible h3{ color:#cf82ea !important; }
+[data-band="smiteforge"]:focus-visible h3{ color:#e0b84a !important; } /* 10.8:1 */
+[data-band="zentra"]:focus-visible h3{ color:#4fbf82 !important; } /* 8.8:1 */
+[data-band]:focus-visible{ color:#e9e7df; }
 @media (hover:hover){
-  [data-band="nitefind"]:hover h3{ color:#a259ff !important; }
-  [data-band="smiteforge"]:hover h3{ color:#e0b84a !important; }
-  [data-band="zentra"]:hover h3{ color:#4fbf82 !important; }
-  [data-band]:hover{ color:inherit; }
+  [data-band]:hover{ color:#e9e7df; }
+  [data-band="nitefind"]:hover h3{ color:#cf82ea !important; }
+  [data-band="smiteforge"]:hover h3{ color:#e0b84a !important; } /* 10.8:1 */
+  [data-band="zentra"]:hover h3{ color:#4fbf82 !important; } /* 8.8:1 */
 }
+
+/* --- one continuous scroll ---------------------------------------------------------------
+   Scroll snapping (even proximity) is what made the page feel like it was taking the scroll
+   away from you, most obviously on a phone where a swipe would be pulled back to a section
+   edge instead of carrying. Removed entirely; nothing else here depends on it. */
+
+/* --- hero rhythm ---
+   The second phrase sits the same distance from the payoff beneath it as it does from the
+   phrase above it. */
+#heroHeadline [data-line="b"]{ margin-top:clamp(10px,1.2vw,18px); }
+
+/* --- mobile nav: everything collapses into one dropdown, with the project list as a second
+   dropdown nested inside it --- */
+@media (max-width:900px){
+  nav{ position:relative; }
+  #navToggle{ display:inline-flex !important; }
+  nav[data-open="true"] #navToggle{ border-color:var(--accent) !important; color:var(--accent-text) !important; }
+  nav[data-open="true"] #navToggle span{ transform:rotate(180deg); }
+  #navMenu{
+    display:none !important; position:absolute; top:calc(100% + 12px);
+    left:clamp(16px,4vw,24px); right:clamp(16px,4vw,24px); z-index:20;
+    flex-direction:column; align-items:stretch; gap:0 !important;
+    padding:6px; border:1px solid rgba(255,255,255,.08); border-radius:14px; background:var(--bg-raise-1);
+    box-shadow:0 28px 60px -22px rgba(0,0,0,.95);
+  }
+  nav[data-open="true"] #navMenu{ display:flex !important; }
+  #navMenu > li{ border-bottom:1px solid #141413; }
+  #navMenu > li:last-child{ border-bottom:0; }
+  #navMenu > li > a, #navMenu > li summary{
+    display:flex !important; align-items:center; justify-content:space-between;
+    min-height:48px; padding:12px 14px !important; font-size:14px !important;
+  }
+  /* the nested project list drops into the flow of the panel rather than floating beside it */
+  #navMenu details > ul{
+    position:static !important; min-width:0 !important; margin:0 0 8px !important;
+    padding:0 0 0 14px !important; border:0 !important; background:transparent !important;
+    box-shadow:none !important; gap:0 !important;
+  }
+  #navMenu details > ul a{ min-height:44px; font-size:13px !important; padding:10px 12px !important; }
+}
+
+/* --- mobile hero: more air between the eyebrow, the headline and the sub-line, and a
+   shallower reflection well so nothing is pushed under the fold --- */
+@media (max-width:900px){
+  #hero{ min-height:100dvh !important; padding:96px clamp(22px,6vw,40px) clamp(28px,4vh,44px) !important; justify-content:center !important; }
+  .hero-block{ margin-top:clamp(40px,9vw,64px) !important; }
+  #heroSub{ margin-top:clamp(14px,2.4vw,22px) !important; margin-left:0 !important; padding-left:0 !important; }
+  #heroSub p{ font-size:15px !important; line-height:1.75 !important; }
+  #heroFoot{ margin-top:clamp(34px,8vw,52px) !important; padding-left:0 !important; }
+}
+@media (max-width:620px){
+}
+
+/* --- page grid ---
+   Nav, hero, work rows, bio and contact all resolve to the same 1280px column with the same
+   clamp(24px,5vw,64px) gutter. The work rows used to run in a 1420 column and the hero had no
+   column at all (padding only), so past ~1400px three different left edges were visible at once. */
+#work [data-band] > div{ max-width:1280px; }
+
+/* --- 2.5.5 target size (AAA): 44x44 for every pointer target ---
+   The nav read at 21-27px tall on desktop (mobile was already padded out). Height is added as
+   centred padding so the type sits exactly where it did before. */
+/* The 44px box belongs to the list item, not the anchor: each nav anchor draws its hover
+   underline as a background at "left bottom / 0% 1px", so making the anchor itself 44px tall
+   would detach that underline from the words and park it at the bottom of the target. The
+   anchors also carry an inline display:inline-block, which would beat a stylesheet display:flex
+   and leave their text stuck at the top of the box while <summary> centred. */
+#navMenu > li, nav > ul > li{ display:flex; align-items:center; min-height:44px; }
+/* the anchors carry padding-bottom:5px (the underline's gap); summary matches it so all four
+   labels centre on the same line */
+/* Height is added as padding-TOP on the links themselves, so the clickable box really is 44px
+   (an li wrapper is not the target) while each link's hover underline -- a background drawn at
+   "left bottom / 0% 1px" -- stays 5px under the words instead of dropping to the bottom of a
+   taller box. 21.5 + 17.5 line + 5 = 44. */
+nav > ul a, nav > ul summary{ padding-top:21.5px; padding-bottom:5px; }
+nav > a{ min-height:44px; display:flex; align-items:center; }
+nav button{ min-height:44px; }
+#navMenu details > ul a{ min-height:44px; }
+#navMenu details > ul li{ display:flex; align-items:center; min-height:44px; }
+footer a{ min-height:44px; display:inline-flex; align-items:center; }
+.i-scroll{ min-height:44px; }
+#contact a[href^="mailto"]{ min-height:44px; display:inline-flex; align-items:center; }
+
+.sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; }
+
+
+/* --- hero viewport fit -------------------------------------------------------------------
+   The 14" MacBook (1512 x ~860 viewport) is wide enough for the 104px headline but not tall
+   enough for the whole hero stack, and the hero's 72px top padding was shorter than the nav
+   bar it sits under (21 + 44 + 21 = 86), so the eyebrow line tucked behind the nav. The hero
+   is now sized off the small viewport unit in both axes, its top padding clears the nav at
+   every width, and the headline is capped by viewport HEIGHT as well as width -- one variable
+   drives the headline, the reflection and the reflection well, so they cannot drift apart. */
+#hero{
+  --hero-fs: min(clamp(34px,6.6vw,104px), 11.4vh);
+  width:100%;
+  min-height:100svh !important;
+  padding-top:clamp(96px,11vh,118px) !important;
+}
+#heroHeadline{ font-size:var(--hero-fs) !important; }
+/* The mirror box is clipped to just under half the flipped line, so the wander never spills
+   onto the scroll cue. */
+#decisionsRefl{ height:calc(.42 * var(--hero-fs)); }
+
+/* Short viewports (laptops at default scaling, browsers with a tab strip and a bookmarks bar):
+   the vertical rhythm compresses before anything is pushed under the fold. */
+@media (max-height:840px) and (min-width:900.02px){
+  #hero{ padding-top:clamp(92px,10.5vh,104px) !important; padding-bottom:clamp(22px,3vh,34px) !important; }
+  #hero > div:first-of-type{ margin-top:12px !important; }
+  .hero-block{ margin-top:clamp(34px,4.8vh,58px) !important; }
+  #heroSub{ margin-top:clamp(14px,1.8vh,22px) !important; }
+  #heroSub p{ font-size:15px !important; line-height:1.62 !important; max-width:52ch !important; }
+  #heroFoot{ margin-top:clamp(16px,2.2vh,30px) !important; }
+}
+@media (max-height:700px) and (min-width:900.02px){
+  #hero{ --hero-fs: min(clamp(34px,6.6vw,104px), 10.2vh); }
+}
+
+/* Mobile keeps its own padding, but the same height cap applies so a short phone in landscape
+   does not push the sub-line and the scroll cue past the fold. */
+@media (max-width:900px){
+  #hero{ --hero-fs: min(clamp(22px,7.6vw,41px), 12vh); min-height:100svh !important; }
+}
+@media (max-width:620px){
+}
+/* Landscape phones and very short windows: the reflection well is the first thing to go. */
+@media (max-height:560px){
+  #hero{ --hero-fs: min(clamp(22px,6vw,64px), 13vh) !important; padding-top:84px !important; }
+  /* No room for the mirror in a landscape phone: it is the first thing to go. */
+  #decisionsRefl{ display:none !important; }
+  .hero-block{ margin-top:26px !important; }
+  #heroFoot{ margin-top:18px !important; }
+  #heroSub p{ font-size:14px !important; line-height:1.6 !important; }
+}
+
+/* The BIO and CONTACT ghosts are now in flow above their sections, so they need the same
+   narrow-screen cap the WORK ghost already had. */
+@media (max-width:600px){
+  #about > div[aria-hidden="true"], #contact > div[aria-hidden="true"]{
+    font-size:clamp(72px,22vw,150px) !important;
+  }
+  #about{ padding-top:clamp(96px,30vw,190px) !important; }
+  #contact{ padding-top:clamp(96px,30vw,190px) !important; }
+}
+
+/* No element may exceed the viewport width at any size. */
+html, body{ max-width:100%; overflow-x:hidden; }
+
+/* The tablet/mobile rules above set #about and #contact padding-top from the old design, when
+   the ghosts sat behind the content. In flow they need the ghost's height reserved instead. */
+@media (max-width:900px){
+  #about, #contact{ padding-top:calc(clamp(40px,6vw,96px) + 20vw + 8px) !important; }
+}
+@media (max-width:600px){
+  #about, #contact{ padding-top:calc(clamp(32px,5vw,60px) + 22vw + 8px) !important; }
+}
+
+/* --- nav on demand ---------------------------------------------------------------------
+   The opening viewport is the headline and nothing else: the bar is mounted outside the hero,
+   fixed, and only fades in once the visitor has scrolled past the hero. */
+#siteNav[data-shown="true"]{ opacity:1 !important; transform:translateY(0) !important; pointer-events:auto !important; }
+@media (prefers-reduced-motion:reduce){ #siteNav{ transition:opacity .2s linear !important; } }

@@ -1,15 +1,31 @@
 /* Case study pages. Each page sets its own --accent in an inline block; everything else
    is shared. Layout and colour are inline on the elements. */
-:root{ --gut:clamp(20px,4.6vw,72px); --maxw:1440px; }
+:root{
+  --gut:clamp(20px,4.6vw,72px); --maxw:1440px;
+  --bg:#09090B; --bg-raise-1:#0D0D11; --bg-raise-2:#111116;
+  --hairline:rgba(255,255,255,.08);
+}
 *{ margin:0; padding:0; box-sizing:border-box; }
 /* Same measure as the homepage, so the two pages share one left and right edge. */
 .wrap{ width:100%; max-width:var(--maxw); margin-inline:auto; padding-inline:var(--gut); }
-  body{ background:#050505; color:#e9e7df; font-family:'Inter',sans-serif; line-height:1.6; -webkit-font-smoothing:antialiased; }
+  /* Case studies share the homepage environment: same base, same fixed purple atmosphere,
+     no per-page background of their own. --accent here is the project colour. */
+  /* Base on html so body's background is not propagated to the canvas -- see the note in
+     style.css: propagation would position the pools against the viewport, not the page. */
+  html{ background:var(--bg,#09090B); }
+  body{
+    background-color:transparent;
+    background-image:
+      radial-gradient(950px 620px at 88% 8%, rgba(var(--accent-rgb),.07), rgba(var(--accent-rgb),0) 70%),
+      radial-gradient(820px 560px at 12% 42%, rgba(var(--accent-rgb),.045), rgba(var(--accent-rgb),0) 74%),
+      radial-gradient(900px 600px at 82% 76%, rgba(var(--accent-rgb),.05), rgba(var(--accent-rgb),0) 72%);
+    background-attachment:scroll; background-repeat:no-repeat;
+    color:#e9e7df; font-family:'Inter',sans-serif; line-height:1.6; -webkit-font-smoothing:antialiased; }
   summary{ list-style:none; }
   summary::-webkit-details-marker{ display:none; }
   a{ color:inherit; text-decoration:none; }
-  /* a[href], not a: the "soon" project links are anchors with no href on purpose, and the bare
-     a:hover lit them up as though they went somewhere. */
+  /* a[href], not a: the "soon" project links are anchors with no href on purpose, and the
+     bare a:hover lit them up as though they went somewhere. */
   @media (hover:hover){ a[href]:hover{ color:var(--accent); } }
   ::selection{ background:rgba(var(--accent-rgb),.35); color:#fff; }
   :focus-visible{ outline:2px solid var(--accent); outline-offset:4px; border-radius:2px; }
@@ -24,7 +40,8 @@
    Everything below is wrapped in (hover:hover). A touchscreen has no hover, so :hover latches
    on tap and the element stays lit until something else is tapped, which reads as a stuck
    element rather than as feedback. Focus is the exception: it has to answer on every device,
-   so the focus half of the skip link sits outside the query. */
+   so the focus half of the skip link sits outside the query. .c13 and .c14 are gone -- they
+   were two <article> blocks on the Amun page, which are content, not controls. */
 .c1:focus-visible{ top:16px !important; }
 @media (hover:hover){
   .c1:hover{ top:16px !important; }
@@ -47,13 +64,9 @@
   *, *::before, *::after{ animation-duration:.01ms !important; transition-duration:.01ms !important; }
 }
 
-/* Case-study specific: gallery frames and section ghosts.
-   .shot is a static frame around a screenshot. It used to lift 4px and take an accent glow on
-   hover, which promised a click that was never there, and on a phone the tap that scrolled past
-   an image left it lifted and glowing until the next tap landed somewhere else. The frame is
-   now inert, so the only things that respond to a pointer on these pages are the ones that
-   actually go somewhere. Dropping it also drops a box-shadow transition on 60 elements. */
-.shot{ position:relative; border-radius:18px; overflow:hidden; background:#0b0b0a;
+/* Case-study specific: gallery frames and section ghosts. Hover states use the page's own
+   --accent, which each case study sets to its project colour. */
+.shot{ position:relative; border-radius:18px; overflow:hidden; background:var(--bg-raise-1);
        box-shadow:0 30px 64px -30px rgba(0,0,0,.95), 0 0 0 1px rgba(255,255,255,.07); }
 .shot img{ display:block; width:100%; height:auto; }
 .ghost{ position:absolute; left:clamp(-26px,-2vw,-8px); z-index:0; pointer-events:none;
@@ -61,23 +74,31 @@
         color:transparent; -webkit-text-stroke:1.8px var(--accent); letter-spacing:-.02em;
         font-size:clamp(84px,15vw,210px); opacity:.85; }
 .ghost.quiet{ opacity:.4; -webkit-text-stroke-width:1.2px; }
+.pin{ color:var(--accent); }
 @media (max-width:700px){ .ghost{ font-size:clamp(64px,17vw,120px); } }
 
 /* Global contact block, same states as the homepage's. */
-
-
-/* Same clipping as the homepage: the desktop list's work dropdown is right-aligned under a
-   "work" item near the left of a 320px screen, and min-width:200px pushed it off the edge.
-   Scoped to the list's own dropdown -- .mnav is a sibling of that list, not inside it, and its
-   menu is sized deliberately. */
-@media (max-width:420px){
-  nav > ul details > ul{ min-width:0 !important; }
+.c17:focus-visible{ border-color:var(--accent) !important; color:var(--accent) !important; background-size:100% 100% !important; }
+.c18:focus-visible{ color:#e9e7df !important; border-color:var(--accent) !important; }
+.c19:focus-visible{ color:var(--accent) !important; border-color:var(--accent) !important; transform:translateY(-3px) !important; }
+@media (hover:hover){
+  .c17:hover{ border-color:var(--accent) !important; color:var(--accent) !important; background-size:100% 100% !important; }
+  .c18:hover{ color:#e9e7df !important; border-color:var(--accent) !important; }
+  .c19:hover{ color:var(--accent) !important; border-color:var(--accent) !important; transform:translateY(-3px) !important; }
 }
+
 
 /* Nav: full list on desktop, right-side dropdown below 760px. */
 .mnav{ display:none; }
 .mnav > summary::-webkit-details-marker{ display:none; }
 @media (hover:hover){ .mnav a[href]:hover, .mnav summary:hover{ color:#e9e7df; } }
+
+/* Same clipping as the homepage: the desktop list's work dropdown is right-aligned under a
+   "work" item near the left of a 320px screen, and min-width:200px pushed it off the edge.
+   Scoped to the list's own dropdown -- .mnav is a sibling of that list, not inside it. */
+@media (max-width:420px){
+  nav > ul details > ul, .navlist details > ul{ min-width:0 !important; }
+}
 @media (max-width:760px){
   .navlist{ display:none !important; }
   .mnav{ display:block; }

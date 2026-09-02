@@ -12,9 +12,12 @@ rework. Anything about how something works belongs here or in the file itself.
 
 ## Locked design system (won't change without the owner explicitly asking)
 - Fonts: Space Grotesk (display), Inter (body), JetBrains Mono (code/system accents)
-- Palette: near-black background (`#050505`), off-white text, **one** violet accent
+- Palette: soft-black background (`--bg:#09090B`), off-white text, **one** violet accent
   (`--accent:#a06bff`) used sparingly — no gradients-as-decoration, no multi-color
-  palette. Case study pages are the one exception: each carries a single per-project
+  palette. `--accent-text:#b48cff` is the same accent lightened to clear 7:1, and is for
+  accent on small body text only; `--accent` stays on decoration and large text. Two
+  raised surfaces (`--bg-raise-1/2`) are for genuinely lifted panels, and `--hairline`
+  replaced the old flat `#1c1c1a` dividers. Case study pages are the one exception: each carries a single per-project
   accent instead of the violet (nitefind `#a259ff`, smiteforge `#e0b84a`, zentra
   `#4fbf82`, amun `#8f8f8f`), set in a small inline block in that page's head.
   Each one also appears twice in `index.html`, on that project's band edge and its
@@ -34,13 +37,19 @@ properties, keyframes, and the hover/focus/active states (generated as `.i*`,
 `.c*`, `.l*` classes — one per element that needs a state).
 
 ```
-index.html            homepage: #hero, #work, #about, #contact. Nav lives inside
-                       #hero, footer inside #contact.
+index.html            homepage: #hero, #work, #about, #contact. The nav (#siteNav)
+                       and the footer are now siblings of <main>, not nested inside
+                       #hero and #contact. They were put inside those sections when
+                       scroll snapping was on, because a top-level nav acted as its
+                       own snap stop; with snapping gone that reason went with it.
+                       #siteNav is fixed and fades in once the hero is scrolled past,
+                       so the opening viewport is the headline and nothing else.
 css/style.css          homepage tokens, resets, keyframes, state rules
 js/main.js             homepage logic in one `Portfolio` class: hero wipe and
-                       raindrop, work raindrop + ripples + band reveal, the work
-                       wash, spine progress dot, contact pulse, nav dropdown,
-                       anchor/hash handling, KD reset
+                       raindrop, the sliced hero reflection and its impact ripple,
+                       work raindrop + ripples + band reveal, the work wash, spine
+                       progress dot, contact pulse, nav dropdown, the scroll-in nav
+                       reveal, mobile nav, anchor/hash handling, KD reset
 case-studies/          nitefind, zentra and smiteforge are built. amun is an empty
                        noindex shell — its page, and the entries pointing at it,
                        are the only placeholders left
@@ -60,16 +69,19 @@ _originals/            full-resolution masters the served sizes were cut from.
 ```
 
 ## Things that are easy to get wrong here
-- **Scroll snap is `proximity`, not `mandatory`.** Mandatory forced every section
-  to fit exactly one viewport and was why the bio section had to be fought into
-  submission. Programmatic jumps briefly set `scroll-snap-type:none` via
-  `suspendSnap()`, because a snap point can otherwise drag a deep link to the
-  wrong section mid-flight.
+- **There is no scroll snapping any more.** It went through mandatory, then
+  proximity, then out. Even proximity pulled a swipe back to a section edge instead
+  of letting it carry, which is what read as the page taking the scroll away from
+  you. `suspendSnap()` is kept as an empty stub so the call sites do not all need
+  editing; do not reintroduce snapping without re-testing a real phone swipe.
 - **The work section is one set of bands at every width, reshaped in CSS.** There
   is no second mobile stage and no JS layout switch — earlier versions had both,
-  and a `display:none` stage that still ran its timers was the reason. Three
-  states, all in `css/style.css`: the four-column band above 1080px, a grouped
-  two-column row down to 760px, and discrete cards below that.
+  and a `display:none` stage that still ran its timers was the reason. The band is a
+  row on desktop and becomes a bordered card below 900px, all in `css/style.css`.
+- **The hero reflection has to sit directly under `#surface`.** It mirrors the
+  headline across the waterline, so anything between the two breaks it. It arrived
+  once placed after `#heroSub` and rendered as a detached blurred smear below the
+  body copy, which on a phone read as a stray artefact rather than a reflection.
 - **The raindrop falls on `transform`, not `top`.** A `top` transition between a
   viewport unit and a percentage is not interpolable and silently teleports.
 - Rings need an explicit `0` size plus a forced reflow between setting the
