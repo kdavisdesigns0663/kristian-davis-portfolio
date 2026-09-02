@@ -40,11 +40,19 @@ js/main.js             homepage logic in one `Portfolio` class: hero wipe, work
 case-studies/          nitefind, smiteforge, zentra, amun — all four from one
                        template, content past the header is still placeholder
 css/case-study.css     shared by all four
-js/case-study.js       dropdown behaviour only
+js/case-study.js       nav dropdown, and the viewport-driven playback for the
+                       Zentra loop video
+js/tweaks.js           design panel: accents, ghost word, animation timings.
+                       Loaded only on `?tweaks=1`, so a normal visit ships none
+                       of it. Values are session-only by design
 link.html              mobile-only links screen reached by QR code, noindex
 css/link.css, js/link.js
-img/kristian-about-crop.jpg          desktop bio photo, 4:5
-img/kristian-about-mobile-crop.jpg   mobile bio photo, tighter crop
+img/kristian-about-crop-800.jpg        desktop bio photo, 4:5
+img/kristian-about-mobile-crop-900.jpg mobile bio photo, tighter crop
+_dev/                  design mockups and a stale spec. Underscore-prefixed, so
+                       Jekyll keeps the directory out of the Pages build
+_originals/            full-resolution masters the served sizes were cut from.
+                       Same underscore, same reason: 13MB nothing links to
 ```
 
 ## Things that are easy to get wrong here
@@ -65,6 +73,20 @@ img/kristian-about-mobile-crop.jpg   mobile bio photo, tighter crop
   `'instant'` when you mean instant.
 - The `.ghost` words are `aria-hidden`; keep them that way or screen readers
   announce "KRISTIAN WORK BIO CONTACT" as page content.
+- **Every `:hover` rule lives inside `@media (hover:hover)`, and only ever on
+  something that goes somewhere.** A touchscreen has no hover to leave, so a bare
+  `:hover` latches on tap and the element stays lit until the next tap lands
+  elsewhere. Focus rules stay outside the query — keyboard focus has to answer on
+  every device. The same rule governs JS: `initBands()` attaches `mouseenter` only
+  when `(hover:hover)` matches, and attaches nothing at all to a band with no
+  `href`. Use `a[href]:hover`, never `a:hover`: the "soon" entries are anchors
+  without an href and a bare `a:hover` lit them up as though they were links.
+- **Autoplaying video is driven from the viewport, not from load.** Mobile Safari
+  will not start a video that is thousands of pixels off screen, and a swallowed
+  `play()` rejection is indistinguishable from a poster that just sits there. It
+  can also refuse outright — Low Power Mode blocks autoplay for every video, muted
+  and inline included, and no media query reports that — so a refusal arms the
+  next tap to start it. `initMotion()` in `js/case-study.js` owns all of this.
 
 ## Workflow notes for this repo specifically
 - No build step. Edit the files directly; there's nothing to compile.
@@ -80,18 +102,33 @@ img/kristian-about-mobile-crop.jpg   mobile bio photo, tighter crop
   site and causing real rework. When a doc and the live file disagree, the live
   file wins — and update the doc.
 
+## Images
+Every JPEG is progressive and sized to about 2x the width it is actually laid out
+at, measured in a browser rather than guessed. Before adding a new one, check what
+the page gives it: a 636px slot does not want an 1800px file, and the homepage
+project cards render at 154px however large the source is.
+
+The recompressor lives in this repo's history, not in the tree — there is no build
+step and nothing to run on deploy. It encodes at descending quality, decodes the
+result, and compares it to the source across all three channels, keeping the
+smallest file whose error stays under a threshold. Two things it taught, worth not
+rediscovering: measure RGB, not luma, or chroma damage is invisible to the guard;
+and judge each quality against the error floor of re-encoding at q95, because
+re-encoding a 4:2:0 source at 4:2:0 costs a fixed amount before quantization is
+involved at all, which a flat threshold reads as failure on every file.
+
 ## Pending cleanup (recommended, not done)
-These are publicly reachable and indexable on the Pages deploy, and none are
-linked from the site:
-
-```
-img-treatment-preview.html      dev mockup
-reference/hero-pattern.html     dev mockup of a design that has since changed
-reference/raindrop-v4.html      same
-HERO-BUILD-SPEC.md              flagged stale at the top of its own file
-```
-
-Move them into a `docs/` folder excluded from the Pages build, or delete them.
-`HANDOFF.md` is 1671 lines and several sections contradict the live code; cutting
+`HANDOFF.md` is 1670 lines and several sections contradict the live code; cutting
 it down to one current-state document plus an appendix of locked decisions would
-remove a real liability. `link.html` is intentional — noindex, reached by QR code.
+remove a real liability.
+
+`case-studies/amun.html` still carries the original nav — it never got the
+`.navlist` / `.mnav` pair the other three use, so on a phone it shows the full
+desktop list rather than collapsing to the menu. It is noindex and nothing links
+to it, so this is not live, but it needs doing when Amun ships. Shipping it also
+means flipping the nine `aria-disabled` markers that point at it from the other
+four pages: two on `index.html` (the dropdown entry and the work band), two each
+on nitefind and zentra (desktop nav and `.mnav`), and three on smiteforge (both
+navs and the next-project card).
+
+`link.html` is intentional — noindex, reached by QR code.

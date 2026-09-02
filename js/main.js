@@ -293,13 +293,23 @@ class Portfolio {
     // sequence plays to an empty room. The scroll check backs the observer up for the case
     // where a band is taller than the viewport; both paths go through the same guard.
     this.observe(bands[0] || section, 0.45, play, null);
-    this.onWorkScroll = () => {
+    // getBoundingClientRect() inside a scroll handler forces a synchronous layout, so the check
+    // is deferred to a rAF and coalesced: a burst of scroll events measures once per frame
+    // instead of once per event. The listener still detaches the moment the work has played.
+    let queued = false;
+    const check = () => {
+      queued = false;
       if (this.workRevealed) { window.removeEventListener('scroll', this.onWorkScroll); return; }
       const r = (bands[0] || section).getBoundingClientRect();
       if (r.top < window.innerHeight * 0.8 && r.bottom > 0) play();
     };
+    this.onWorkScroll = () => {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(check);
+    };
     window.addEventListener('scroll', this.onWorkScroll, { passive: true });
-    this.onWorkScroll();
+    check();
 
     // Clicking anywhere in the section finishes the sequence rather than making anyone wait.
     section.addEventListener('click', e => {
@@ -312,6 +322,16 @@ class Portfolio {
   }
 
   // Rings are flattened: a ripple on a surface you are looking across is an ellipse.
+  //
+  // Two of the five animated properties are gone. `filter` used to run blur(0) -> blur(5px)
+  // across the whole 1.5s, which makes the compositor re-run a Gaussian over a ring up to 640px
+  // wide on every frame, for two or three overlapping rings at once -- by a distance the most
+  // expensive thing in the sequence, and on a phone the one that showed. It is a constant now:
+  // the ring is drawn soft and dissolves by fading, which is what the eye was reading anyway
+  // while the opacity ran to zero underneath the blur. `border-width` went the same way, since
+  // 3.2px to 0.5px is not legible under a fade-out and every step of it forced another layout.
+  // Width and height stay animated on purpose: they keep the stroke a constant weight at every
+  // size and the ring crisp, which scaling a transform cannot do.
   ripples(container, count, max, atY) {
     const y = atY || 0;
     let d = 0;
@@ -322,18 +342,16 @@ class Portfolio {
       const strength = 1 - i * 0.26;
       const dur = 1.5 * (1 + i * 0.12);
       ring.style.cssText = 'position:absolute;top:' + y + 'px;left:0;z-index:2;width:0;height:0;border:' +
-        (1 + 2.2 * strength).toFixed(2) + 'px solid var(--accent);transform:translate(-50%,-50%) scaleY(0.16);opacity:0;' +
-        'border-radius:' + j() + '% ' + j() + '% ' + j() + '% ' + j() + '%';
+        (0.8 + 1.5 * strength).toFixed(2) + 'px solid var(--accent);transform:translate(-50%,-50%) scaleY(0.16);opacity:0;' +
+        'filter:blur(2.2px);border-radius:' + j() + '% ' + j() + '% ' + j() + '% ' + j() + '%';
+      ring.dataset.ring = '';
       container.appendChild(ring);
       this.wait(function () {
         ring.style.transition = 'width ' + dur + 's cubic-bezier(.16,1,.3,1), height ' + dur +
-          's cubic-bezier(.16,1,.3,1), opacity ' + dur + 's ease-out, filter ' + dur +
-          's ease-out, border-width ' + dur + 's ease-out';
+          's cubic-bezier(.16,1,.3,1), opacity ' + dur + 's ease-out';
         ring.style.opacity = (0.55 * strength).toFixed(2); void ring.offsetHeight;
         ring.style.width = ring.style.height = (max * (1 - i * 0.16) + Math.random() * (max * 0.1)) + 'px';
         ring.style.opacity = '0';
-        ring.style.filter = 'blur(5px)';
-        ring.style.borderWidth = '0.5px';
       }, d);
       this.wait(function () { ring.remove(); }, d + dur * 1000 + 120);
       d += 170;
@@ -367,13 +385,17 @@ class Portfolio {
       b.style.clipPath = 'inset(0 0 100% 0)';
       b.style.transition = 'opacity .5s ease, clip-path .95s cubic-bezier(.19,1,.22,1)';
 
+      // Amun has no href while its page is unbuilt, so it gets no pointer response at all:
+      // flooding the row and lifting the screenshot promised a destination that is not there.
+      // It still takes the reveal above, and revealBand() still flares its edge.
+      if (!b.getAttribute('href')) return;
+
       const rgb = BANDS[b.dataset.band].rgb;
       const flood = b.querySelector('[data-flood]');
       const edge = b.querySelector('[data-edge]');
       const shot = b.querySelector('[data-shot]');
       const img = shot.querySelector('img');
       const row = b.querySelector('[data-row]');
-      const dim = b.dataset.band === 'amun';
 
       const set = function (on) {
         flood.style.transform = 'scaleX(' + (on ? 1 : 0) + ')';
@@ -382,31 +404,58 @@ class Portfolio {
         shot.style.boxShadow = on
           ? '0 26px 60px -16px rgba(' + rgb + ',.45), 0 0 0 1px rgba(' + rgb + ',.4)'
           : '0 18px 44px -14px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.06)';
-        img.style.filter = on ? 'saturate(1) brightness(1)' : (dim ? 'saturate(.62) brightness(.78)' : 'saturate(.82) brightness(.86)');
+        img.style.filter = on ? 'saturate(1) brightness(1)' : 'saturate(.82) brightness(.86)';
         row.style.transform = on ? 'translateX(9px)' : 'translateX(0)';
       };
-      b.addEventListener('mouseenter', function () { set(true); });
-      b.addEventListener('mouseleave', function () { set(false); });
+      // Mouse only where a pointer can actually leave. On a touchscreen mouseenter fires on tap
+      // and no mouseleave ever answers it, so the flood, the row shift and the lifted screenshot
+      // stayed on after the tap, and came back looking stuck on a back-navigation.
+      if (window.matchMedia('(hover:hover)').matches) {
+        b.addEventListener('mouseenter', function () { set(true); });
+        b.addEventListener('mouseleave', function () { set(false); });
+      }
       b.addEventListener('focus', function () { set(true); });
       b.addEventListener('blur', function () { set(false); });
     });
   }
 
   // The spine answers "where am I" without a fixed list of links taking up space.
+  //
+  // The scroll handler used to read scrollHeight and innerHeight on every scroll event, which
+  // forces a synchronous layout in the middle of the scroll -- the one place it costs the most,
+  // because it happens on every frame of a gesture that is asking to look smooth. Neither
+  // number changes while scrolling, so both are cached and refreshed on resize, and the write
+  // is deferred to a rAF so a burst of scroll events still only moves the dot once per frame.
   initSpine() {
     const spine = document.getElementById('spine');
     const dot = document.getElementById('spineDot');
     if (!spine || !dot) return;
-    const sync = function () {
-      if (!window.matchMedia('(min-width:1100px)').matches) { spine.style.display = 'none'; return; }
+    const wide = window.matchMedia('(min-width:1100px)');
+    let max = 0, queued = false;
+
+    const measure = function () {
+      max = document.documentElement.scrollHeight - window.innerHeight;
+    };
+    const paint = function () {
+      queued = false;
+      if (!wide.matches) { spine.style.display = 'none'; return; }
       spine.style.display = 'block';
-      const max = document.documentElement.scrollHeight - window.innerHeight;
       const p = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
       dot.style.top = 'calc(14vh + ' + (p * 72) + 'vh)';
     };
-    window.addEventListener('scroll', sync, { passive: true });
-    window.addEventListener('resize', sync);
-    sync();
+    const schedule = function () {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(paint);
+    };
+
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', function () { measure(); schedule(); });
+    // The bands and the case-study images land after this runs, so the page gets taller than it
+    // was at init and the dot would otherwise reach the bottom early.
+    window.addEventListener('load', function () { measure(); schedule(); });
+    measure();
+    paint();
   }
 
   initContact() {
@@ -498,7 +547,7 @@ class Portfolio {
         el.style.transition = 'opacity .14s ease, --reveal 2s linear';
       });
     }
-    document.querySelectorAll('#heroDropStage div[style*="border-radius:4"]').forEach(function (r) { r.remove(); });
+    document.querySelectorAll('#heroDropStage [data-ring]').forEach(function (r) { r.remove(); });
     this.heroPlayed = false;
 
     this.workRevealed = false;
@@ -517,7 +566,7 @@ class Portfolio {
     wrap.style.transition = 'none';
     wrap.style.opacity = '0';
     wrap.style.filter = 'blur(0px)';
-    document.querySelectorAll('#dropStage div[style*="border-radius:4"]').forEach(function (r) { r.remove(); });
+    document.querySelectorAll('#dropStage [data-ring]').forEach(function (r) { r.remove(); });
 
     const pulse = document.getElementById('listenPulse');
     if (pulse) pulse.style.opacity = '0';

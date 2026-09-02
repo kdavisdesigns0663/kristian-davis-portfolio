@@ -8,7 +8,9 @@
   summary{ list-style:none; }
   summary::-webkit-details-marker{ display:none; }
   a{ color:inherit; text-decoration:none; }
-  a:hover{ color:var(--accent); }
+  /* a[href], not a: the "soon" project links are anchors with no href on purpose, and the bare
+     a:hover lit them up as though they went somewhere. */
+  @media (hover:hover){ a[href]:hover{ color:var(--accent); } }
   ::selection{ background:rgba(var(--accent-rgb),.35); color:#fff; }
   :focus-visible{ outline:2px solid var(--accent); outline-offset:4px; border-radius:2px; }
 
@@ -18,37 +20,42 @@
   .c12{ padding-top:3px; padding-bottom:3px; }
   .c16{ display:inline-block; padding-top:4px; padding-bottom:5px; }
 
-/* --- interactive states --- */
-.c1:hover, .c1:focus-visible{ top:16px !important; }
-.c2:hover{ color:var(--accent) !important; letter-spacing:.06em !important; }
-.c3:hover{ color:#e9e7df !important; }
-.c4:hover{ color:#e9e7df !important; }
-.c5:hover{ color:#e9e7df !important; background:rgba(255,255,255,.06) !important; }
-.c6:hover{ color:#e9e7df !important; background:rgba(255,255,255,.06) !important; }
-.c7:hover{ color:#e9e7df !important; background:rgba(255,255,255,.06) !important; }
-.c8:hover{ color:#e9e7df !important; background:rgba(255,255,255,.06) !important; }
-.c9:hover{ color:#e9e7df !important; }
-.c10:hover{ color:#e9e7df !important; }
-.c11:hover{ color:#e9e7df !important; }
-.c12:hover{ color:var(--accent) !important; gap:14px !important; }
-.c13:hover{ border-color:#3a3a38 !important; }
-.c14:hover{ border-color:#3a3a38 !important; }
-.c15:hover{ border-color:var(--accent) !important; background:rgba(var(--accent-rgb),.05) !important; }
-.c16:hover{ color:var(--accent) !important; }
+/* --- interactive states ---
+   Everything below is wrapped in (hover:hover). A touchscreen has no hover, so :hover latches
+   on tap and the element stays lit until something else is tapped, which reads as a stuck
+   element rather than as feedback. Focus is the exception: it has to answer on every device,
+   so the focus half of the skip link sits outside the query. */
+.c1:focus-visible{ top:16px !important; }
+@media (hover:hover){
+  .c1:hover{ top:16px !important; }
+  .c2:hover{ color:var(--accent) !important; letter-spacing:.06em !important; }
+  .c3:hover{ color:#e9e7df !important; }
+  .c4:hover{ color:#e9e7df !important; }
+  .c5:hover{ color:#e9e7df !important; background:rgba(255,255,255,.06) !important; }
+  .c6:hover{ color:#e9e7df !important; background:rgba(255,255,255,.06) !important; }
+  .c7:hover{ color:#e9e7df !important; background:rgba(255,255,255,.06) !important; }
+  .c8:hover{ color:#e9e7df !important; background:rgba(255,255,255,.06) !important; }
+  .c9:hover{ color:#e9e7df !important; }
+  .c10:hover{ color:#e9e7df !important; }
+  .c11:hover{ color:#e9e7df !important; }
+  .c12:hover{ color:var(--accent) !important; gap:14px !important; }
+  .c15:hover{ border-color:var(--accent) !important; background:rgba(var(--accent-rgb),.05) !important; }
+  .c16:hover{ color:var(--accent) !important; }
+}
 
 @media (prefers-reduced-motion: reduce){
   *, *::before, *::after{ animation-duration:.01ms !important; transition-duration:.01ms !important; }
 }
 
-/* Case-study specific: gallery frames and section ghosts. Hover states use the page's own
-   --accent, which each case study sets to its project colour. */
+/* Case-study specific: gallery frames and section ghosts.
+   .shot is a static frame around a screenshot. It used to lift 4px and take an accent glow on
+   hover, which promised a click that was never there, and on a phone the tap that scrolled past
+   an image left it lifted and glowing until the next tap landed somewhere else. The frame is
+   now inert, so the only things that respond to a pointer on these pages are the ones that
+   actually go somewhere. Dropping it also drops a box-shadow transition on 60 elements. */
 .shot{ position:relative; border-radius:18px; overflow:hidden; background:#0b0b0a;
-       box-shadow:0 30px 64px -30px rgba(0,0,0,.95), 0 0 0 1px rgba(255,255,255,.07);
-       transition:transform .5s cubic-bezier(.19,1,.22,1), box-shadow .5s ease; }
+       box-shadow:0 30px 64px -30px rgba(0,0,0,.95), 0 0 0 1px rgba(255,255,255,.07); }
 .shot img{ display:block; width:100%; height:auto; }
-.shot:hover{ transform:translateY(-4px);
-  box-shadow:0 36px 74px -30px rgba(0,0,0,.95), 0 0 0 1px rgba(var(--accent-rgb),.55),
-             0 0 28px -6px rgba(var(--accent-rgb),.35); }
 .ghost{ position:absolute; left:clamp(-26px,-2vw,-8px); z-index:0; pointer-events:none;
         user-select:none; font-family:'Space Grotesk',sans-serif; font-weight:700; line-height:1;
         color:transparent; -webkit-text-stroke:1.8px var(--accent); letter-spacing:-.02em;
@@ -59,10 +66,18 @@
 /* Global contact block, same states as the homepage's. */
 
 
+/* Same clipping as the homepage: the desktop list's work dropdown is right-aligned under a
+   "work" item near the left of a 320px screen, and min-width:200px pushed it off the edge.
+   Scoped to the list's own dropdown -- .mnav is a sibling of that list, not inside it, and its
+   menu is sized deliberately. */
+@media (max-width:420px){
+  nav > ul details > ul{ min-width:0 !important; }
+}
+
 /* Nav: full list on desktop, right-side dropdown below 760px. */
 .mnav{ display:none; }
 .mnav > summary::-webkit-details-marker{ display:none; }
-.mnav a:hover, .mnav summary:hover{ color:#e9e7df; }
+@media (hover:hover){ .mnav a[href]:hover, .mnav summary:hover{ color:#e9e7df; } }
 @media (max-width:760px){
   .navlist{ display:none !important; }
   .mnav{ display:block; }

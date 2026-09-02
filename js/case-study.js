@@ -39,17 +39,76 @@ class Page {
   // animation answers a question the visitor is already asking, so a looping one has to be
   // stoppable by the same preference everything else here respects. The poster frame stays,
   // so the figure still shows the mark rather than going blank.
+  //
+  // Playback is driven from the viewport rather than from load. The Zentra loop sits five
+  // sections down the page, and calling play() on it at DOMContentLoaded is asking a phone to
+  // start a video that is thousands of pixels off screen. Mobile Safari declines that, the
+  // rejected promise was being swallowed, and the poster stayed up for the whole visit -- the
+  // mark never ran on a phone. An IntersectionObserver starts it when it is actually about to
+  // be looked at and pauses it when it is not, which is also the version that does not burn
+  // battery decoding frames nobody can see.
+  //
+  // Autoplay can still be refused outright: iOS in Low Power Mode blocks it for every video,
+  // muted and inline included, and there is no media query that reports this. So a refusal arms
+  // the next tap anywhere on the page to start it, and the video is click-to-play in its own
+  // right. Silence beats a poster that never moves and never says why.
   initMotion() {
-    const videos = document.querySelectorAll('video[autoplay]');
+    const videos = Array.prototype.slice.call(document.querySelectorAll('video'));
     if (!videos.length) return;
-    const q = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const apply = () => videos.forEach(v => {
-      if (q.matches) { v.pause(); v.removeAttribute('autoplay'); v.currentTime = 0; }
-      else if (v.paused) { v.play().catch(() => {}); }
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let armed = false;
+
+    const wake = () => {
+      if (armed) return;
+      armed = true;
+      document.addEventListener('pointerdown', function go() {
+        armed = false;
+        document.removeEventListener('pointerdown', go);
+        videos.forEach(function (v) {
+          if (!reduce.matches && v.dataset.onscreen) { const p = v.play(); if (p) p.catch(function () {}); }
+        });
+      }, { passive: true });
+    };
+
+    const start = v => {
+      if (reduce.matches || !v.dataset.onscreen || !v.paused) return;
+      const p = v.play();
+      if (p && p.catch) p.catch(wake);
+    };
+
+    // The browser's own autoplay is handed over to the observer below, so a video far down the
+    // page is not decoded until it is nearly in view. The attribute stays in the markup: with
+    // no JS at all, the browser's autoplay is the only thing that will ever start it.
+    videos.forEach(function (v) { v.autoplay = false; });
+
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          const v = e.target;
+          if (e.isIntersecting) { v.dataset.onscreen = '1'; start(v); }
+          else { delete v.dataset.onscreen; v.pause(); }
+        });
+      }, { rootMargin: '200px 0px', threshold: 0.01 });
+      videos.forEach(function (v) { io.observe(v); });
+    } else {
+      videos.forEach(function (v) { v.dataset.onscreen = '1'; start(v); });
+    }
+
+    // Tapping the loop itself is the direct way back if autoplay was refused.
+    videos.forEach(function (v) {
+      v.addEventListener('click', function () {
+        if (reduce.matches) return;
+        if (v.paused) { const p = v.play(); if (p) p.catch(function () {}); } else { v.pause(); }
+      });
     });
-    apply();
+
     // Honour the preference being changed while the page is open, not only at load.
-    q.addEventListener ? q.addEventListener('change', apply) : q.addListener(apply);
+    const applyPref = () => {
+      if (reduce.matches) videos.forEach(function (v) { v.pause(); v.currentTime = 0; });
+      else videos.forEach(start);
+    };
+    reduce.addEventListener ? reduce.addEventListener('change', applyPref) : reduce.addListener(applyPref);
+    applyPref();
   }
 }
 
