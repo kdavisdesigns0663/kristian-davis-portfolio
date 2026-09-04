@@ -11,7 +11,7 @@ class Portfolio {
     this.reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     this.fall = 1;
     // The hero drop falls at the live site's pace; the work drop keeps its own.
-    this.heroFall = 3.6;
+    this.heroFall = 2.9;
     this.initHero();
     // Bands are put into their hidden state BEFORE the drop is wired: the reverse order lets
     // a fast observer reveal a band and then have initBands reset it to invisible.
@@ -42,16 +42,16 @@ class Portfolio {
     const ghost = document.getElementById('heroGhost');
     const lines = Array.prototype.slice.call(document.querySelectorAll('#heroHeadline [data-line]'));
     const line = document.getElementById('waterline');
-    const refl = document.getElementById('decisionsRefl');
+    const pool = document.getElementById('heroPool');
     const stage = document.getElementById('heroDropStage');
     if (!lines.length || !stage) return;
 
-    // The drop is aimed at the left end of the waterline, so the hit is the point the line
-    // spreads out of and the point the purple word starts writing from.
+    // The hit sits 7% along the divider, not at its left end: that is where the line's bright
+    // core is born and where the reflected light pools out of.
     const surface = document.getElementById('surface');
     const seatStage = function () {
       if (!line || !surface) return;
-      stage.style.left = Math.round(line.offsetLeft) + 'px';
+      stage.style.left = Math.round(line.offsetLeft + line.offsetWidth * 0.07) + 'px';
     };
     seatStage();
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(seatStage);
@@ -61,7 +61,7 @@ class Portfolio {
     // short one read as the same gesture. The pace is deliberately slow -- the mask creeps
     // across the words the way water spreads, and the cues overlap so the sequence never
     // resolves into separate steps.
-    const EM_PER_SEC = 3.2;
+    const EM_PER_SEC = 4.1;
     const durOf = function (i) {
       const l = lines[i];
       if (!l) return 0;
@@ -99,9 +99,38 @@ class Portfolio {
       if (ghost) ghost.style.opacity = '0.55';
 
       if (this.reduced) {
-        lines.forEach(function (l) { l.style.transition = 'opacity .4s ease'; l.style.opacity = '1'; l.style.setProperty('--reveal', '100%'); });
-        line.style.opacity = '1'; line.style.transform = 'scaleX(1)';
-        if (refl) refl.style.opacity = '1';
+        // iOS sets prefers-reduced-motion for Low Power Mode as well as for Reduce Motion, so a
+        // phone on a low battery lands here with no way to tell the two apart. This used to snap
+        // the entire hero to its finished state, which read as the intro being broken rather than
+        // as a preference being honoured -- and it is the same failure the email glow had.
+        // The sequence still runs; it just runs in opacity alone. Nothing falls, spreads,
+        // displaces or travels: the drop, the ripples, the pool bloom and the cascade are all
+        // still skipped, and the lines are already at --reveal:100% so no wavefront crosses them.
+        // The fades are Web Animations rather than transitions on purpose -- the global rule in
+        // style.css collapses every transition-duration to .01ms, so a transition here would
+        // snap and we would be back where we started.
+        const STEP = 430;
+        const fade = function (el, delay, dur) {
+          if (!el) return;
+          if (!el.animate) { el.style.opacity = '1'; return; }
+          el.style.opacity = '0';
+          el.animate([{ opacity: 0 }, { opacity: 1 }], {
+            duration: dur || 520, delay: delay, easing: 'ease', fill: 'forwards'
+          });
+        };
+        lines.forEach(function (l, i) { l.style.setProperty('--reveal', '100%'); fade(l, 180 + i * STEP); });
+        const afterLines = 180 + lines.length * STEP;
+        // scaleX is set outright, not animated: a line drawing itself across the page is travel.
+        if (line) { line.style.transform = 'scaleX(1)'; fade(line, afterLines, 420); }
+        if (pool) {
+          const lightRest = pool.querySelector('[data-pool-light]');
+          if (lightRest) { lightRest.style.transform = 'none'; lightRest.style.opacity = '.6'; }
+          fade(pool, afterLines + 120, 640);
+        }
+        this.wait(() => {
+          this.heroHandoff(lines[lines.length - 1], pool);
+          fade(document.querySelector('#heroSub p'), 0, 620);
+        }, afterLines + 300);
         return;
       }
 
@@ -137,19 +166,18 @@ class Portfolio {
           ' rgba(var(--accent-rgb),.34) ' + stop(pct + 28) + ',' +
           ' transparent ' + stop(pct + 60) + ')';
         line.style.transformOrigin = ox.toFixed(1) + 'px 50%';
-        line.style.transition = 'opacity .6s ease, transform 2.5s cubic-bezier(.14,.8,.16,1)';
+        line.style.transition = 'opacity .6s ease, transform 2.2s cubic-bezier(.14,.8,.16,1)';
         line.style.opacity = '1';
         line.style.transform = 'scaleX(1)';
         this.ripples(stage, 4, 660, 0, 1.8);
         // The payoff arrives with the impact, not before it. Indexed off lines.length, not
         // hardcoded: the headline was four spans when this was written and is three now.
-        wipe(lines.length - 1);
-        // The reflection is sliced into horizontal bands. The hit displaces the band nearest
-        // the surface first; the disturbance travels down band by band and loses energy fast,
-        // so the word never moves as one object. Each band ends on its own resting offset,
-        // which is what keeps the settled reflection optically broken rather than legible.
-        refl.style.opacity = '1';
-        this.reflRipple(refl);
+        const payoff = wipe(lines.length - 1);
+        // Once the payoff has finished writing, it steps back and the light moves onto the sub
+        // copy -- the sequence reads decisions, then what the decisions are for.
+        this.wait(() => this.heroHandoff(lines[lines.length - 1], pool), payoff * 1000 + 620);
+        // The impact spreads light across the surface: see poolBloom.
+        this.poolBloom(pool);
       };
 
       const drop = () => {
@@ -172,14 +200,22 @@ class Portfolio {
       // last glyph, minus a small overlap, so the wavefront never stops travelling. The drop is
       // released early enough that its impact lands exactly on the last line's cue.
       const OVERLAP = 90;
+      // "People don't experience your design." is a complete sentence; the second one starts on
+      // the next line. The wavefront holds at that boundary instead of overlapping into it, so
+      // the two statements land as two statements.
+      const SENTENCE_PAUSE = 420;
       seatStage();
       // Driven by how many lines there actually are. This was a hardcoded run of four, so
       // merging "People don't experience" and "your design." into one line left the last cue
       // pointing past the end of the list and the drop scheduled against a cue that no longer
       // existed. Nothing here needs editing again if the headline is re-broken.
       const last = lines.length - 1;
-      const at = [1150];
-      for (let i = 1; i <= last; i++) at[i] = at[i - 1] + Math.max(0, litAt(i - 1) * 1000 - OVERLAP);
+      const at = [850];
+      for (let i = 1; i <= last; i++) at[i] = at[i - 1] + Math.max(0, litAt(i - 1) * 1000 + (i === 1 ? SENTENCE_PAUSE : -OVERLAP));
+      // The impact is the one cue that does NOT overlap: the hit has to land as the word above
+      // it ("...your") finishes, so the last cue runs off the full sweep of the line before it
+      // plus a short beat, rather than starting 90ms early like the lines in the middle do.
+      at[last] = at[last - 1] + durOf(last - 1) * 1000 + 110;
       for (let i = 0; i < last; i++) {
         const idx = i;
         // The stage is re-seated on the cue before the impact, when the layout above the
@@ -316,40 +352,133 @@ class Portfolio {
     }, true);
   }
 
-  // Slice-wise surface disturbance. Amplitude decays with depth and with time; the phase is
-  // offset per band so the bands never swing together. Not a fluid sim -- just impact,
-  // propagation, dissipation, stillness, inside ~1s.
-  reflRipple(refl) {
-    const slices = Array.prototype.slice.call(refl.querySelectorAll('[data-rs]'));
-    slices.forEach(function (el, i) {
-      const rest = el.style.transform;
-      const restX = parseFloat((rest.match(/translateX\((-?[\d.]+)px\)/) || [0, 0])[1]) || 0;
-      const sx = (rest.match(/scaleX\(([\d.]+)\)/) || [0, '1'])[1];
-      const baseBlur = parseFloat((el.style.filter.match(/blur\(([\d.]+)px\)/) || [0, 0])[1]) || 0;
-      const depth = Math.exp(-0.14 * i);          // energy left by the time it reaches this band
-      const amp = 30 * depth;
-      const dir = i % 2 ? -1 : 1;                 // adjacent bands shear against each other
-      const phase = i * 0.55;
-      const frames = [0, 0.1, 0.22, 0.35, 0.48, 0.62, 0.76, 0.88, 1].map(function (t) {
-        const decay = Math.exp(-2.3 * t);
-        const x = restX + dir * amp * decay * Math.sin(Math.PI * (t * 2.6 + phase * 0.18));
-        const squash = 1 + dir * 0.018 * decay;   // slight horizontal stretch, no vertical bounce
-        return {
-          offset: t,
-          transform: 'translateX(' + x.toFixed(2) + 'px) scaleX(' + (parseFloat(sx) * squash).toFixed(4) + ')',
-          filter: 'blur(' + (baseBlur + 2.2 * decay).toFixed(2) + 'px)'
-        };
-      });
-      frames[frames.length - 1].transform = rest;
-      frames[frames.length - 1].filter = el.style.filter;
-      if (!el.animate) return;
-      el.animate(frames, {
-        duration: 3300 - i * 55,
-        delay: i * 104,                            // the wave arrives later the deeper it goes
-        easing: 'linear',
-        fill: 'none'
+  // The handoff. "decisions." has landed and been read; it steps back to about two thirds of
+  // its brightness, the pool under the divider settles further, and a violet wash comes up
+  // behind the sub copy, which lifts a few percent. Nothing moves -- only where the light is.
+  // Drives one ripple front: the disc inside an SVG mask grows out of the impact side while the
+  // fractal turbulence displacing its edge is re-seeded every frame and its scale decays. That
+  // is where the noise lives -- the boundary crawls and breaks up as it travels, and the type it
+  // uncovers is never touched. Deceleration is in the easing, energy loss in the displacement.
+  rippleReveal(el, maskIds, filterId, cxPct, cyPct, dur, scale0, scale1) {
+    const box = el.getBoundingClientRect();
+    const cx = box.width * cxPct;
+    const cy = box.height * cyPct;
+    const reach = Math.hypot(Math.max(cx, box.width - cx), Math.max(cy, box.height - cy)) + 48;
+    const fronts = [];
+    maskIds.forEach(function (id) {
+      const mask = document.getElementById(id);
+      if (!mask) return;
+      mask.querySelectorAll('circle').forEach(function (c) {
+        c.setAttribute('cx', cx);
+        c.setAttribute('cy', cy);
+        fronts.push({ c: c, inner: c.hasAttribute('data-front-inner') });
       });
     });
+    const filter = document.getElementById(filterId);
+    const disp = filter && filter.querySelector('[data-disp]');
+    const turb = filter && filter.querySelector('[data-turb]');
+    if (!fronts.length) return;
+
+    const t0 = performance.now();
+    const step = () => {
+      const t = Math.min(1, (performance.now() - t0) / dur);
+      const rad = (1 - Math.pow(1 - t, 3)) * reach;
+      fronts.forEach(function (f) {
+        // The trailing edge of the blurred band closes up to the front by the end, so no
+        // annulus of the soft copy is left showing under the sharp layer.
+        const lag = 54 * (1 - Math.pow(t, 2));
+        f.c.setAttribute('r', Math.max(0, f.inner ? rad - lag : rad).toFixed(1));
+      });
+      if (disp) disp.setAttribute('scale', (scale0 + (scale1 - scale0) * t).toFixed(2));
+      // A new seed each frame is what makes the edge boil rather than slide.
+      if (turb) turb.setAttribute('seed', String(3 + Math.floor(t * 120)));
+      if (t < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+
+  // Both spellings, always. WebKit reads the prefixed property for a mask that points at an
+  // inline SVG <mask>; the unprefixed one is what Firefox reads. The package set only `mask:`,
+  // and the elements it set it on are hidden until the mask fills -- so on an engine that
+  // ignored it, the hero's sub copy was a paragraph left at opacity 0 with nothing to reveal it.
+  setMask(el, value) {
+    el.style.mask = value;
+    el.style.webkitMask = value;
+    el.style.webkitMaskImage = value === 'none' ? 'none' : value;
+  }
+
+  heroHandoff(word, pool) {
+    const white = word && word.querySelector('[data-cascade]');
+    const edge = word && word.querySelector('[data-cascade-edge]');
+    const p = document.querySelector('#heroSub p');
+    if (this.reduced) {
+      // No ripple for reduced motion: the end state, applied at once. The masks are dropped
+      // rather than filled, so nothing depends on a frame loop having run.
+      if (white) this.setMask(white, 'none');
+      if (edge) edge.style.display = 'none';
+      if (p) { p.style.opacity = '1'; this.setMask(p, 'none'); }
+      return;
+    }
+    // The word takes the strongest disturbance: it is closest to the impact. Its sharp layer and
+    // the blurred band riding behind it share one front, so the edge is soft while it passes and
+    // crisp once it has. The divider keeps its purple -- the colour is moving down, not leaving.
+    if (white) {
+      this.rippleReveal(white, ['rippleWord', 'rippleWordEdge'], 'rippleEdge', 0.5, 0, 2700, 38, 9);
+      // The front reaches the far corner at `reach`, and the mask has done its job by then.
+      // Dropping it is also the backstop: rippleReveal bails early if the <mask> is missing,
+      // and a mask an engine cannot resolve hides the element instead of revealing it, so
+      // nothing here may leave content depending on a frame loop that might not have run.
+      this.wait(function () { if (edge) edge.style.display = 'none'; }, 2700);
+      this.wait(() => this.setMask(white, 'none'), 2760);
+    }
+    // Most of the energy is gone by the time the wave reaches the sub copy: a wider, gentler
+    // noise and a slower front. It was masked out entirely until now and arrives in purple --
+    // the colour the word just gave up.
+    this.wait(() => {
+      if (!p) return;
+      p.style.opacity = '1';
+      this.rippleReveal(p, ['rippleSub'], 'rippleEdgeSoft', 0.26, -0.10, 3300, 30, 7);
+      this.wait(() => this.setMask(p, 'none'), 3360);
+    }, 950);
+    const light = pool && pool.querySelector('[data-pool-light]');
+    if (light && light.animate) {
+      light.animate([{ opacity: .6 }, { opacity: .4 }], { duration: 1400, easing: 'ease', fill: 'forwards' });
+    }
+  }
+
+  // Energy from the hit spreading across a wet surface, then settling. The light is scaled out
+  // of the impact point (transform-origin:left center), overshoots slightly in brightness and
+  // rests at 60% of its peak -- it never fades away, so the sub copy keeps sitting inside a
+  // faint violet atmosphere. The shallow ring is the impact itself: it expands mostly sideways,
+  // because the surface is being viewed nearly edge-on.
+  poolBloom(pool) {
+    if (!pool) return;
+    pool.style.opacity = '1';
+    const light = pool.querySelector('[data-pool-light]');
+    const ring = pool.querySelector('[data-pool-ripple]');
+    const EASE = 'cubic-bezier(.16,1,.3,1)';
+
+    if (light && light.animate) {
+      light.animate([
+        { offset: 0,    transform: 'scaleX(.05)', opacity: 0,   easing: EASE },
+        { offset: 0.13, transform: 'scaleX(.17)', opacity: .72, easing: EASE },
+        { offset: 0.39, transform: 'scaleX(.68)', opacity: .95, easing: EASE },
+        { offset: 0.72, transform: 'scaleX(.97)', opacity: 1,   easing: 'ease-out' },
+        { offset: 1,    transform: 'none',        opacity: .6 }
+      ], { duration: 1800, fill: 'forwards' });
+    } else if (light) {
+      light.style.transform = 'none';
+      light.style.opacity = '.6';
+    }
+
+    if (ring && ring.animate) {
+      const w = Math.max(110, Math.min(150, pool.offsetWidth * 0.24));
+      ring.animate([
+        { offset: 0,    width: '10px', height: '2px',  opacity: .2 },
+        { offset: 0.28, opacity: .28 },
+        { offset: 1,    width: w.toFixed(0) + 'px', height: '17px', opacity: 0 }
+      ], { duration: 950, easing: EASE, fill: 'none' });
+    }
   }
 
   // Rings are flattened: a ripple on a surface you are looking across is an ellipse.
@@ -575,21 +704,38 @@ class Portfolio {
     document.querySelectorAll('#heroHeadline [data-line]').forEach(function (l) {
       l.style.transition = 'none';
       l.style.opacity = '0';
+      l.style.animation = 'none';
       l.style.setProperty('--reveal', '0%');
       l.style.transitionDelay = '0s';
       void l.offsetWidth;
       l.style.transition = 'opacity .15s ease, --reveal 2s linear';
     });
+    document.querySelectorAll('#surface mask circle').forEach(function (c) { c.setAttribute('r', '0'); });
     const wl = document.getElementById('waterline');
-    const rf = document.getElementById('decisionsRefl');
+    const rf = document.getElementById('heroPool');
     if (wl) { wl.style.transition = 'none'; wl.style.opacity = '0'; wl.style.transform = 'scaleX(0)'; void wl.offsetWidth; wl.style.transition = 'opacity .5s ease, transform 1.5s cubic-bezier(.19,1,.22,1)'; }
     if (rf) {
-      rf.style.transition = 'none'; rf.style.opacity = '0';
-      rf.querySelectorAll('[data-rs]').forEach(function (s) {
-        if (s.getAnimations) s.getAnimations().forEach(function (a) { a.cancel(); });
+      rf.style.opacity = '0';
+      rf.querySelectorAll('*').forEach(function (el) {
+        if (el.getAnimations) el.getAnimations().forEach(function (a) { a.cancel(); });
       });
-      void rf.offsetWidth;
-      rf.style.transition = 'opacity 1.1s ease';
+      const lt = rf.querySelector('[data-pool-light]');
+      if (lt) { lt.style.transform = 'scaleX(.05)'; lt.style.opacity = '0'; }
+    }
+    // Back to the pre-handoff state: the sub copy hidden and re-masked, the payoff's cascade
+    // layers re-masked. `lines` is local to initHero() and is not in scope here -- reading it
+    // threw a ReferenceError that aborted the rest of this method, so the work section stayed
+    // blank and the hero never replayed. Only the tweaks panel's Replay button calls resetAll,
+    // which is why it went unnoticed.
+    const subP = document.querySelector('#heroSub p');
+    if (subP) { subP.style.opacity = '0'; this.setMask(subP, 'url(#rippleSub)'); }
+    const payoffLine = document.querySelector('#heroHeadline [data-line]:last-of-type');
+    if (payoffLine) {
+      payoffLine.style.animation = 'none';
+      const w = payoffLine.querySelector('[data-cascade]');
+      const e = payoffLine.querySelector('[data-cascade-edge]');
+      if (w) this.setMask(w, 'url(#rippleWord)');
+      if (e) { e.style.display = ''; this.setMask(e, 'url(#rippleWordEdge)'); }
     }
     document.querySelectorAll('#heroDropStage [data-ring]').forEach(function (r) { r.remove(); });
     this.heroPlayed = false;
@@ -641,8 +787,8 @@ class Portfolio {
   }
 
   initAnchors() {
-    const brand = document.querySelector('nav a[aria-label="Kristian Davis, UX Consultant, home"]');
-    if (brand) brand.addEventListener('click', e => { e.preventDefault(); this.resetAll(); });
+    // The brand used to reset and replay the whole page on click. It now behaves like any other
+    // link to the top of the page.
     window.addEventListener('hashchange', () => this.applyIncomingHash());
     document.querySelectorAll('#page a[href^="#"]').forEach(a => {
       a.addEventListener('click', e => {

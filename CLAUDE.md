@@ -15,7 +15,11 @@ rework. Anything about how something works belongs here or in the file itself.
 - Palette: soft-black background (`--bg:#09090B`), off-white text, **one** violet accent
   (`--accent:#a06bff`) used sparingly — no gradients-as-decoration, no multi-color
   palette. `--accent-text:#b48cff` is the same accent lightened to clear 7:1, and is for
-  accent on small body text only; `--accent` stays on decoration and large text. Two
+  accent on small body text only; `--accent` stays on decoration and large text. The
+  2026-09-04 design pass deleted `--accent-text` outright on the grounds that it read as
+  a second purple; it was put back, because the same pass turned the hero sub copy violet,
+  which would have put 5.86:1 on the one paragraph in the hero. Both are still true and
+  the tension is real, but it is the owner's call, not a package's. Two
   raised surfaces (`--bg-raise-1/2`) are for genuinely lifted panels, and `--hairline`
   replaced the old flat `#1c1c1a` dividers. Case study pages are the one exception: each carries a single per-project
   accent instead of the violet (nitefind `#a259ff`, smiteforge `#e0b84a`, zentra
@@ -46,10 +50,15 @@ index.html            homepage: #hero, #work, #about, #contact. The nav (#siteNa
                        so the opening viewport is the headline and nothing else.
 css/style.css          homepage tokens, resets, keyframes, state rules
 js/main.js             homepage logic in one `Portfolio` class: hero wipe and
-                       raindrop, the sliced hero reflection and its impact ripple,
-                       work raindrop + ripples + band reveal, the work wash, spine
-                       progress dot, contact pulse, nav dropdown, the scroll-in nav
-                       reveal, mobile nav, anchor/hash handling, KD reset
+                       raindrop, the reflected light under the waterline (`poolBloom`)
+                       and the handoff that moves the accent from the payoff word onto
+                       the sub copy (`heroHandoff` / `rippleReveal`), work raindrop +
+                       ripples + band reveal, the work wash, spine progress dot,
+                       contact pulse, nav dropdown, the scroll-in nav reveal, mobile
+                       nav, anchor/hash handling. `resetAll()` still exists and works,
+                       but nothing reaches it: the KD-brand click that used to replay
+                       the page was removed in the 2026-09-04 pass, and `js/tweaks.js`
+                       reads `window.portfolio`, which main.js has never assigned
 case-studies/          nitefind, zentra and smiteforge are built. amun is an empty
                        noindex shell — its page, and the entries pointing at it,
                        are the only placeholders left
@@ -89,10 +98,28 @@ _originals/            full-resolution masters the served sizes were cut from.
   four `wipe()` calls; merging two lines left the last cue pointing past the end of the
   list and the drop scheduled against a cue that no longer existed. Re-break the headline
   freely, the sequence follows.
-- **The hero reflection has to sit directly under `#surface`.** It mirrors the
-  headline across the waterline, so anything between the two breaks it. It arrived
-  once placed after `#heroSub` and rendered as a detached blurred smear below the
-  body copy, which on a phone read as a stray artefact rather than a reflection.
+- **What sits under the waterline is light, not a mirrored word.** It was a ten-slice
+  reflection of "decisions." until 2026-09-04; it is now `#heroPool`, absolutely
+  positioned inside `#surface` — overlapping shallow ellipses anchored to the impact
+  point. Being out of flow is load-bearing: as a flow element the reflection pushed the
+  sub copy down and the mobile hero stopped fitting one screen. Its mask is two layers
+  intersected, vertical and horizontal; the horizontal one is not decoration. The two
+  widest pools are centred at 74% and 93% with radii reaching past 100%, so without it
+  the box clips them at full alpha and draws a straight violet edge down the hero.
+- **An SVG mask referenced from HTML needs both spellings.** The cascade layers and the
+  hero sub copy are hidden at `opacity:0` until their mask fills, so `mask:` alone means
+  any engine reading only `-webkit-mask` shows an empty paragraph and never recovers.
+  `setMask()` writes both, and every reveal also schedules a timer that drops the mask
+  outright — the animation is `requestAnimationFrame`-driven, and nothing may leave
+  content depending on a frame loop having run.
+- **`prefers-reduced-motion` is not only Reduce Motion.** iOS reports it under Low Power
+  Mode too, with no way to tell the two apart, so a phone on a low battery takes that
+  branch. The hero used to snap to its finished state there, which read as a broken
+  intro rather than an honoured preference — the same failure the email glow had. It now
+  runs the sequence in opacity alone. Two constraints if you touch it: the global rule in
+  `style.css` collapses every `transition-duration` to `.01ms`, so the fades have to be
+  Web Animations rather than transitions, and nothing in that branch may travel — no
+  drop, no ripple, no pool bloom, no cascade.
 - **The raindrop falls on `transform`, not `top`.** A `top` transition between a
   viewport unit and a percentage is not interpolable and silently teleports.
 - Rings need an explicit `0` size plus a forced reflow between setting the

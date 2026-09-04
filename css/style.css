@@ -5,7 +5,12 @@
 /* --accent is the brand purple: decoration (ghost words, strokes, glows, rules, focus ring) and
    LARGE text, where AAA asks 4.5:1 and #a06bff gives 5.86:1. --accent-text is used ONLY where
    accent lands on small body-size text, which AAA holds to 7:1. Decorative elements are exempt
-   from contrast rules altogether, so nothing aria-hidden was ever lightened. */
+   from contrast rules altogether, so nothing aria-hidden was ever lightened.
+   The 2026-09-04 pass deleted --accent-text and put #a06bff on body copy on the grounds that
+   the lighter value read as a second purple. Two things stopped that: the token is part of the
+   locked system, and the hero sub copy went violet in the same pass, so the change would have
+   put 5.86:1 on the one paragraph in the hero rather than taking it off a stray label. The
+   violet sub copy is kept; it uses the token built for violet on body text. */
 /* Background system: one continuous soft-black environment. --bg is the only page background;
    the two raised surfaces are for genuinely lifted panels (menus, image frames) and nothing else.
    --hairline replaces the old flat #1c1c1a so dividers ride on top of the base rather than
@@ -70,6 +75,23 @@
   0%,100%{ opacity:.34; }
   50%{ opacity:.92; }
 }
+/* The pulse is the only thing telling a visitor the email button is live. Under reduced motion the
+   global rule collapses every animation to 0.01ms, which parked the glow on its dimmest keyframe
+   and read as no glow at all; holding it static instead read as a flat purple aura -- which is what
+   iOS shows, since Reduce Motion and Low Power Mode both set the query. An opacity-only breathe
+   carries no movement, so it is safe here: slower and gentler than the default, but alive. */
+@keyframes btnGlowBreathe{
+  0%,100%{ opacity:.5; }
+  50%{ opacity:.85; }
+}
+@media (prefers-reduced-motion:reduce){
+  .i14-glow{ animation:btnGlowBreathe 6s ease-in-out infinite !important; animation-duration:6s !important; animation-iteration-count:infinite !important; }
+}
+/* On a phone the glow is physically smaller, so it gets more spread. Radius matches the button so
+   the aura reads as coming off the button's edge, not off a square behind it. */
+@media (max-width:900px){
+  .i14-glow{ border-radius:4px; box-shadow:0 0 26px 6px rgba(var(--accent-rgb),.5) !important; }
+}
 
 /* --- interactive states ---
    Hover is wrapped in (hover:hover). A touchscreen has no hover state to leave, so :hover
@@ -115,8 +137,8 @@
   100%{ transform:translateY(0) scaleY(1) skewX(0deg); }
 }
 
-/* Below 900px the row regroups into a card layout (see below): the screenshot runs the full
-   height down the left edge and all copy stacks to its right. */
+/* Below 900px the row regroups into a card layout (see below): the screenshot becomes a cased
+   slab in the left column and all copy stacks to its right. */
 
 /* On desktop, a shared row height and one continuous divider between bands is enough for the
    title/decision/screenshot to read as one project. Stacked on mobile that same divider-only
@@ -136,13 +158,12 @@
   [data-band]:last-of-type{ margin-bottom:clamp(16px,4vw,20px) !important; }
   [data-band] > div{ padding:0 !important; }
 
-  /* The screenshot runs the full height of the card down the left edge and every word sits to
-     its right, so the card reads as one object instead of a stack of loose text blocks. The
-     image is flush to the card's rounded corner -- no padding on the row, the padding moves
-     onto the text column. */
+  /* The screenshot sits in the left column as a cased slab and every word sits to its right, so
+     the card reads as one object instead of a stack of loose text blocks. The column carries the
+     gutter; the slab's own margin insets it from the card edge. */
   [data-band] [data-row]{
     display:grid !important;
-    grid-template-columns:clamp(104px,29vw,136px) minmax(0,1fr) !important;
+    grid-template-columns:clamp(122px,32vw,158px) minmax(0,1fr) !important;
     grid-template-rows:auto auto 1fr !important;
     align-items:start !important;
     gap:0 !important;
@@ -156,29 +177,41 @@
     padding:14px 0 0 0 !important;
     border-left:0 !important; border-top:1px solid rgba(255,255,255,.08);
   }
-  /* the screenshot */
+  /* Same treatment as desktop: the slab holds the screenshot's own 230/498 ratio, so a cover fit
+     shows the whole frame with nothing cropped and nothing letterboxed. The previous full-height
+     stretch had to fall back to contain, which left tinted dead space above and below the image
+     and no casing around it. Radius, ring and drop shadow are lifted from the desktop rule. */
   [data-band] [data-shot]{
-    grid-column:1; grid-row:1 / -1; align-self:stretch !important;
-    width:100% !important; margin-right:0 !important; aspect-ratio:auto !important; min-height:100%;
-    border-radius:15px 0 0 15px !important;
-    box-shadow:none !important; border-right:1px solid rgba(255,255,255,.08);
+    grid-column:1; grid-row:1 / -1; align-self:center !important;
+    width:auto !important; aspect-ratio:230/498 !important; min-height:0;
+    margin:18px 0 18px clamp(14px,4vw,18px) !important;
+    border-radius:9px !important; border-right:0 !important;
+    box-shadow:0 14px 34px -12px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.06) !important;
+    background:rgba(255,255,255,.03) !important;
   }
-  [data-band] [data-shot] img{ object-position:top center !important; }
+  [data-band] [data-shot] img{ object-fit:cover !important; object-position:top center !important; }
 
   [data-band] h3{ font-size:clamp(22px,6vw,28px) !important; }
   [data-band] [data-row] > div:nth-of-type(2) p{ font-size:13.5px !important; }
 }
 @media (max-width:400px){
-  [data-band] [data-row]{ grid-template-columns:106px minmax(0,1fr) !important; }
+  [data-band] [data-row]{ grid-template-columns:120px minmax(0,1fr) !important; }
 }
 
 /* --- hero water surface ---
-   The payoff word is mirrored once, beneath the supporting copy, as ten horizontal slices
-   (see #decisionsRefl in index.html). Each slice carries its own resting displacement, blur
-   and opacity, so the settled reflection is an optically broken form rather than readable
-   upside-down type; the impact response is driven per slice in JS (reflRipple), not by a
-   single keyframe on the whole word. */
-}
+   What sits under the divider is violet light caught on a dark wet surface, not a mirrored
+   word: overlapping shallow ellipses anchored to the impact point, a few blurred streaks, and
+   a vertical mask that kills the bottom third (see #heroPool in index.html). The impact
+   response -- bloom out of the hit, settle at 60% of peak -- is poolBloom in main.js. */
+
+/* Nav items sat on different boxes: the three links are inline-block with a 5px underline gutter
+   while "work" is an inline-flex summary with none, so their text baselines and heights
+   disagreed. One row, centred, with the same gutter on every item. */
+nav ul#navMenu, nav ul.navlist{ align-items:center !important; }
+nav ul#navMenu > li, nav ul.navlist > li{ display:flex; align-items:center; }
+nav ul#navMenu > li > a, nav ul#navMenu summary,
+nav ul.navlist > li > a, nav ul.navlist summary{
+  display:inline-flex !important; align-items:center; padding-bottom:5px; line-height:1;
 }
 
 /* --- hero scroll cue --- */
@@ -202,7 +235,15 @@
    block rather than a thumbnail beside it. --- */
 @media (min-width:900.02px){
   .about-text{ order:1; flex:1 1 0 !important; }
-  .about-media{ order:2; flex:1 1 0 !important; }
+  .about-media{ order:2; flex:1 1 0 !important; align-items:flex-start !important; }
+  /* The slab follows the copy's height only up to a point. Stretched, a short-and-narrow window
+     made the box far taller than the 4:5 source and cover scaled by height, cropping ~30% off
+     the sides. Pinned near the source ratio it never crops more than a few percent, and
+     max-height keeps it from outgrowing the copy beside it. */
+  .about-media > div{
+    flex:0 0 auto !important; width:100%; aspect-ratio:4/4.8;
+    min-height:0 !important; max-height:100%;
+  }
 }
 @media (max-width:900px){
   /* Stacked, the photo has no sibling to take its height from, so it gets an explicit ratio.
@@ -213,8 +254,10 @@
   .about-media{ order:2; flex:1 1 100% !important; max-width:none !important; margin-top:clamp(10px,3vw,22px) !important; }
   .about-media > div{ aspect-ratio:4/5; min-height:0 !important; }
 }
+/* Tablet: the photo is a 4:5 portrait, so a 3/2 landscape box cropped away roughly half of it.
+   Near the source ratio it stays a wide slab beside nothing and still shows the whole frame. */
 @media (max-width:900px) and (min-width:640.02px){
-  .about-media > div{ aspect-ratio:3/2; }
+  .about-media > div{ aspect-ratio:4/4.6; }
 }
 @media (max-width:520px){
   .about-media > div{ aspect-ratio:4/4.4; }
@@ -263,7 +306,7 @@ br[data-mob]{ display:none; }
   }
   .hero-block{ margin-left:0 !important; }
   #heroHeadline [data-line="b"], #heroHeadline [data-line="c"]{ margin-left:clamp(12px,3.4vw,26px) !important; }
-  #decisionsRefl{ margin-left:clamp(12px,3.4vw,26px) !important; }
+  #heroPool{ left:0 !important; width:min(100%,420px) !important; height:clamp(80px,20vw,100px) !important; }
 }
 
 /* --- work bands: the project title picks up its own project colour on hover, not the
@@ -382,9 +425,13 @@ footer a{ min-height:44px; display:inline-flex; align-items:center; }
   padding-top:clamp(96px,11vh,118px) !important;
 }
 #heroHeadline{ font-size:var(--hero-fs) !important; }
-/* The mirror box is clipped to just under half the flipped line, so the wander never spills
-   onto the scroll cue. */
-#decisionsRefl{ height:calc(.42 * var(--hero-fs)); }
+/* Reflected light beneath the divider. Width and height are tied to the divider, not to a
+   fixed pixel box, so the relationship impact -> spread -> vertical fade holds at every size;
+   the bottom ~30px of the box is pure fade-out and carries almost no visible violet. */
+#heroPool{ width:min(62%,620px); height:clamp(96px,12vw,150px); }
+@media (max-width:1100px) and (min-width:900.02px){
+  #heroPool{ width:min(72%,560px); height:clamp(92px,11vw,120px); }
+}
 
 /* Short viewports (laptops at default scaling, browsers with a tab strip and a bookmarks bar):
    the vertical rhythm compresses before anything is pushed under the fold. */
@@ -407,14 +454,24 @@ footer a{ min-height:44px; display:inline-flex; align-items:center; }
 }
 @media (max-width:620px){
 }
-/* Landscape phones and very short windows: the reflection well is the first thing to go. */
+/* Landscape phones and very short windows. The width-based clamps are meaningless here -- an
+   844x390 phone is "desktop-wide" and 390px tall -- so the headline is capped against the
+   viewport HEIGHT and every vertical gap is cut to what the hero needs to stay in one screen:
+   measured at 844x390 and 932x430, the scroll cue now lands ~80px above the fold. */
 @media (max-height:560px){
-  #hero{ --hero-fs: min(clamp(22px,6vw,64px), 13vh) !important; padding-top:84px !important; }
-  /* No room for the mirror in a landscape phone: it is the first thing to go. */
-  #decisionsRefl{ display:none !important; }
-  .hero-block{ margin-top:26px !important; }
-  #heroFoot{ margin-top:18px !important; }
-  #heroSub p{ font-size:14px !important; line-height:1.6 !important; }
+  #hero{
+    --hero-fs: min(clamp(22px,6vw,64px), 9.4vh) !important;
+    padding-top:56px !important; padding-bottom:16px !important;
+    min-height:100svh !important; justify-content:center !important;
+  }
+  #hero > div:first-of-type{ margin-top:0 !important; }
+  /* No room for the reflected light in a landscape phone: it is the first thing to go. */
+  #heroPool{ display:none !important; }
+  #heroGhost{ display:none !important; }
+  .hero-block{ margin-top:clamp(10px,2.6vh,18px) !important; }
+  #heroSub{ margin-top:8px !important; }
+  #heroSub p{ font-size:13.5px !important; line-height:1.5 !important; max-width:58ch !important; }
+  #heroFoot{ margin-top:clamp(10px,2.4vh,18px) !important; }
 }
 
 /* The BIO and CONTACT ghosts are now in flow above their sections, so they need the same

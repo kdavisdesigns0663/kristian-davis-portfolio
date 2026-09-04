@@ -32,7 +32,7 @@
       <span class="nav-name" style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:17px;letter-spacing:-.01em;color:#e9e7df;white-space:nowrap;transition:color .3s ease">Kristian Davis</span>
       <span class="nav-role" aria-hidden="true" style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:#a8a49b;white-space:nowrap"><span style="color:var(--accent)">•</span> UX Consultant</span>
     </a>
-    <button id="navToggle" type="button" aria-expanded="false" aria-controls="navMenu" style="display:none;align-items:center;gap:9px;min-height:44px;padding:10px 16px;border:1px solid #63625c;border-radius:4px;background:transparent;color:#e9e7df;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.06em;cursor:pointer">menu<span aria-hidden="true" style="font-size:8px;transition:transform .3s cubic-bezier(.19,1,.22,1)">▼</span></button>
+    <button id="navToggle" type="button" aria-expanded="false" aria-controls="navMenu" style="display:none;align-items:center;gap:9px;min-height:44px;padding:10px 16px;border:1px solid #63625c;border-radius:4px;background:transparent;color:#e9e7df;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.06em;cursor:pointer">Menu<span aria-hidden="true" style="font-size:8px;transition:transform .3s cubic-bezier(.19,1,.22,1)">▼</span></button>
     <ul id="navMenu" style="display:flex;gap:clamp(18px,3vw,32px);list-style:none;font-family:'JetBrains Mono',monospace;font-size:13px">
       <li><a class="i3" href="#hero" style="display:inline-block;padding-bottom:5px;color:#a09c92;background:linear-gradient(90deg,var(--accent),var(--accent)) left bottom / 0% 1px no-repeat;transition:background-size .45s cubic-bezier(.19,1,.22,1),color .3s ease,transform .45s cubic-bezier(.19,1,.22,1)">home</a></li>
       <li style="position:relative">
@@ -63,9 +63,34 @@
   <div id="surface" style="position:relative;z-index:2">
     <h1 id="heroHeadline" style="position:relative;z-index:2;margin-top:0;margin-left:clamp(0px,2vw,24px);font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(34px,6.6vw,104px);line-height:1.02;letter-spacing:-.032em;max-width:32ch">
     <span data-line="a" style="display:block;width:fit-content;padding-bottom:.14em;margin-bottom:-.14em;color:#e9e7df;opacity:0;-webkit-mask-image:linear-gradient(90deg,#000 0%,#000 var(--reveal,0%),transparent calc(var(--reveal,0%) + 1.6em),transparent 100%);mask-image:linear-gradient(90deg,#000 0%,#000 var(--reveal,0%),transparent calc(var(--reveal,0%) + 1.6em),transparent 100%);-webkit-mask-size:100% 140%;mask-size:100% 140%;transition:opacity .15s ease, --reveal 2s linear">People don't experience<br data-mob> your design.</span>
-    <span data-line="b" style="display:block;width:fit-content;padding-bottom:.14em;margin-bottom:-.14em;margin-left:clamp(8px,1.5vw,26px);color:#e9e7df;opacity:0;-webkit-mask-image:linear-gradient(90deg,#000 0%,#000 var(--reveal,0%),transparent calc(var(--reveal,0%) + 1.6em),transparent 100%);mask-image:linear-gradient(90deg,#000 0%,#000 var(--reveal,0%),transparent calc(var(--reveal,0%) + 1.6em),transparent 100%);-webkit-mask-size:100% 140%;mask-size:100% 140%;transition:opacity .15s ease, --reveal 2s linear">They experience your</span>
-    <span data-line="c" style="display:block;width:fit-content;padding-bottom:.14em;margin-bottom:-.14em;margin-left:clamp(8px,1.5vw,26px);color:var(--accent);opacity:0;-webkit-mask-image:linear-gradient(90deg,#000 0%,#000 var(--reveal,0%),transparent calc(var(--reveal,0%) + 1.6em),transparent 100%);mask-image:linear-gradient(90deg,#000 0%,#000 var(--reveal,0%),transparent calc(var(--reveal,0%) + 1.6em),transparent 100%);-webkit-mask-size:100% 140%;mask-size:100% 140%;transition:opacity .15s ease, --reveal 2s linear">decisions.</span>
+    <span data-line="b" style="display:block;width:fit-content;padding-bottom:.14em;margin-bottom:-.14em;margin-top:.26em;margin-left:clamp(8px,1.5vw,26px);color:#e9e7df;opacity:0;-webkit-mask-image:linear-gradient(90deg,#000 0%,#000 var(--reveal,0%),transparent calc(var(--reveal,0%) + 1.6em),transparent 100%);mask-image:linear-gradient(90deg,#000 0%,#000 var(--reveal,0%),transparent calc(var(--reveal,0%) + 1.6em),transparent 100%);-webkit-mask-size:100% 140%;mask-size:100% 140%;transition:opacity .15s ease, --reveal 2s linear">They experience your</span>
+    <span data-line="c" style="display:block;width:fit-content;padding-bottom:.14em;margin-bottom:-.14em;margin-left:clamp(8px,1.5vw,26px);color:var(--accent);opacity:0;-webkit-mask-image:linear-gradient(90deg,#000 0%,#000 var(--reveal,0%),transparent calc(var(--reveal,0%) + 1.6em),transparent 100%);mask-image:linear-gradient(90deg,#000 0%,#000 var(--reveal,0%),transparent calc(var(--reveal,0%) + 1.6em),transparent 100%);-webkit-mask-size:100% 140%;mask-size:100% 140%;transition:opacity .15s ease, --reveal 2s linear;position:relative">decisions.<span data-cascade-edge aria-hidden="true" style="position:absolute;left:0;top:0;white-space:nowrap;color:#e9e7df;filter:blur(5px);mask:url(#rippleWordEdge);-webkit-mask:url(#rippleWordEdge)">decisions.</span><span data-cascade aria-hidden="true" style="position:absolute;left:0;top:0;white-space:nowrap;color:#e9e7df;mask:url(#rippleWord);-webkit-mask:url(#rippleWord)">decisions.</span></span>
   </h1>
+
+    <svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute;pointer-events:none">
+      <filter id="rippleEdge" x="-40%" y="-40%" width="180%" height="180%" color-interpolation-filters="sRGB">
+        <feTurbulence data-turb type="fractalNoise" baseFrequency="0.018 0.052" numOctaves="3" seed="7" result="n"></feTurbulence>
+        <feGaussianBlur in="SourceGraphic" stdDeviation="7" result="soft"></feGaussianBlur>
+        <feDisplacementMap data-disp in="soft" in2="n" scale="36" xChannelSelector="R" yChannelSelector="G"></feDisplacementMap>
+      </filter>
+      <filter id="rippleEdgeSoft" x="-40%" y="-40%" width="180%" height="180%" color-interpolation-filters="sRGB">
+        <feTurbulence data-turb type="fractalNoise" baseFrequency="0.016 0.044" numOctaves="3" seed="19" result="n"></feTurbulence>
+        <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="soft"></feGaussianBlur>
+        <feDisplacementMap data-disp in="soft" in2="n" scale="16" xChannelSelector="R" yChannelSelector="G"></feDisplacementMap>
+      </filter>
+      <mask id="rippleWord" maskContentUnits="userSpaceOnUse">
+        <circle data-front cx="0" cy="0" r="0" fill="#fff" filter="url(#rippleEdge)"></circle>
+      </mask>
+      <mask id="rippleWordEdge" maskContentUnits="userSpaceOnUse">
+        <g filter="url(#rippleEdge)">
+          <circle data-front cx="0" cy="0" r="0" fill="#fff"></circle>
+          <circle data-front-inner cx="0" cy="0" r="0" fill="#000"></circle>
+        </g>
+      </mask>
+      <mask id="rippleSub" maskContentUnits="userSpaceOnUse">
+        <circle data-front cx="0" cy="0" r="0" fill="#fff" filter="url(#rippleEdgeSoft)"></circle>
+      </mask>
+    </svg>
 
     <div id="waterline" aria-hidden="true" style="position:relative;z-index:2;height:1px;margin-top:clamp(10px,1.2vw,18px);background:linear-gradient(90deg, rgba(var(--accent-rgb),.55), rgba(var(--accent-rgb),.14) 46%, transparent 82%);opacity:0;transform:scaleX(0);transform-origin:left;transition:opacity .5s ease, transform 1.5s cubic-bezier(.19,1,.22,1)"></div>
 
@@ -74,25 +99,38 @@
       <div data-flash style="position:absolute;top:0;left:0;width:5px;height:5px;border-radius:50%;background:#fff;transform:translate(-50%,-50%);opacity:0"></div>
     </div>
 
-  </div>
+    <!-- Reflected light on a wet surface, not a mirrored word. The mask is two layers
+         intersected: the vertical fade the light needs, and a horizontal one at the right
+         edge. Without the second, the two widest pools (centred at 74% and 93% with radii
+         that reach past 100%) were cut off by the box with alpha still on them, which drew
+         a faint but straight violet edge down the hero. Everything is anchored to the
+         impact point (8% of this box, which is ~7% of the divider): the pools are shallow
+         left-anchored ellipses that stretch far further right than left, the mask kills the
+         bottom third, and [data-pool-light] carries the bloom animation from the hit
+         (poolBloom in main.js) and settles at 60% of its peak. -->
+    <div id="heroPool" aria-hidden="true" style="position:absolute;left:2%;top:calc(100% - 1px);z-index:0;pointer-events:none;overflow:visible;opacity:0;-webkit-mask-image:linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,.98) 11%, rgba(0,0,0,.7) 31%, rgba(0,0,0,.4) 54%, rgba(0,0,0,.15) 77%, transparent 100%),linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 58%, rgba(0,0,0,.55) 82%, transparent 100%);-webkit-mask-composite:source-in;mask-image:linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,.98) 11%, rgba(0,0,0,.7) 31%, rgba(0,0,0,.4) 54%, rgba(0,0,0,.15) 77%, transparent 100%),linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 58%, rgba(0,0,0,.55) 82%, transparent 100%);mask-composite:intersect">
+      <div data-pool-light style="position:absolute;inset:0;transform-origin:left center;transform:scaleX(.05);opacity:0;background:
+        radial-gradient(ellipse 14% 13% at 8% 7%, rgba(var(--accent-rgb),.22), rgba(var(--accent-rgb),0) 70%),
+        radial-gradient(ellipse 34% 30% at 22% 14%, rgba(var(--accent-rgb),.15), rgba(var(--accent-rgb),0) 72%),
+        radial-gradient(ellipse 52% 34% at 44% 18%, rgba(var(--accent-rgb),.115), rgba(var(--accent-rgb),0) 74%),
+        radial-gradient(ellipse 46% 30% at 74% 22%, rgba(132,104,255,.062), rgba(132,104,255,0) 76%),
+        radial-gradient(ellipse 30% 24% at 93% 20%, rgba(var(--accent-rgb),.038), rgba(var(--accent-rgb),0) 78%)">
+      <span style="position:absolute;left:9%;top:9%;width:32%;height:2px;border-radius:50%;opacity:.07;filter:blur(7px);transform:rotate(-0.3deg);background:linear-gradient(90deg, rgba(var(--accent-rgb),0), rgba(var(--accent-rgb),1) 28%, rgba(var(--accent-rgb),.45) 68%, rgba(var(--accent-rgb),0))"></span>
+      <span style="position:absolute;left:17%;top:19%;width:46%;height:3px;border-radius:50%;opacity:.055;filter:blur(10px);transform:rotate(0.2deg);background:linear-gradient(90deg, rgba(var(--accent-rgb),0), rgba(var(--accent-rgb),1) 28%, rgba(var(--accent-rgb),.45) 68%, rgba(var(--accent-rgb),0))"></span>
+      <span style="position:absolute;left:47%;top:14%;width:29%;height:2px;border-radius:50%;opacity:.045;filter:blur(9px);transform:rotate(-0.15deg);background:linear-gradient(90deg, rgba(var(--accent-rgb),0), rgba(var(--accent-rgb),1) 28%, rgba(var(--accent-rgb),.45) 68%, rgba(var(--accent-rgb),0))"></span>
+      <span style="position:absolute;left:28%;top:31%;width:38%;height:2px;border-radius:50%;opacity:.04;filter:blur(12px);transform:rotate(0.35deg);background:linear-gradient(90deg, rgba(var(--accent-rgb),0), rgba(var(--accent-rgb),1) 28%, rgba(var(--accent-rgb),.45) 68%, rgba(var(--accent-rgb),0))"></span>
+      <span style="position:absolute;left:12%;top:43%;width:26%;height:4px;border-radius:50%;opacity:.032;filter:blur(14px);transform:rotate(-0.2deg);background:linear-gradient(90deg, rgba(var(--accent-rgb),0), rgba(var(--accent-rgb),1) 28%, rgba(var(--accent-rgb),.45) 68%, rgba(var(--accent-rgb),0))"></span>
+      </div>
+      <div data-pool-ripple style="position:absolute;left:8%;top:1px;width:10px;height:2px;border:1px solid rgba(var(--accent-rgb),.6);border-radius:50%;transform:translate(-50%,-50%);opacity:0"></div>
+    </div>
 
-  <!-- Directly under #surface on purpose: this mirrors the headline across the waterline,
-       so anything between the two breaks the reflection. -->
-  <div id="decisionsRefl" aria-hidden="true" style="position:relative;z-index:1;margin-top:clamp(10px,1.4vh,20px);margin-left:calc(clamp(0px,2vw,24px) + clamp(8px,1.5vw,26px));overflow:hidden;pointer-events:none;opacity:0;font-size:var(--hero-fs);line-height:1.02;transition:opacity 1.1s ease;-webkit-mask-image:linear-gradient(to bottom, rgba(0,0,0,1), rgba(0,0,0,.58) 42%, rgba(0,0,0,.2) 74%, transparent 96%);mask-image:linear-gradient(to bottom, rgba(0,0,0,1), rgba(0,0,0,.58) 42%, rgba(0,0,0,.2) 74%, transparent 96%)">
-      <div data-rs style="position:relative;height:.043em;overflow:hidden;opacity:0.4;filter:blur(1.1px);transform:translateX(-3px) scaleX(1)"><span style="position:absolute;left:0;top:calc(-.043em * 0);display:block;width:max-content;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1em;line-height:1.02;letter-spacing:-.032em;color:var(--accent);transform:scaleY(-.42) translateY(-100%);transform-origin:top left">decisions.</span></div>
-      <div data-rs style="position:relative;height:.043em;overflow:hidden;opacity:0.38;filter:blur(1.5px);transform:translateX(4px) scaleX(1.008)"><span style="position:absolute;left:0;top:calc(-.043em * 1);display:block;width:max-content;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1em;line-height:1.02;letter-spacing:-.032em;color:var(--accent);transform:scaleY(-.42) translateY(-100%);transform-origin:top left">decisions.</span></div>
-      <div data-rs style="position:relative;height:.043em;overflow:hidden;opacity:0.36;filter:blur(1.9px);transform:translateX(-5px) scaleX(1)"><span style="position:absolute;left:0;top:calc(-.043em * 2);display:block;width:max-content;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1em;line-height:1.02;letter-spacing:-.032em;color:var(--accent);transform:scaleY(-.42) translateY(-100%);transform-origin:top left">decisions.</span></div>
-      <div data-rs style="position:relative;height:.043em;overflow:hidden;opacity:0.33;filter:blur(2.4px);transform:translateX(2px) scaleX(0.994)"><span style="position:absolute;left:0;top:calc(-.043em * 3);display:block;width:max-content;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1em;line-height:1.02;letter-spacing:-.032em;color:var(--accent);transform:scaleY(-.42) translateY(-100%);transform-origin:top left">decisions.</span></div>
-      <div data-rs style="position:relative;height:.043em;overflow:hidden;opacity:0.29;filter:blur(2.9px);transform:translateX(6px) scaleX(1.012)"><span style="position:absolute;left:0;top:calc(-.043em * 4);display:block;width:max-content;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1em;line-height:1.02;letter-spacing:-.032em;color:var(--accent);transform:scaleY(-.42) translateY(-100%);transform-origin:top left">decisions.</span></div>
-      <div data-rs style="position:relative;height:.043em;overflow:hidden;opacity:0.25;filter:blur(3.4px);transform:translateX(-6px) scaleX(1)"><span style="position:absolute;left:0;top:calc(-.043em * 5);display:block;width:max-content;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1em;line-height:1.02;letter-spacing:-.032em;color:var(--accent);transform:scaleY(-.42) translateY(-100%);transform-origin:top left">decisions.</span></div>
-      <div data-rs style="position:relative;height:.043em;overflow:hidden;opacity:0.21;filter:blur(4px);transform:translateX(4px) scaleX(0.99)"><span style="position:absolute;left:0;top:calc(-.043em * 6);display:block;width:max-content;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1em;line-height:1.02;letter-spacing:-.032em;color:var(--accent);transform:scaleY(-.42) translateY(-100%);transform-origin:top left">decisions.</span></div>
-      <div data-rs style="position:relative;height:.043em;overflow:hidden;opacity:0.16;filter:blur(4.6px);transform:translateX(-2px) scaleX(1.014)"><span style="position:absolute;left:0;top:calc(-.043em * 7);display:block;width:max-content;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1em;line-height:1.02;letter-spacing:-.032em;color:var(--accent);transform:scaleY(-.42) translateY(-100%);transform-origin:top left">decisions.</span></div>
-      <div data-rs style="position:relative;height:.043em;overflow:hidden;opacity:0.12;filter:blur(5.3px);transform:translateX(6px) scaleX(1)"><span style="position:absolute;left:0;top:calc(-.043em * 8);display:block;width:max-content;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1em;line-height:1.02;letter-spacing:-.032em;color:var(--accent);transform:scaleY(-.42) translateY(-100%);transform-origin:top left">decisions.</span></div>
-      <div data-rs style="position:relative;height:.043em;overflow:hidden;opacity:0.09;filter:blur(6px);transform:translateX(-4px) scaleX(0.986)"><span style="position:absolute;left:0;top:calc(-.043em * 9);display:block;width:max-content;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1em;line-height:1.02;letter-spacing:-.032em;color:var(--accent);transform:scaleY(-.42) translateY(-100%);transform-origin:top left">decisions.</span></div>
   </div>
 
   <div id="heroSub" style="position:relative;z-index:2;margin-top:clamp(16px,2.2vh,28px);margin-left:clamp(0px,2vw,24px);padding-left:clamp(0px,2vw,24px)">
-    <p style="max-width:46ch;font-size:clamp(15px,1.15vw,17px);line-height:1.7;color:#a09c92;text-wrap:pretty">Helping businesses navigate complexity through thoughtful strategy and purposeful design.</p>
+    <!-- Hidden until the cascade reaches it: --cascade is a downward front (see style.css), so
+         the copy is masked out at 0% and wipes in from the top as the front arrives, in purple.
+         Driven by heroHandoff() in main.js. -->
+    <p style="position:relative;z-index:1;max-width:46ch;font-size:clamp(15px,1.15vw,17px);line-height:1.7;color:var(--accent-text);text-wrap:pretty;opacity:0;mask:url(#rippleSub);-webkit-mask:url(#rippleSub);transition:opacity .01s linear">Helping businesses navigate complexity through thoughtful strategy and purposeful design.</p>
   </div>
 
   <div id="heroFoot" style="position:relative;z-index:2;margin-top:clamp(24px,3.4vh,52px);margin-left:clamp(0px,2vw,24px);padding-left:clamp(0px,2vw,24px);display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:flex-end;gap:clamp(20px,3vw,48px)">
@@ -297,7 +335,6 @@
     <span>© 2026 Kristian Davis</span>
     <span>Denver, CO</span>
   </footer>
-</section>
 
 </div>
 <script src="js/main.js"></script>
