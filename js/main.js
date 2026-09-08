@@ -14,8 +14,8 @@ class Portfolio {
     // true for it, so the vendor string is the only honest test. Where it is true the ripple
     // runs off a radial-gradient front instead (rippleRevealGradient).
     this.noSvgMask = /apple/i.test(navigator.vendor || '');
-    this.fall = 1;
-    // The hero drop falls at the live site's pace; the work drop keeps its own.
+    // One pace for both drops: the work drop derives its fall speed from heroFall (see
+    // initDrop), so there is no second constant to keep in step with this one.
     this.heroFall = 2.9;
     this.initHero();
     // Bands are put into their hidden state BEFORE the drop is wired: the reverse order lets
@@ -261,7 +261,11 @@ class Portfolio {
       list.style.opacity = '1';
       wash.style.transition = 'clip-path 1.7s cubic-bezier(.19,1,.22,1)';
       wash.style.clipPath = 'circle(150% at 50% 0%)';
-      bands.forEach(function (b) { b.style.opacity = '1'; b.style.clipPath = 'inset(0 0 0% 0)'; });
+      bands.forEach(function (b) {
+        b.dataset.landed = '1';
+        b.style.opacity = '1';
+        b.style.clipPath = 'inset(0 0 0% 0)';
+      });
       stage.querySelector('[data-drop-wrap]').style.opacity = '0';
       this.stepQueue = null;
     };
@@ -279,8 +283,11 @@ class Portfolio {
       const centreOf = b => Math.round(b.getBoundingClientRect().top - sTop + b.offsetHeight / 2);
 
       const land = (y, i) => {
-        wrap.style.transition = 'transform .16s cubic-bezier(.22,.9,.3,1), opacity .14s ease-out .03s, filter .16s ease-out';
-        wrap.style.transform = 'translate(-50%,' + (y + 4) + 'px) scale(2.3,0.06)';
+        // The same impact as the hero's, at the same durations. This used to flatten in .16s and
+        // flash in .34s against the hero's .34s and .8s, which is most of why the work section
+        // read as a faster, lighter animation on a page whose opening is deliberately slow.
+        wrap.style.transition = 'transform .34s cubic-bezier(.3,.7,.3,1), opacity .3s ease-out .06s, filter .34s ease-out';
+        wrap.style.transform = 'translate(-50%,' + (y + 4) + 'px) scale(2.4,0.06)';
         wrap.style.opacity = '0';
         wrap.style.filter = 'blur(1px)';
 
@@ -289,11 +296,16 @@ class Portfolio {
         flash.style.transform = 'translate(-50%,-50%) scale(1)';
         flash.style.opacity = '1';
         void flash.offsetWidth;
-        flash.style.transition = 'transform .34s cubic-bezier(.16,1,.3,1), opacity .32s ease-out';
-        flash.style.transform = 'translate(-50%,-50%) scale(7)';
+        flash.style.transition = 'transform .8s cubic-bezier(.16,1,.3,1), opacity .74s ease-out';
+        flash.style.transform = 'translate(-50%,-50%) scale(9)';
         flash.style.opacity = '0';
 
-        this.ripples(stage, 2, 480, y);
+        // Two rings reaching 480px at single speed read as a click, not as something landing in
+        // water. The hero's set is four at 660 and 1.8x slower; the first hit here is that hit
+        // exactly. The drop has spent some of itself by the time it reaches the bands below, so
+        // those get one ring fewer and slightly less reach -- still the same gesture, decaying.
+        if (i === 0) this.ripples(stage, 4, 660, y, 1.8);
+        else this.ripples(stage, 3, 570, y, 1.65);
         this.revealBand(bands[i]);
         if (i === 0) {
           list.style.opacity = '1';
@@ -302,11 +314,26 @@ class Portfolio {
         }
       };
 
+      // One drop working its way down the list, at the pace the hero drop falls: the hero covers
+      // 0.6 of the viewport in heroFall seconds, and every fall here runs at that same speed over
+      // its own distance. Durations are a consequence of the layout rather than constants, which
+      // also retires the old fixed 0.42s hop -- the gaps between bands are not equal, and a
+      // phone's stacked cards sit further apart than a desktop's rows, so one number could not be
+      // right for both. Nothing is capped: a cap is a speed change by another name.
+      const speed = (window.innerHeight * 0.6) / this.heroFall;
+      const fallFor = px => Math.max(0.42, Math.abs(px) / speed);
+
+      // Where the drop enters. 0.6vh above the first band is the hero's own distance, but the
+      // section is only part-scrolled when this fires, so that point is often still on screen --
+      // measured at 1440x900 it sat 259px down the viewport, and the drop appeared out of nothing
+      // in mid-air instead of falling in. Whichever is higher wins: the hero's distance, or just
+      // above the viewport's top edge.
       const steps = [];
-      let from = -Math.round(window.innerHeight * 0.55);
+      let from = Math.min(centreOf(bands[0]) - Math.round(window.innerHeight * 0.6),
+                          -Math.round(sTop) - 60);
       bands.forEach((b, i) => {
         const y = centreOf(b);
-        steps.push({ y: y, from: from, dur: i === 0 ? this.fall : Math.max(0.34, this.fall * 0.42), i: i });
+        steps.push({ y: y, from: from, dur: fallFor(y - from), i: i });
         from = y;
       });
       this.stepQueue = steps.slice();
@@ -319,13 +346,17 @@ class Portfolio {
         wrap.style.filter = 'blur(0px)';
         wrap.style.opacity = '0';
         void wrap.offsetHeight;
-        wrap.style.transition = 'transform ' + st.dur + 's cubic-bezier(.36,.06,.29,.99), opacity .2s ease';
+        // The hero's fall curve, not a near-copy of it: .36,.06,.29,.99 and .42,.05,.34,1 are
+        // close enough to look like a typo and far enough apart to feel like a different weight.
+        wrap.style.transition = 'transform ' + st.dur + 's cubic-bezier(.42,.05,.34,1), opacity .6s ease';
         wrap.style.transform = 'translate(-50%,' + st.y + 'px) scaleY(1.45)';
         wrap.style.opacity = '1';
         this.wait(() => {
           land(st.y, st.i);
           this.stepQueue = steps.slice(idx + 1);
-          this.wait(() => run(idx + 1), 250);
+          // Long enough for the rings to be read as rings: they stagger 306ms apart at the hero's
+          // 1.8x, so leaving at 250 started the next fall before the second ring had been born.
+          this.wait(() => run(idx + 1), 360);
         }, st.dur * 1000);
       };
       run(0);
@@ -343,9 +374,19 @@ class Portfolio {
     let queuedWork = false;
     const check = () => {
       queuedWork = false;
-      if (this.workRevealed) { window.removeEventListener('scroll', this.onWorkScroll); return; }
-      const r = (bands[0] || section).getBoundingClientRect();
-      if (r.top < window.innerHeight * 0.8 && r.bottom > 0) play();
+      if (!this.workRevealed) {
+        const r = (bands[0] || section).getBoundingClientRect();
+        if (r.top < window.innerHeight * 0.8 && r.bottom > 0) play();
+        return;
+      }
+      // The sequence runs at the hero's fall speed now, which is slow enough to be outrun: at
+      // 1440x900 the last band lands 11.2s in, and a visitor scrolling briskly would reach rows
+      // the drop has not got to yet and find them blank. Any band already scrolled past is
+      // revealed where it stands; the drop carries on to the ones below, and revealBand marks the
+      // band so its arrival does not replay the settle a second time.
+      if (!this.stepQueue) { window.removeEventListener('scroll', this.onWorkScroll); return; }
+      const mid = window.innerHeight * 0.5;
+      bands.forEach(b => { if (b.getBoundingClientRect().bottom < mid) this.revealBand(b); });
     };
     this.onWorkScroll = () => { if (queuedWork) return; queuedWork = true; requestAnimationFrame(check); };
     window.addEventListener('scroll', this.onWorkScroll, { passive: true });
@@ -597,7 +638,8 @@ class Portfolio {
   }
 
   revealBand(b) {
-    if (!b) return;
+    if (!b || b.dataset.landed) return;
+    b.dataset.landed = '1';
     b.style.opacity = '1';
     b.style.clipPath = 'inset(0 0 0% 0)';
     if (this.reduced) return;
@@ -619,6 +661,9 @@ class Portfolio {
 
   initBands() {
     Array.prototype.slice.call(document.querySelectorAll('[data-band]')).forEach(b => {
+      // data-landed is revealBand's guard, so it belongs with the rest of the hidden state:
+      // leaving it set here would make a band ignore the drop that is supposed to reveal it.
+      delete b.dataset.landed;
       b.style.opacity = '0';
       b.style.clipPath = 'inset(0 0 100% 0)';
       b.style.transition = 'opacity .5s ease, clip-path .95s cubic-bezier(.19,1,.22,1)';
@@ -826,6 +871,7 @@ class Portfolio {
     wash.style.clipPath = 'circle(0% at 50% 0%)';
     void wash.offsetWidth;
     document.querySelectorAll('[data-band]').forEach(function (b) {
+      delete b.dataset.landed;
       b.style.opacity = '0';
       b.style.clipPath = 'inset(0 0 100% 0)';
       b.querySelector('[data-row]').style.animation = 'none';

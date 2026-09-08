@@ -111,11 +111,9 @@
     if (rf) rf.style.opacity = v;
   });
 
-  var dropSpeed = slider('raindrop fall', 0.4, 2.4, 0.1, (p && p.fall) || 1, 's', function (v) {
-    if (p) p.fall = v;
-  });
-
-  var heroSpeed = slider('hero fall', 0.6, 3, 0.1, (p && p.heroFall) || 1.6, 's', function (v) {
+  // One slider, because there is one pace: the work drop takes its speed from heroFall too,
+  // so the separate "raindrop fall" control that used to sit here drove a field nothing read.
+  var heroSpeed = slider('drop fall', 0.6, 3, 0.1, (p && p.heroFall) || 2.9, 's', function (v) {
     if (p) p.heroFall = v;
   });
 
@@ -132,7 +130,7 @@
   note.textContent = 'session only · not saved';
   note.style.cssText = 'font-size:9px;letter-spacing:.06em;color:#5a5754;text-align:center';
 
-  [accentGroup, ghostGroup, ghostStrength, reflStrength, dropSpeed, heroSpeed, replay, note]
+  [accentGroup, ghostGroup, ghostStrength, reflStrength, heroSpeed, replay, note]
     .forEach(function (el) { panel.appendChild(el); });
   document.body.appendChild(panel);
 })();
