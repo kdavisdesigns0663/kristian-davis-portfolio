@@ -89,21 +89,23 @@ _originals/            full-resolution masters the served sizes were cut from.
   is no second mobile stage and no JS layout switch — earlier versions had both,
   and a `display:none` stage that still ran its timers was the reason. The band is a
   row on desktop and becomes a bordered card below 900px, all in `css/style.css`.
-- **There is one fall speed on the site, and `heroFall` is it.** The work drop had its
-  own `this.fall` and fixed per-hop durations, which put it at 790–1020 px/s against the
-  hero's 166–186: four to five times faster, on a page whose opening is deliberately slow.
-  `initDrop()` derives px/sec from `heroFall` and divides each fall's own distance by it,
-  so durations follow the layout — which also retired a fixed 0.42s hop that could not be
-  right for both a desktop row and a phone card, since those are not the same distance
-  apart. Nothing is capped: a cap is a speed change wearing a different hat. Two
-  consequences worth knowing before touching it. The entrance cannot simply start 0.6vh
-  above the first band — the section is only part-scrolled when the sequence fires, so
-  that point is usually still on screen and the drop appears out of nothing in mid-air;
-  it starts at whichever is higher, that or just above the viewport's top edge. And the
-  full sequence now runs ~11.5s rather than ~3.3s, which is long enough to be outrun, so
-  the scroll handler reveals any band the visitor has already passed and `revealBand()`
-  is guarded by `data-landed` so the drop arriving later does not replay the settle.
-  Clear that marker anywhere bands are reset — `initBands()` and `resetAll()` both do.
+- **The page accelerates as you go down it, and matching one speed across it does not
+  work.** The hero is the slowest thing on the site on purpose: it is the introduction and
+  it has the visitor's whole attention. The work drop enters faster and gains on every
+  band (`ENTRY`/`GAIN` in `initDrop()`), so the first project lands deliberately at ~1.15s
+  and the last snaps in at ~3.9s; the beat between hits, the ring set and the band settle
+  all ride the same `GAIN` curve, or the drop accelerates away and leaves a slow settle
+  behind it. Running the work drop at the hero's exact fall speed was tried on 2026-09-05
+  and reverted the same day — it was consistent and it was wrong, taking 11.5s with the
+  last band at 11.2s, and the section sat empty long enough to read as broken rather than
+  as slow. What carries across the page is the impact, the easing and the ring set, and
+  those do match the hero exactly; only the clock is different. Two things not to undo:
+  the entrance cannot simply start 0.6vh above the first band, because the section is only
+  part-scrolled when the sequence fires, so that point is usually still on screen and the
+  drop appears out of nothing in mid-air (it starts at whichever is higher, that or just
+  above the viewport's edge); and the scroll handler reveals any band already scrolled
+  past, with `revealBand()` guarded by `data-landed` so a later arrival does not replay the
+  settle. Clear that marker anywhere bands are reset — `initBands()` and `resetAll()` do.
 - **The hero headline's size is set by the first phrase, not by taste.** "People don't
   experience your design." measures 16.96em in Space Grotesk 700 at the tracking used
   here, and it has to hold one line. The column the hero leaves it is the viewport less

@@ -303,10 +303,12 @@ class Portfolio {
         // Two rings reaching 480px at single speed read as a click, not as something landing in
         // water. The hero's set is four at 660 and 1.8x slower; the first hit here is that hit
         // exactly. The drop has spent some of itself by the time it reaches the bands below, so
-        // those get one ring fewer and slightly less reach -- still the same gesture, decaying.
-        if (i === 0) this.ripples(stage, 4, 660, y, 1.8);
-        else this.ripples(stage, 3, 570, y, 1.65);
-        this.revealBand(bands[i]);
+        // those get one ring fewer and less reach, and the whole set tightens on the same curve
+        // as the falls -- rings that still took 2.7s to spread while bands were landing every
+        // 0.6s would pile up on each other instead of reading as one hit after another.
+        const t = tempoAt(i);
+        this.ripples(stage, i === 0 ? 4 : 3, i === 0 ? 660 : 570, y, (i === 0 ? 1.8 : 1.65) * t);
+        this.revealBand(bands[i], t);
         if (i === 0) {
           list.style.opacity = '1';
           wash.style.transition = 'clip-path 1.9s cubic-bezier(.19,1,.22,1)';
@@ -314,26 +316,36 @@ class Portfolio {
         }
       };
 
-      // One drop working its way down the list, at the pace the hero drop falls: the hero covers
-      // 0.6 of the viewport in heroFall seconds, and every fall here runs at that same speed over
-      // its own distance. Durations are a consequence of the layout rather than constants, which
-      // also retires the old fixed 0.42s hop -- the gaps between bands are not equal, and a
-      // phone's stacked cards sit further apart than a desktop's rows, so one number could not be
-      // right for both. Nothing is capped: a cap is a speed change by another name.
-      const speed = (window.innerHeight * 0.6) / this.heroFall;
-      const fallFor = px => Math.max(0.42, Math.abs(px) / speed);
+      // The page gets quicker as you go down it. The hero is the slowest thing on the site on
+      // purpose: it is the introduction and it has the visitor's whole attention. By the work
+      // section they are scrolling rather than watching, so the drop enters faster than the hero
+      // falls and then gains on every band -- the first project lands deliberately, the last one
+      // snaps in, and the section as a whole accelerates under you.
+      //
+      // Running the work drop at the hero's exact fall speed was tried on 2026-09-05 and reverted
+      // the same day. It was consistent and it was wrong: the sequence took 11.5s with the last
+      // band at 11.2s, and the section sat empty long enough to read as broken rather than as
+      // slow. Speed is not the thing that carries across the page; the impact, the easing and the
+      // ring set are, and those still match the hero exactly. Only the clock is different.
+      const ENTRY = 1.15;   // the fall into the first band, whatever distance it has to cover
+      const GAIN = 0.76;    // each fall after it, and its beat and its rings, against the last
+      const FLOOR = 0.34;
+      const tempoAt = i => Math.pow(GAIN, i);
 
       // Where the drop enters. 0.6vh above the first band is the hero's own distance, but the
       // section is only part-scrolled when this fires, so that point is often still on screen --
       // measured at 1440x900 it sat 259px down the viewport, and the drop appeared out of nothing
-      // in mid-air instead of falling in. Whichever is higher wins: the hero's distance, or just
-      // above the viewport's top edge.
+      // in mid-air instead of falling in. Whichever is higher wins: that, or just above the
+      // viewport's top edge. The entrance is timed rather than paced for the same reason the
+      // sequence is not speed-matched: how far the drop has to fall to get on screen is an
+      // accident of where the visitor stopped scrolling, and it should not set how long they wait
+      // to see the first project.
       const steps = [];
       let from = Math.min(centreOf(bands[0]) - Math.round(window.innerHeight * 0.6),
                           -Math.round(sTop) - 60);
       bands.forEach((b, i) => {
         const y = centreOf(b);
-        steps.push({ y: y, from: from, dur: fallFor(y - from), i: i });
+        steps.push({ y: y, from: from, dur: Math.max(FLOOR, ENTRY * tempoAt(i)), i: i });
         from = y;
       });
       this.stepQueue = steps.slice();
@@ -354,9 +366,9 @@ class Portfolio {
         this.wait(() => {
           land(st.y, st.i);
           this.stepQueue = steps.slice(idx + 1);
-          // Long enough for the rings to be read as rings: they stagger 306ms apart at the hero's
-          // 1.8x, so leaving at 250 started the next fall before the second ring had been born.
-          this.wait(() => run(idx + 1), 360);
+          // The beat rides the same curve as everything else, so the sequence tightens as a whole
+          // rather than speeding up while still pausing the same length between hits.
+          this.wait(() => run(idx + 1), Math.round(320 * tempoAt(idx)));
         }, st.dur * 1000);
       };
       run(0);
@@ -637,26 +649,33 @@ class Portfolio {
     }
   }
 
-  revealBand(b) {
+  // `t` is the work sequence's tempo at this band, 1 for the first and smaller for each one
+  // after. The settle and the edge flare ride it too, so a band that lands quickly also settles
+  // quickly -- otherwise the drop accelerates away and leaves the same slow settle behind it,
+  // which reads as the animation lagging rather than as the page picking up. The scroll catch-up
+  // calls this with no tempo, and a band the visitor has already scrolled past gets the full one.
+  revealBand(b, t) {
     if (!b || b.dataset.landed) return;
     b.dataset.landed = '1';
     b.style.opacity = '1';
     b.style.clipPath = 'inset(0 0 0% 0)';
     if (this.reduced) return;
+    const k = t || 1;
     const row = b.querySelector('[data-row]');
     row.style.animation = 'none'; void row.offsetWidth;
-    row.style.animation = 'bandFall 1.15s cubic-bezier(.22,1,.36,1)';
+    row.style.animation = 'bandFall ' + (1.15 * k).toFixed(2) + 's cubic-bezier(.22,1,.36,1)';
     // The project's own colour flares down its left edge as the front passes, then recedes.
     const edge = b.querySelector('[data-edge]');
-    edge.style.transition = 'transform .42s cubic-bezier(.3,.9,.4,1)';
+    edge.style.transition = 'transform ' + (0.42 * k).toFixed(2) + 's cubic-bezier(.3,.9,.4,1)';
     edge.style.transformOrigin = 'top';
     edge.style.transform = 'scaleY(1)';
     this.wait(function () {
-      edge.style.transition = 'transform .75s cubic-bezier(.19,1,.22,1)';
+      const back = 0.75 * k;
+      edge.style.transition = 'transform ' + back.toFixed(2) + 's cubic-bezier(.19,1,.22,1)';
       edge.style.transformOrigin = 'bottom';
       edge.style.transform = 'scaleY(0)';
-      setTimeout(function () { edge.style.transformOrigin = 'top'; }, 760);
-    }, 430);
+      setTimeout(function () { edge.style.transformOrigin = 'top'; }, back * 1000 + 10);
+    }, 430 * k);
   }
 
   initBands() {
