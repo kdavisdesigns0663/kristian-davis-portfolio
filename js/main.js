@@ -73,17 +73,34 @@ class Portfolio {
       const em = parseFloat(getComputedStyle(l).fontSize) || 16;
       return l.getBoundingClientRect().width / (em * EM_PER_SEC);
     };
+
+    // Whether a segment continues the visual line the one before it is on. Measured, not read
+    // off the markup: "People don't experience" and "your design." are two elements at every
+    // width, but above 900px they share a line box and read as one line, and below it the
+    // <br data-mob> puts them on separate rows. The eye follows rows, so the sweep has to.
+    const sameRowAsPrev = function (i) {
+      if (i <= 0) return false;
+      const a = lines[i - 1].getBoundingClientRect();
+      const b = lines[i].getBoundingClientRect();
+      return Math.abs(a.top - b.top) < Math.min(a.height, b.height) * 0.5;
+    };
+
     const wipe = function (i) {
       const l = lines[i];
       if (!l) return 0;
       const dur = durOf(i);
       l.style.transitionDelay = '0s';
       l.style.transitionTimingFunction = 'ease, linear';
-      l.style.transitionDuration = '0.66s, ' + dur + 's';
+      // A segment continuing a line is already mid-sweep the moment it starts, and preLight()
+      // has already brought it up, so there is no opacity ramp left to run -- only the front
+      // moves. Given a new line's .66s ramp instead, the join picked up a brightness step in
+      // the middle of what should be one unbroken front.
+      l.style.transitionDuration = (sameRowAsPrev(i) ? '0.001s, ' : '0.66s, ') + dur + 's';
       l.style.opacity = '1';
       l.style.setProperty('--reveal', '100%');
       return dur;
     };
+
 
     // The wavefront lights the last glyph before --reveal reaches 100%: the mask feathers 1.6em
     // ahead of the front, so the tail of each transition is empty travel. The next line is cued
@@ -96,6 +113,26 @@ class Portfolio {
       const em = parseFloat(getComputedStyle(l).fontSize) || 16;
       const w = l.getBoundingClientRect().width || 1;
       return durOf(i) * Math.max(0.4, 1 - (FEATHER_EM * em) / w);
+    };
+
+    // How long the front's soft edge takes to cross a segment. The mask feathers 1.6em ahead of
+    // the hard front, and a mask cannot spill past the element it is on, so over the last 1.6em
+    // of a segment that feather is progressively clipped by the box and the edge hardens.
+    const featherTime = i => Math.max(0, durOf(i) - litAt(i));
+
+    // Lighting a continuation segment before its own cue is what keeps the join invisible. The
+    // segment sits at --reveal:0%, which is not "nothing": the mask is opaque at x=0 and fades
+    // out over the next 1.6em, so its resting state IS the leading edge of the front. Fading it
+    // up across exactly the window in which the previous segment is losing its feather hands the
+    // soft edge from one element to the next. Without it the boundary snapped from a nearly hard
+    // edge to a full 1.6em feather inside a single frame, which is visible at 60px type.
+    const preLight = function (i) {
+      const l = lines[i];
+      if (!l || !sameRowAsPrev(i)) return;
+      const lead = featherTime(i - 1);
+      l.style.transitionDuration = lead.toFixed(3) + 's, 2s';
+      l.style.transitionTimingFunction = 'linear, linear';
+      l.style.opacity = '1';
     };
 
     const play = () => {
@@ -220,7 +257,22 @@ class Portfolio {
       // existed. Nothing here needs editing again if the headline is re-broken.
       const last = lines.length - 1;
       const at = [850];
-      for (let i = 1; i <= last; i++) at[i] = at[i - 1] + Math.max(0, litAt(i - 1) * 1000 + (i === pauseAt ? SENTENCE_PAUSE : -OVERLAP));
+      for (let i = 1; i <= last; i++) {
+        if (sameRowAsPrev(i)) {
+          // Continuing the same visual line, so the join has to be exact: the next segment
+          // starts as the front leaves the previous one, timed on the front itself (durOf) and
+          // not on when its last glyph lit (litAt). Neither the 90ms overlap nor the sentence
+          // pause belongs here -- both are written for a front moving to a NEW row, and on a
+          // shared row an overlap puts a second front on a line that already has one. That is
+          // what made "your design." light up while "People don't experience" was still being
+          // written, with a gap between them: two fronts on one line, not one crossing it.
+          // The pace is em/sec and the font size is shared, so the front speed carries over
+          // the join unchanged and the two segments read as one sweep.
+          at[i] = at[i - 1] + durOf(i - 1) * 1000;
+        } else {
+          at[i] = at[i - 1] + Math.max(0, litAt(i - 1) * 1000 + (i === pauseAt ? SENTENCE_PAUSE : -OVERLAP));
+        }
+      }
       // The impact is the one cue that does NOT overlap: the hit has to land as the word above
       // it ("...your") finishes, so the last cue runs off the full sweep of the line before it
       // plus a short beat, rather than starting 90ms early like the lines in the middle do.
@@ -230,6 +282,16 @@ class Portfolio {
         // The stage is re-seated on the cue before the impact, when the layout above the
         // waterline has stopped moving.
         this.wait(function () { if (idx === last - 1) seatStage(); wipe(idx); }, at[idx]);
+        // A continuation is brought up across the window in which the segment before it is
+        // losing its feather, so the soft edge is handed over rather than re-created.
+        if (sameRowAsPrev(idx)) {
+          this.wait(function () { preLight(idx); }, Math.max(0, at[idx] - featherTime(idx - 1) * 1000));
+        }
+      }
+      // The payoff is written by impact(), so if it continues a line its pre-light has to be
+      // scheduled here rather than in the loop above, which stops short of it.
+      if (sameRowAsPrev(last)) {
+        this.wait(function () { preLight(last); }, Math.max(0, at[last] - featherTime(last - 1) * 1000));
       }
       // impact() writes the last line, so the fall is scheduled backwards from its cue.
       this.wait(drop, Math.max(0, at[last] - this.heroFall * 1000 - 200));

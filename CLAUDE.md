@@ -123,8 +123,21 @@ _originals/            full-resolution masters the served sizes were cut from.
   reveal is a 90deg gradient mask, so one horizontal front crosses whatever element it is
   on. As a single block containing `<br data-mob>` the two mobile rows uncovered at the
   same time and the sentence arrived in one gesture; desktop never showed it, being one
-  row. As two `inline-block` siblings they share a line box above 900px, so the sweep is
-  continuous exactly as before, and below it each row gets its own cue.
+  row. As two `inline-block` siblings they share a line box above 900px and split below it.
+- **The sweep is driven by rows, not by elements — `sameRowAsPrev()` measures which.** Two
+  segments on the same visual line have to be one front, and the rules written for moving
+  to a *new* row actively break that. The 90ms `OVERLAP` starts the next segment early,
+  which on a shared row puts a second front on a line that already has one: "your design."
+  lit up while "People don't experience" was still being written, with a dark gap between
+  them. On a shared row the cue is `durOf` (when the front leaves the element), never
+  `litAt` (when its last glyph lit), with no overlap and no sentence pause — verified at
+  0ms gap and 0 px/s speed delta across the join at every width from 901 up. The other half
+  is `preLight()`: a mask cannot spill past its own element, so over the last 1.6em of a
+  segment the feather is clipped and the edge hardens, and the next segment at `--reveal:0%`
+  is not blank — its mask is opaque at x=0 and fades out over 1.6em, which *is* the leading
+  edge. It is faded up across exactly the window the previous segment spends losing its
+  feather, so the soft edge is handed over instead of snapping from near-hard to a full
+  1.6em in one frame. None of this runs when the segments are on separate rows.
 - **What sits under the waterline is light, not a mirrored word.** It was a ten-slice
   reflection of "decisions." until 2026-09-04; it is now `#heroPool`, absolutely
   positioned inside `#surface` — overlapping shallow ellipses anchored to the impact
