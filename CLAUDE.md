@@ -14,18 +14,20 @@ rework. Anything about how something works belongs here or in the file itself.
 - Fonts: Space Grotesk (display), Inter (body), JetBrains Mono (code/system accents)
 - Palette: soft-black background (`--bg:#09090B`), off-white text, **one** violet accent
   (`--accent:#a06bff`) used sparingly — no gradients-as-decoration, no multi-color
-  palette. `--accent-text:#b48cff` is the same accent lightened to clear 7:1, and is for
-  accent on small body text only; `--accent` stays on decoration and large text. The
-  2026-09-04 design pass deleted `--accent-text` outright on the grounds that it read as
-  a second purple; it was put back, because the same pass turned the hero sub copy violet,
-  which would have put 5.86:1 on the one paragraph in the hero. Both are still true and
-  the tension is real, but it is the owner's call, not a package's. Two
+  palette. **`#a06bff` is the only purple on the site** — every size, text and decoration
+  alike. Set by the owner on 2026-09-05, after two design passes running argued that two
+  violets a shade apart read as a mistake rather than as a system. The lighter
+  `--accent-text:#b48cff` is gone, and so is Nitefind's own violet. The contrast cost is
+  real and accepted: 5.86:1 clears AA at any size and AAA at large, but is under the 7:1
+  AAA bar for body text, and the hero sub copy is the one place that lands. Do not
+  reintroduce a second violet to fix that; raise `#a06bff` itself. Two
   raised surfaces (`--bg-raise-1/2`) are for genuinely lifted panels, and `--hairline`
-  replaced the old flat `#1c1c1a` dividers. Case study pages are the one exception: each carries a single per-project
-  accent instead of the violet (nitefind `#a259ff`, smiteforge `#e0b84a`, zentra
-  `#4fbf82`, amun `#8f8f8f`), set in a small inline block in that page's head.
-  Each one also appears twice in `index.html`, on that project's band edge and its
-  flood gradient. Change one, change all three.
+  replaced the old flat `#1c1c1a` dividers. Smiteforge and Zentra still carry a per-project
+  accent on their case studies (`#e0b84a` gold, `#4fbf82` green) and Amun a grey
+  (`#8f8f8f`), set in a small inline block in that page's head; none of them is a purple,
+  which is why they were never in question. Each also appears twice in `index.html`, on
+  that project's band edge and its flood gradient, plus once in `BANDS` in `js/main.js`.
+  Change one, change all four.
 - No em dashes, no AI-sounding phrasing, anywhere in body copy — a hard style rule
 - Oversized-outline "ghost word" per section, bleeding off the left edge, as a
   wayfinding/rhythm device
@@ -94,10 +96,18 @@ _originals/            full-resolution masters the served sizes were cut from.
   so `--hero-fs` is capped at `min(clamp(34px,4.2vw,64px), 11.4vh)`. Raising either
   number re-breaks the phrase. Below 900px one line would mean a 19px headline, so the
   `<br data-mob>` is switched on instead and the phrase takes two lines there.
-- **The hero timeline is driven by `lines.length`.** It used to be a hardcoded run of
-  four `wipe()` calls; merging two lines left the last cue pointing past the end of the
-  list and the drop scheduled against a cue that no longer existed. Re-break the headline
-  freely, the sequence follows.
+- **The hero timeline is driven by `lines.length`, and the sentence pause by markup.** It
+  used to be a hardcoded run of four `wipe()` calls; merging two lines left the last cue
+  pointing past the end of the list and the drop scheduled against a cue that no longer
+  existed. The 420ms hold at the sentence boundary was likewise keyed to `i === 1`; it now
+  reads `[data-sentence-end]`, which sits on `a2`. Re-break the headline freely, the
+  sequence follows.
+- **The first sentence is two segments, `a1` and `a2`, not one block with a `<br>`.** The
+  reveal is a 90deg gradient mask, so one horizontal front crosses whatever element it is
+  on. As a single block containing `<br data-mob>` the two mobile rows uncovered at the
+  same time and the sentence arrived in one gesture; desktop never showed it, being one
+  row. As two `inline-block` siblings they share a line box above 900px, so the sweep is
+  continuous exactly as before, and below it each row gets its own cue.
 - **What sits under the waterline is light, not a mirrored word.** It was a ten-slice
   reflection of "decisions." until 2026-09-04; it is now `#heroPool`, absolutely
   positioned inside `#surface` — overlapping shallow ellipses anchored to the impact
@@ -106,12 +116,32 @@ _originals/            full-resolution masters the served sizes were cut from.
   intersected, vertical and horizontal; the horizontal one is not decoration. The two
   widest pools are centred at 74% and 93% with radii reaching past 100%, so without it
   the box clips them at full alpha and draws a straight violet edge down the hero.
-- **An SVG mask referenced from HTML needs both spellings.** The cascade layers and the
-  hero sub copy are hidden at `opacity:0` until their mask fills, so `mask:` alone means
-  any engine reading only `-webkit-mask` shows an empty paragraph and never recovers.
-  `setMask()` writes both, and every reveal also schedules a timer that drops the mask
-  outright — the animation is `requestAnimationFrame`-driven, and nothing may leave
-  content depending on a frame loop having run.
+- **WebKit does not resolve an SVG mask reference on an HTML element at all.** Not a
+  prefix problem — `setMask()` writes `mask`, `-webkit-mask` and `-webkit-mask-image`, and
+  it made no difference, because Safari and every browser on iOS parse `url(#rippleWord)`
+  and then ignore it. `CSS.supports()` returns true for the value, so there is nothing to
+  feature-detect; `this.noSvgMask` sniffs `navigator.vendor` for Apple, which is the only
+  honest test available. On that path `rippleRevealGradient()` runs the same front off a
+  radial-gradient mask instead, and `[data-cascade-edge]` is dropped, since it exists only
+  to soften a turbulent boundary that is not there. Both `decisions.` overlays start at
+  `opacity:0` and are lit as their front starts — without that, WebKit painted the white
+  overlay over the purple word from first paint, with the ignored mask hiding nothing.
+  Every reveal also schedules a timer that drops the mask outright: the animation is
+  `requestAnimationFrame`-driven, and nothing may leave content depending on a frame loop
+  having run.
+- **The ripple is described in ems, and its noise field is held.** Three separate things
+  made it read as rough rather than fluid, all fixed on 2026-09-05. The front used a cubic
+  ease-out, which left at 2.94x its average speed and then spent 37% of its frames
+  essentially stationary — a lurch, then a stall; it is quadratic now (`rippleEase`), 2.03x
+  and 21%. The feather, the displacement and the filter's `stdDeviation` were fixed pixel
+  values, so at 29px type on a phone a 38px feather was wider than the line while at 64px
+  it was half of one — they are all multiples of the element's own font size now
+  (`rippleFront`). And `feTurbulence` regenerates its entire noise field on every integer
+  `seed`, so stepping the seed ~120 times across the run replaced the distortion every
+  couple of frames, which is static rather than water: the seed is held and the field
+  drifts through `baseFrequency` instead, cached in `data-bf0` so replays do not compound.
+  Durations are the ripple's own (`WORD_MS`/`SUB_MS`), deliberately slower than the wipe —
+  `EM_PER_SEC` governs the wipe and is a separate decision.
 - **`prefers-reduced-motion` is not only Reduce Motion.** iOS reports it under Low Power
   Mode too, with no way to tell the two apart, so a phone on a low battery takes that
   branch. The hero used to snap to its finished state there, which read as a broken

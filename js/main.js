@@ -1,5 +1,5 @@
 const BANDS = {
-  nitefind:   { rgb:'176,74,214' },
+  nitefind:   { rgb:'160,107,255' },
   smiteforge: { rgb:'224,184,74' },
   zentra:     { rgb:'79,191,130' },
   amun:       { rgb:'143,143,143' },
@@ -9,6 +9,11 @@ class Portfolio {
   init() {
     this.timers = [];
     this.reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // WebKit -- Safari, and every browser on iOS -- parses `mask: url(#id)` and then does not
+    // resolve a reference to an inline SVG <mask> on an HTML element. CSS.supports() reports
+    // true for it, so the vendor string is the only honest test. Where it is true the ripple
+    // runs off a radial-gradient front instead (rippleRevealGradient).
+    this.noSvgMask = /apple/i.test(navigator.vendor || '');
     this.fall = 1;
     // The hero drop falls at the live site's pace; the work drop keeps its own.
     this.heroFall = 2.9;
@@ -204,6 +209,10 @@ class Portfolio {
       // the next line. The wavefront holds at that boundary instead of overlapping into it, so
       // the two statements land as two statements.
       const SENTENCE_PAUSE = 420;
+      // Which cue the hold falls on is read off the markup: [data-sentence-end] marks the last
+      // segment of "...your design.", so re-breaking the headline moves the pause with it.
+      const endIdx = lines.findIndex(function (l) { return l.hasAttribute('data-sentence-end'); });
+      const pauseAt = endIdx < 0 ? 1 : endIdx + 1;
       seatStage();
       // Driven by how many lines there actually are. This was a hardcoded run of four, so
       // merging "People don't experience" and "your design." into one line left the last cue
@@ -211,7 +220,7 @@ class Portfolio {
       // existed. Nothing here needs editing again if the headline is re-broken.
       const last = lines.length - 1;
       const at = [850];
-      for (let i = 1; i <= last; i++) at[i] = at[i - 1] + Math.max(0, litAt(i - 1) * 1000 + (i === 1 ? SENTENCE_PAUSE : -OVERLAP));
+      for (let i = 1; i <= last; i++) at[i] = at[i - 1] + Math.max(0, litAt(i - 1) * 1000 + (i === pauseAt ? SENTENCE_PAUSE : -OVERLAP));
       // The impact is the one cue that does NOT overlap: the hit has to land as the word above
       // it ("...your") finishes, so the last cue runs off the full sweep of the line before it
       // plus a short beat, rather than starting 90ms early like the lines in the middle do.
@@ -359,39 +368,102 @@ class Portfolio {
   // fractal turbulence displacing its edge is re-seeded every frame and its scale decays. That
   // is where the noise lives -- the boundary crawls and breaks up as it travels, and the type it
   // uncovers is never touched. Deceleration is in the easing, energy loss in the displacement.
-  rippleReveal(el, maskIds, filterId, cxPct, cyPct, dur, scale0, scale1) {
+  // Geometry shared by both fronts, so the SVG path and the gradient path spread identically.
+  // Everything is returned in ems, not pixels: the payoff word is 64px on a desktop and 29px on
+  // a phone, so a front described in fixed pixels is a different gesture at each end -- a 38px
+  // feather is half a line up here and most of a line down there. That is most of why the ripple
+  // read as one animation on a desktop and another thing entirely on a phone.
+  rippleFront(el, cxPct, cyPct) {
     const box = el.getBoundingClientRect();
     const cx = box.width * cxPct;
     const cy = box.height * cyPct;
-    const reach = Math.hypot(Math.max(cx, box.width - cx), Math.max(cy, box.height - cy)) + 48;
+    return {
+      cx: cx, cy: cy,
+      em: parseFloat(getComputedStyle(el).fontSize) || 16,
+      reach: Math.hypot(Math.max(cx, box.width - cx), Math.max(cy, box.height - cy)) + 48
+    };
+  }
+
+  // A spreading front decelerates, but the cubic ease-out this used to run left at three times
+  // its average speed and then crawled for most of the duration: a lurch, then a stall, which is
+  // what read as rough rather than fluid. Quadratic leaves at twice and is still travelling when
+  // it arrives, which is much closer to how a disturbance actually crosses water.
+  rippleEase(t) { return 1 - Math.pow(1 - t, 2.05); }
+
+  // Same front, same clock, no SVG. The disc is cut out of a radial-gradient mask whose feather
+  // stays soft the whole way across -- a narrowing feather hardens the edge as it travels, which
+  // is the opposite of what a wave does. Five stops rather than three: a single .6 midpoint put a
+  // visible band in the falloff, and on a phone that band was the most legible part of the effect.
+  rippleRevealGradient(el, cxPct, cyPct, dur, em0, em1) {
+    const f = this.rippleFront(el, cxPct, cyPct);
+    el.style.opacity = '1';
+    const t0 = performance.now();
+    const step = () => {
+      const t = Math.min(1, (performance.now() - t0) / dur);
+      const rad = this.rippleEase(t) * f.reach;
+      const fe = Math.max(6, (em0 + (em1 - em0) * t) * f.em);
+      const px = n => n.toFixed(1) + 'px';
+      this.setMask(el, 'radial-gradient(circle ' + px(rad + fe) + ' at ' + px(f.cx) + ' ' + px(f.cy) +
+        ', #000 0px' +
+        ', #000 ' + px(Math.max(0, rad - fe * 1.15)) +
+        ', rgba(0,0,0,.88) ' + px(Math.max(0, rad - fe * 0.72)) +
+        ', rgba(0,0,0,.58) ' + px(Math.max(0, rad - fe * 0.34)) +
+        ', rgba(0,0,0,.24) ' + px(rad) +
+        ', rgba(0,0,0,.06) ' + px(rad + fe * 0.55) +
+        ', transparent ' + px(rad + fe) + ')');
+      if (t < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+
+  rippleReveal(el, maskIds, filterId, cxPct, cyPct, dur, em0, em1) {
+    if (this.noSvgMask) { this.rippleRevealGradient(el, cxPct, cyPct, dur, em0, em1); return; }
+    el.style.opacity = '1';
+    const f = this.rippleFront(el, cxPct, cyPct);
     const fronts = [];
     maskIds.forEach(function (id) {
       const mask = document.getElementById(id);
       if (!mask) return;
       mask.querySelectorAll('circle').forEach(function (c) {
-        c.setAttribute('cx', cx);
-        c.setAttribute('cy', cy);
+        c.setAttribute('cx', f.cx);
+        c.setAttribute('cy', f.cy);
         fronts.push({ c: c, inner: c.hasAttribute('data-front-inner') });
       });
     });
     const filter = document.getElementById(filterId);
     const disp = filter && filter.querySelector('[data-disp]');
     const turb = filter && filter.querySelector('[data-turb]');
+    const blur = filter && filter.querySelector('feGaussianBlur');
     if (!fronts.length) return;
+    // The authored stdDeviation is in pixels like everything else was, so it softened a phone's
+    // edge four times as much, relative to the type, as a desktop's. Tie it to the em too.
+    if (blur) blur.setAttribute('stdDeviation', (0.13 * f.em).toFixed(2));
+    // The authored frequency is cached on first run and drifted from that, never from the live
+    // attribute: the run leaves it lowered, so reading it back would make every replay start
+    // slacker than the last.
+    if (turb && !turb.dataset.bf0) turb.dataset.bf0 = turb.getAttribute('baseFrequency') || '0.018 0.052';
+    const bf = ((turb && turb.dataset.bf0) || '0.018 0.052').split(/\s+/).map(parseFloat);
 
     const t0 = performance.now();
     const step = () => {
       const t = Math.min(1, (performance.now() - t0) / dur);
-      const rad = (1 - Math.pow(1 - t, 3)) * reach;
-      fronts.forEach(function (f) {
+      const rad = this.rippleEase(t) * f.reach;
+      fronts.forEach(function (fr) {
         // The trailing edge of the blurred band closes up to the front by the end, so no
         // annulus of the soft copy is left showing under the sharp layer.
-        const lag = 54 * (1 - Math.pow(t, 2));
-        f.c.setAttribute('r', Math.max(0, f.inner ? rad - lag : rad).toFixed(1));
+        const lag = 0.9 * f.em * (1 - Math.pow(t, 2));
+        fr.c.setAttribute('r', Math.max(0, fr.inner ? rad - lag : rad).toFixed(1));
       });
-      if (disp) disp.setAttribute('scale', (scale0 + (scale1 - scale0) * t).toFixed(2));
-      // A new seed each frame is what makes the edge boil rather than slide.
-      if (turb) turb.setAttribute('seed', String(3 + Math.floor(t * 120)));
+      if (disp) disp.setAttribute('scale', ((em0 + (em1 - em0) * t) * f.em).toFixed(2));
+      // The seed is held. feTurbulence regenerates its entire noise field on every integer seed,
+      // so advancing it ~120 times across the run replaced the distortion every couple of frames:
+      // that is static, not water, and it is what made the edge boil. One field, pushed harder or
+      // softer by the decaying displacement and drifting slowly in frequency, moves the way a
+      // disturbed surface does -- the shape stays coherent while the energy leaves it.
+      if (turb) {
+        turb.setAttribute('baseFrequency',
+          (bf[0] * (1 - 0.26 * t)).toFixed(5) + ' ' + ((bf[1] || bf[0]) * (1 - 0.32 * t)).toFixed(5));
+      }
       if (t < 1) requestAnimationFrame(step);
     };
     requestAnimationFrame(step);
@@ -414,7 +486,7 @@ class Portfolio {
     if (this.reduced) {
       // No ripple for reduced motion: the end state, applied at once. The masks are dropped
       // rather than filled, so nothing depends on a frame loop having run.
-      if (white) this.setMask(white, 'none');
+      if (white) { this.setMask(white, 'none'); white.style.opacity = '1'; }
       if (edge) edge.style.display = 'none';
       if (p) { p.style.opacity = '1'; this.setMask(p, 'none'); }
       return;
@@ -422,14 +494,21 @@ class Portfolio {
     // The word takes the strongest disturbance: it is closest to the impact. Its sharp layer and
     // the blurred band riding behind it share one front, so the edge is soft while it passes and
     // crisp once it has. The divider keeps its purple -- the colour is moving down, not leaving.
+    if (edge && this.noSvgMask) edge.style.display = 'none';
+    // Durations are the ripple's own, deliberately longer than the wipe that precedes it: the
+    // wipe is writing and wants a reading pace, the ripple is water crossing a surface and wants
+    // to be watched. Slowing the front was the fix for "too rough" alongside the easing and the
+    // held seed -- the wipe (EM_PER_SEC) is untouched.
+    const WORD_MS = 3800, SUB_MS = 4400;
     if (white) {
-      this.rippleReveal(white, ['rippleWord', 'rippleWordEdge'], 'rippleEdge', 0.5, 0, 2700, 38, 9);
+      // Displacement and feather in ems, so the front is the same gesture at 29px as at 64px.
+      this.rippleReveal(white, ['rippleWord', 'rippleWordEdge'], 'rippleEdge', 0.5, 0, WORD_MS, 0.63, 0.20);
       // The front reaches the far corner at `reach`, and the mask has done its job by then.
       // Dropping it is also the backstop: rippleReveal bails early if the <mask> is missing,
       // and a mask an engine cannot resolve hides the element instead of revealing it, so
       // nothing here may leave content depending on a frame loop that might not have run.
-      this.wait(function () { if (edge) edge.style.display = 'none'; }, 2700);
-      this.wait(() => this.setMask(white, 'none'), 2760);
+      this.wait(function () { if (edge) edge.style.display = 'none'; }, WORD_MS);
+      this.wait(() => this.setMask(white, 'none'), WORD_MS + 60);
     }
     // Most of the energy is gone by the time the wave reaches the sub copy: a wider, gentler
     // noise and a slower front. It was masked out entirely until now and arrives in purple --
@@ -437,9 +516,9 @@ class Portfolio {
     this.wait(() => {
       if (!p) return;
       p.style.opacity = '1';
-      this.rippleReveal(p, ['rippleSub'], 'rippleEdgeSoft', 0.26, -0.10, 3300, 30, 7);
-      this.wait(() => this.setMask(p, 'none'), 3360);
-    }, 950);
+      this.rippleReveal(p, ['rippleSub'], 'rippleEdgeSoft', 0.26, -0.10, SUB_MS, 1.75, 0.62);
+      this.wait(() => this.setMask(p, 'none'), SUB_MS + 60);
+    }, 1150);
     const light = pool && pool.querySelector('[data-pool-light]');
     if (light && light.animate) {
       light.animate([{ opacity: .6 }, { opacity: .4 }], { duration: 1400, easing: 'ease', fill: 'forwards' });
@@ -734,8 +813,8 @@ class Portfolio {
       payoffLine.style.animation = 'none';
       const w = payoffLine.querySelector('[data-cascade]');
       const e = payoffLine.querySelector('[data-cascade-edge]');
-      if (w) this.setMask(w, 'url(#rippleWord)');
-      if (e) { e.style.display = ''; this.setMask(e, 'url(#rippleWordEdge)'); }
+      if (w) { w.style.opacity = '0'; this.setMask(w, 'url(#rippleWord)'); }
+      if (e) { e.style.display = ''; e.style.opacity = '0'; this.setMask(e, 'url(#rippleWordEdge)'); }
     }
     document.querySelectorAll('#heroDropStage [data-ring]').forEach(function (r) { r.remove(); });
     this.heroPlayed = false;
