@@ -102,13 +102,11 @@
    There is no .i8 any more. It was the Amun dropdown entry, which has no href because the page
    does not exist yet, so lighting it on hover offered a link that was not there. */
 .i1:focus-visible{ top:16px !important; }
-.i2:focus-visible .nav-name{ color:var(--accent) !important; }
 .i3:focus-visible, .i10:focus-visible, .i11:focus-visible{ background-size:100% 1px !important; color:#e9e7df !important; }
 .i14:focus-visible{ border-color:var(--accent) !important; color:var(--accent) !important; background-size:100% 100% !important; }
 .i14:focus-visible .i14-glow{ animation:none !important; opacity:.92 !important; }
 @media (hover:hover){
   .i1:hover{ top:16px !important; }
-  .i2:hover .nav-name{ color:var(--accent) !important; }
   .i3:hover, .i10:hover, .i11:hover{ background-size:100% 1px !important; color:#e9e7df !important; transform:translateY(-2px) !important; }
   .i4:hover{ color:#e9e7df !important; }
   .i5:hover{ color:#e9e7df !important; background:rgba(255,255,255,.06) !important; }
@@ -457,21 +455,15 @@ br[data-mob]{ display:none; }
 #work [data-band] > div{ max-width:1280px; }
 
 /* --- 2.5.5 target size (AAA): 44x44 for every pointer target ---
-   The nav read at 21-27px tall on desktop (mobile was already padded out). Height is added as
-   centred padding so the type sits exactly where it did before. */
-/* The 44px box belongs to the list item, not the anchor: each nav anchor draws its hover
-   underline as a background at "left bottom / 0% 1px", so making the anchor itself 44px tall
-   would detach that underline from the words and park it at the bottom of the target. The
-   anchors also carry an inline display:inline-block, which would beat a stylesheet display:flex
-   and leave their text stuck at the top of the box while <summary> centred. */
+   The anchor itself is the target (an li wrapper doesn't count), so min-height goes on the
+   anchor, not just its li. It used to be built from fixed padding-top:21.5px/padding-bottom:5px,
+   which read as top-heavy because it was: that math assumed one specific line-height and broke
+   the moment it didn't match, stacking dead space above the words instead of splitting it evenly.
+   align-items:center on a flexed anchor centers the line symmetrically regardless of exact
+   metrics -- the padding-bottom:5px stays only as the hover underline's gap, not as a counter-
+   weight to a bigger padding-top. */
 #navMenu > li, nav > ul > li{ display:flex; align-items:center; min-height:44px; }
-/* the anchors carry padding-bottom:5px (the underline's gap); summary matches it so all four
-   labels centre on the same line */
-/* Height is added as padding-TOP on the links themselves, so the clickable box really is 44px
-   (an li wrapper is not the target) while each link's hover underline -- a background drawn at
-   "left bottom / 0% 1px" -- stays 5px under the words instead of dropping to the bottom of a
-   taller box. 21.5 + 17.5 line + 5 = 44. */
-nav > ul a, nav > ul summary{ padding-top:21.5px; padding-bottom:5px; }
+nav > ul a, nav > ul summary{ display:inline-flex; align-items:center; min-height:44px; padding-bottom:5px; }
 nav > a{ min-height:44px; display:flex; align-items:center; }
 nav button{ min-height:44px; }
 #navMenu details > ul a{ min-height:44px; }
@@ -571,13 +563,14 @@ html, body{ max-width:100%; overflow-x:hidden; }
 #siteNav[data-shown="true"]{ opacity:1 !important; transform:translateY(0) !important; pointer-events:auto !important; }
 @media (prefers-reduced-motion:reduce){ #siteNav{ transition:opacity .2s linear !important; } }
 
-/* The brand link carries align-items:baseline inline (name and role share a baseline), which
-   beats the centring rule below it -- so inside its 44px target box the text sat at the top
-   while every menu item centred. Symmetric padding centred the BOX, but not the glyphs in it:
-   Space Grotesk 700/17px (the name) and JetBrains Mono 13px (the nav links) have different
-   ascent/descent proportions, so equal top/bottom padding still left the actual ink of "Kristian
-   Davis" sitting ~8px above the nav links' ink despite both boxes sharing a vertical centre.
-   Padding is asymmetric on purpose -- measured against the nav links' own text bounds via
-   Range.getBoundingClientRect(), not the box, since box-centring is what produced this in the
-   first place. The baseline relationship between name and role inside the link is untouched. */
-#siteNav > a.i2{ min-height:0 !important; padding:19px 0 3px !important; }
+/* The brand block is static text, not a link (nothing on the left of the nav is tappable) --
+   it carries align-items:baseline inline (name and role share a baseline), which beats the
+   centring rule below it, so its text sat at the top while every menu item centred. Symmetric
+   padding centres the BOX, but not the glyphs in it: Space Grotesk 700/17px (the name) and
+   JetBrains Mono 13px (the nav links) have different ascent/descent proportions, so equal
+   top/bottom padding still left the actual ink of "Kristian Davis" sitting ~8px above the nav
+   links' ink despite both boxes sharing a vertical centre. Padding is asymmetric on purpose --
+   measured against the nav links' own text bounds via Range.getBoundingClientRect(), not the
+   box, since box-centring is what produced this in the first place. The baseline relationship
+   between name and role inside the block is untouched. */
+#siteNav > .nav-brand{ padding:8.6px 0 13.4px; }
