@@ -232,6 +232,13 @@ and judge each quality against the error floor of re-encoding at q95, because
 re-encoding a 4:2:0 source at 4:2:0 costs a fixed amount before quantization is
 involved at all, which a flat threshold reads as failure on every file.
 
+**Replacing an existing image in place (same filename, new bytes) needs a cache-busting
+query string on every `<img src>`/`og:image` that points at it, or visitors keep the old
+file until they hard-refresh** — this has bitten the work-section preview thumbnails
+more than once. `img/previews/nitefind-preview.jpg?v=2` is enough; bump the number on
+each subsequent replacement of that same file. No versioning needed for a genuinely new
+filename.
+
 ## Pending cleanup (recommended, not done)
 `HANDOFF.md` is 1670 lines and several sections contradict the live code; cutting
 it down to one current-state document plus an appendix of locked decisions would
