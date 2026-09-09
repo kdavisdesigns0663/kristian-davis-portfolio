@@ -443,7 +443,9 @@ br[data-mob]{ display:none; }
   #hero{ --hero-pad-x:clamp(22px,6vw,40px); min-height:100dvh !important; padding:clamp(52px,8vh,72px) clamp(22px,6vw,40px) calc(clamp(22px,4vh,40px) + 60px) !important; }
   .hero-block{ margin-left:0 !important; }
   #heroSub{ margin-top:clamp(18px,3vw,26px) !important; margin-left:0 !important; padding-left:0 !important; }
-  #heroSub p{ font-size:17px !important; line-height:1.7 !important; }
+  /* font-size is left to the base clamp (index.html) now that it actually scales across this
+     range instead of sitting flat at its floor -- only line-height is mobile-specific. */
+  #heroSub p{ line-height:1.7 !important; }
 }
 @media (max-width:620px){
 }
@@ -511,7 +513,7 @@ footer a{ min-height:44px; display:inline-flex; align-items:center; }
      headline and sub copy -- it scales the tall-screen rhythm down rather than collapsing it. */
   #hero{ padding-top:clamp(36px,4.6vh,52px) !important; padding-bottom:calc(clamp(20px,3vh,32px) + 58px) !important; }
   #heroSub{ margin-top:clamp(20px,2.8vh,32px) !important; }
-  #heroSub p{ font-size:17px !important; line-height:1.6 !important; max-width:50ch !important; }
+  #heroSub p{ line-height:1.6 !important; max-width:50ch !important; }
 }
 @media (max-height:700px) and (min-width:900.02px){
   #hero{ --hero-fs: min(clamp(34px,4.2vw,64px), 10.2vh); }
@@ -571,6 +573,11 @@ html, body{ max-width:100%; overflow-x:hidden; }
 
 /* The brand link carries align-items:baseline inline (name and role share a baseline), which
    beats the centring rule below it -- so inside its 44px target box the text sat at the top
-   while every menu item centred. Symmetric padding centres the box's content instead, and the
-   baseline relationship inside it is untouched. */
-#siteNav > a.i2{ min-height:0 !important; padding:11px 0 !important; }
+   while every menu item centred. Symmetric padding centred the BOX, but not the glyphs in it:
+   Space Grotesk 700/17px (the name) and JetBrains Mono 13px (the nav links) have different
+   ascent/descent proportions, so equal top/bottom padding still left the actual ink of "Kristian
+   Davis" sitting ~8px above the nav links' ink despite both boxes sharing a vertical centre.
+   Padding is asymmetric on purpose -- measured against the nav links' own text bounds via
+   Range.getBoundingClientRect(), not the box, since box-centring is what produced this in the
+   first place. The baseline relationship between name and role inside the link is untouched. */
+#siteNav > a.i2{ min-height:0 !important; padding:19px 0 3px !important; }
