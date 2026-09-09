@@ -127,8 +127,8 @@
         <p style="margin-top:clamp(18px,2vw,26px);font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:clamp(26px,3.2vw,44px);line-height:1.14;letter-spacing:-.022em;max-width:20ch;text-wrap:pretty">Smite information existed. Getting to it quickly on a phone was the problem.</p>
       </div>
       <div>
-        <p style="font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty;max-width:52ch">Fan resources existed, but they were cluttered and built for desktop.</p>
-        <p style="margin-top:clamp(14px,1.6vw,20px);font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty;max-width:52ch">SmiteForge explored what quick, mobile-first reference could look like instead, checked mid-match or between games, not dug through on a laptop later.</p>
+        <p style="font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty;max-width:52ch">Fan resources already offered plenty of information, but much of it was dense and designed around desktop browsing.</p>
+        <p style="margin-top:clamp(14px,1.6vw,20px);font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty;max-width:52ch">SmiteForge explored a faster mobile reference for checking gods, builds, and player information mid-match or between games.</p>
         <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px clamp(12px,1.6vw,20px);margin-top:clamp(32px,4vw,52px);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#7d786f">
           <span style="white-space:nowrap">3 player interviews</span><span aria-hidden="true" style="color:var(--accent)">→</span>
           <span style="white-space:nowrap">1 preference survey</span><span aria-hidden="true" style="color:var(--accent)">→</span>
@@ -145,18 +145,69 @@
       <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)">02 / the signal</span>
       <p style="margin-top:clamp(18px,2vw,26px);max-width:56ch;font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty">I spoke with three Smite players, ran a feature-preference survey, and worked with one recurring tester throughout the project.</p>
 
-      <!-- The full persona boards, cut from the 3840px source rather than the clipped
-           fragments that shipped in the package. Each carries its own bio, goals, frustrations
-           and quote, so the research reads as research instead of as a stock photo. -->
-      <figure style="margin:clamp(36px,4.4vw,60px) 0 0">
-        <div class="shot"><img src="../img/smiteforge/persona-elias-card.jpg" alt="Elias Rivera, hardcore player: age 34, software engineer, PC, plays daily. Goals include checking stats between matches and saving multiple builds per god. Frustrations include cluttered fan sites not optimised for mobile." width="1600" height="1172" loading="lazy" style="display:block;width:100%;height:auto"></div>
-        <figcaption style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase"><span style="display:inline-block;color:#e9e7df">Elias Rivera · hardcore player</span></figcaption>
-      </figure>
+      <div style="margin-top:clamp(36px,4.4vw,60px);display:grid;gap:clamp(20px,2.6vw,32px);grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr))">
 
-      <figure style="margin:clamp(28px,3.4vw,48px) 0 0">
-        <div class="shot"><img src="../img/smiteforge/persona-alyssa-card.jpg" alt="Alyssa Moore, casual player: age 28, marketing specialist, PlayStation, plays a few times a week with friends. Goals include referencing builds during a match and learning new gods visually. Frustrations include god info sites feeling overwhelming or outdated." width="1600" height="1202" loading="lazy" style="display:block;width:100%;height:auto"></div>
-        <figcaption style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase"><span style="display:inline-block;color:#e9e7df">Alyssa Moore · casual player</span></figcaption>
-      </figure>
+        <div style="border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:clamp(20px,2.4vw,28px)">
+          <div style="display:flex;align-items:center;gap:16px">
+            <div class="shot" style="flex-shrink:0;width:64px;height:64px;border-radius:10px"><img src="../img/smiteforge/persona-elias-simple.jpg" alt="Elias Rivera" width="240" height="240" loading="lazy" style="display:block;width:100%;height:100%;object-fit:cover"></div>
+            <div>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent)">hardcore player</span>
+              <div style="margin-top:3px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:18px;letter-spacing:-.01em">Elias Rivera</div>
+            </div>
+          </div>
+          <p style="margin-top:clamp(16px,1.8vw,22px);font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:16px;line-height:1.5;color:#cfcabc;text-wrap:pretty">&ldquo;I like seeing the numbers behind my builds. If I&rsquo;m improving, I want to know why.&rdquo;</p>
+          <p style="margin-top:clamp(14px,1.6vw,18px);font-size:14px;line-height:1.65;color:#a09c92;text-wrap:pretty">Plays frequently and pays attention to builds, stats, and performance.</p>
+          <div style="margin-top:clamp(16px,1.8vw,22px);display:grid;gap:16px;grid-template-columns:1fr 1fr;font-size:12.5px;line-height:1.7">
+            <div>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#7d786f">needs</span>
+              <ul style="margin-top:6px;padding-left:14px;color:#a09c92">
+                <li>Fast access to god stats</li>
+                <li>Saved builds</li>
+                <li>Clear match history</li>
+              </ul>
+            </div>
+            <div>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#7d786f">avoid</span>
+              <ul style="margin-top:6px;padding-left:14px;color:#a09c92">
+                <li>Dense mobile resources</li>
+                <li>Ads and distractions</li>
+                <li>Digging for information</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div style="border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:clamp(20px,2.4vw,28px)">
+          <div style="display:flex;align-items:center;gap:16px">
+            <div class="shot" style="flex-shrink:0;width:64px;height:64px;border-radius:10px"><img src="../img/smiteforge/persona-alyssa-simple.jpg" alt="Alyssa Moore" width="240" height="240" loading="lazy" style="display:block;width:100%;height:100%;object-fit:cover"></div>
+            <div>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent)">casual player</span>
+              <div style="margin-top:3px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:18px;letter-spacing:-.01em">Alyssa Moore</div>
+            </div>
+          </div>
+          <p style="margin-top:clamp(16px,1.8vw,22px);font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:16px;line-height:1.5;color:#cfcabc;text-wrap:pretty">&ldquo;I just want to grab a god and go. Give me the info fast, then let me play.&rdquo;</p>
+          <p style="margin-top:clamp(14px,1.6vw,18px);font-size:14px;line-height:1.65;color:#a09c92;text-wrap:pretty">Plays casually with friends and wants enough information to make a confident choice without studying the game.</p>
+          <div style="margin-top:clamp(16px,1.8vw,22px);display:grid;gap:16px;grid-template-columns:1fr 1fr;font-size:12.5px;line-height:1.7">
+            <div>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#7d786f">needs</span>
+              <ul style="margin-top:6px;padding-left:14px;color:#a09c92">
+                <li>Quick build references</li>
+                <li>Easy-to-scan god information</li>
+                <li>Simple ways to learn unfamiliar gods</li>
+              </ul>
+            </div>
+            <div>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#7d786f">avoid</span>
+              <ul style="margin-top:6px;padding-left:14px;color:#a09c92">
+                <li>Overwhelming guides</li>
+                <li>Outdated information</li>
+                <li>Long explanations</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+      </div>
 
       <div style="margin-top:clamp(36px,4.6vw,64px);padding-top:clamp(28px,3.4vw,44px);border-top:1px solid rgba(255,255,255,.08)">
         <span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)">the insight</span>
@@ -181,11 +232,16 @@
         <h2 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(26px,3.2vw,42px);line-height:1.1;letter-spacing:-.022em">One brand, two platform languages</h2>
       </div>
       <p style="margin-top:clamp(18px,2vw,26px);max-width:38ch;font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:clamp(19px,1.9vw,26px);line-height:1.35;letter-spacing:-.014em;color:#cfcabc;text-wrap:pretty">The content and identity stayed consistent. The interface language changed with the platform.</p>
-      <p style="margin-top:clamp(16px,1.8vw,24px);max-width:64ch;font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty">On iOS: SF Pro, softer containers, generous edge spacing. A lighter, more fluid interface.</p>
-      <p style="margin-top:clamp(14px,1.6vw,20px);font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty;max-width:64ch">On Android: Roboto, stronger blocks, depth and color. A more structured hierarchy.</p>
+      <p style="margin-top:clamp(16px,1.8vw,24px);max-width:64ch;font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty">iOS uses SF Pro, softer containers, and more generous edge spacing.</p>
+      <p style="margin-top:clamp(14px,1.6vw,20px);font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty;max-width:64ch">Android uses Roboto, stronger blocks, depth, and color to create a more structured hierarchy.</p>
       <p style="margin-top:clamp(14px,1.6vw,20px);font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty;max-width:64ch;color:#7d786f;font-size:15px">These are design interpretations informed by each platform, not claims about universal iOS or Android rules.</p>
 
-      <p style="margin-top:clamp(28px,3.4vw,44px);max-width:64ch;font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty">Both builds are shown in full further down, side by side.</p>
+      <p style="margin-top:clamp(28px,3.4vw,44px);max-width:64ch;font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty">Both versions are compared side by side below.</p>
+
+      <div class="duo" style="margin-top:clamp(24px,3vw,36px);max-width:440px">
+        <div class="shot"><img src="../img/smiteforge/screens/ios-god-detail.jpg" alt="God detail on iOS" width="620" height="1186" loading="lazy"></div>
+        <div class="shot"><img src="../img/smiteforge/screens/and-god-detail.jpg" alt="God detail on Android" width="620" height="1162" loading="lazy"></div>
+      </div>
         </div>
   </section>
 
@@ -196,12 +252,12 @@
         <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent)">02</span>
         <h2 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(26px,3.2vw,42px);line-height:1.1;letter-spacing:-.022em">Make it feel connected to Smite</h2>
       </div>
-      <p style="margin-top:clamp(18px,2vw,26px);max-width:64ch;font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty">Gold and blue echo Smite&rsquo;s own branding, so the app feels connected to the game instead of like a generic stats tool.</p>
-      <p style="margin-top:clamp(14px,1.6vw,20px);font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty;max-width:64ch">The interface system still gives SmiteForge its own structure.</p>
+      <p style="margin-top:clamp(18px,2vw,26px);max-width:64ch;font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty">Gold and blue borrow from Smite&rsquo;s visual world, helping the companion app feel connected to the game without simply reproducing its interface.</p>
+      <p style="margin-top:clamp(14px,1.6vw,20px);font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty;max-width:64ch">SmiteForge then uses its own typography, containers, spacing, and interaction patterns to create a distinct product system.</p>
 
       <!-- Attribution sits with the decision it applies to, not in the footer. -->
       <blockquote style="margin:clamp(28px,3.4vw,44px) 0 0;padding:clamp(20px,2.4vw,28px) clamp(22px,2.6vw,32px);border:1px solid rgba(255,255,255,.08);border-left:2px solid var(--accent);border-radius:0 12px 12px 0;background:rgba(var(--accent-rgb),.04);max-width:64ch">
-        <p style="font-size:15px;line-height:1.7;color:#a09c92;text-wrap:pretty">This project references visual content from the Smite universe, sourced from public fan and wiki material. I don&rsquo;t own that content. Original icons are my own design, labeled as such.</p>
+        <p style="font-size:15px;line-height:1.7;color:#a09c92;text-wrap:pretty">SmiteForge references visual content from the Smite universe sourced from public fan and wiki material. I do not own this content. Original icons shown in the project are my own designs.</p>
       </blockquote>
     </div>
   </section>
@@ -220,17 +276,17 @@
       </div>
       <dl style="margin:14px 0 0;display:flex;flex-direction:column;gap:0">
           <div style="display:grid;gap:8px clamp(16px,2vw,28px);grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:start;padding:20px 0;border-top:1px solid rgba(255,255,255,.08)">
-            <dt style="font-size:15px;line-height:1.6;color:#a09c92;text-wrap:pretty">Users couldn&rsquo;t immediately tell what SmiteForge was for</dt>
+            <dt style="font-size:15px;line-height:1.6;color:#a09c92;text-wrap:pretty">Players couldn&rsquo;t immediately tell what SmiteForge was for.</dt>
             <span aria-hidden="true" style="font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--accent)">→</span>
-            <dd style="margin:0;font-size:15px;line-height:1.6;color:#e9e7df;text-wrap:pretty">added a short onboarding sequence introducing the product before dropping players into the interface</dd>
+            <dd style="margin:0;font-size:15px;line-height:1.6;color:#e9e7df;text-wrap:pretty">Added a short onboarding sequence that introduces the product before players enter the main interface.</dd>
           </div>
           <div style="display:grid;gap:8px clamp(16px,2vw,28px);grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:start;padding:20px 0;border-top:1px solid rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.08)">
-            <dt style="font-size:15px;line-height:1.6;color:#a09c92;text-wrap:pretty">Logged-out users tried to save builds and weren&rsquo;t sure why it failed</dt>
+            <dt style="font-size:15px;line-height:1.6;color:#a09c92;text-wrap:pretty">Logged-out players reached the save flow without realizing an account was required.</dt>
             <span aria-hidden="true" style="font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--accent)">→</span>
-            <dd style="margin:0;font-size:15px;line-height:1.6;color:#e9e7df;text-wrap:pretty">disabled the Save action until login, with a clear visual treatment</dd>
+            <dd style="margin:0;font-size:15px;line-height:1.6;color:#e9e7df;text-wrap:pretty">Made the account requirement explicit at the moment of saving, with clear Log In and Sign Up paths.</dd>
           </div>
       </dl>
-      <p style="margin-top:clamp(28px,3.4vw,44px);max-width:60ch;font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty">Both fixes are visible in the platform boards above: the onboarding screen in the top row, and the Save Build sheet with its Log In and Sign Up options at the bottom.</p>
+      <p style="margin-top:clamp(28px,3.4vw,44px);max-width:60ch;font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty">Both fixes appear in the platform comparison below: onboarding first, followed by the account-gated Save Build flow.</p>
     </div>
   </section>
 
@@ -239,7 +295,7 @@
     <div aria-hidden="true" class="ghost" style="top:clamp(28px,3.4vw,54px)">PLATFORMS</div>
     <div class="wrap" style="position:relative;z-index:1;padding-top:clamp(48px,7vw,120px)">
       <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)">04 / side by side</span>
-      <p style="margin-top:clamp(18px,2vw,26px);max-width:56ch;font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty">The same core tasks, carried across both versions. Typography, spacing, containers, and hierarchy adapted to each platform.</p>
+      <p style="margin-top:clamp(18px,2vw,26px);max-width:56ch;font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty">The same core tasks carried across both versions while typography, spacing, containers, navigation, and hierarchy adapted to each platform.</p>
 
       <div class="pairs" style="margin-top:clamp(14px,1.6vw,20px)">
         <figure style="margin:0">
@@ -248,7 +304,7 @@
             <div class="shot"><img src="../img/smiteforge/screens/ios-splash.jpg" alt="Splash on iOS" width="620" height="1183" loading="lazy"></div>
             <div class="shot"><img src="../img/smiteforge/screens/and-splash.jpg" alt="Splash on Android" width="620" height="1157" loading="lazy"></div>
           </div>
-          <figcaption style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase"><span style="display:inline-block;color:#e9e7df">Splash</span><span style="display:block;margin-top:8px;font-size:13px;line-height:1.55;letter-spacing:0;text-transform:none;color:#a09c92;text-wrap:pretty">The launch screen, same art, different frame.</span></figcaption>
+          <figcaption style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase"><span style="display:inline-block;color:#e9e7df">Splash</span><span style="display:block;margin-top:8px;font-size:13px;line-height:1.55;letter-spacing:0;text-transform:none;color:#a09c92;text-wrap:pretty">Same visual identity, presented within each platform&rsquo;s device context.</span></figcaption>
         </figure>
         <figure style="margin:0">
           <span style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(10px,1.2vw,16px);margin-bottom:8px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#7d786f"><span>iOS</span><span>Android</span></span>
@@ -256,7 +312,7 @@
             <div class="shot"><img src="../img/smiteforge/screens/ios-onboarding.jpg" alt="Onboarding on iOS" width="620" height="1189" loading="lazy"></div>
             <div class="shot"><img src="../img/smiteforge/screens/and-onboarding.jpg" alt="Onboarding on Android" width="620" height="1162" loading="lazy"></div>
           </div>
-          <figcaption style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase"><span style="display:inline-block;color:#e9e7df">Onboarding</span><span style="display:block;margin-top:8px;font-size:13px;line-height:1.55;letter-spacing:0;text-transform:none;color:#a09c92;text-wrap:pretty">Value props before the interface, on both.</span></figcaption>
+          <figcaption style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase"><span style="display:inline-block;color:#e9e7df">Onboarding</span><span style="display:block;margin-top:8px;font-size:13px;line-height:1.55;letter-spacing:0;text-transform:none;color:#a09c92;text-wrap:pretty">The same product introduction, adapted to each platform before players enter the interface.</span></figcaption>
         </figure>
         <figure style="margin:0">
           <span style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(10px,1.2vw,16px);margin-bottom:8px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#7d786f"><span>iOS</span><span>Android</span></span>
@@ -264,7 +320,7 @@
             <div class="shot"><img src="../img/smiteforge/screens/ios-gods-grid.jpg" alt="God browse on iOS" width="620" height="1189" loading="lazy"></div>
             <div class="shot"><img src="../img/smiteforge/screens/and-gods-grid.jpg" alt="God browse on Android" width="620" height="1162" loading="lazy"></div>
           </div>
-          <figcaption style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase"><span style="display:inline-block;color:#e9e7df">God browse</span><span style="display:block;margin-top:8px;font-size:13px;line-height:1.55;letter-spacing:0;text-transform:none;color:#a09c92;text-wrap:pretty">iOS centres the title; Android leads with a search field and a hamburger.</span></figcaption>
+          <figcaption style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase"><span style="display:inline-block;color:#e9e7df">God browse</span><span style="display:block;margin-top:8px;font-size:13px;line-height:1.55;letter-spacing:0;text-transform:none;color:#a09c92;text-wrap:pretty">iOS keeps navigation compact and centered. Android gives search greater prominence and uses a different top-level navigation pattern.</span></figcaption>
         </figure>
         <figure style="margin:0">
           <span style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(10px,1.2vw,16px);margin-bottom:8px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#7d786f"><span>iOS</span><span>Android</span></span>
@@ -272,7 +328,7 @@
             <div class="shot"><img src="../img/smiteforge/screens/ios-god-detail.jpg" alt="God detail on iOS" width="620" height="1186" loading="lazy"></div>
             <div class="shot"><img src="../img/smiteforge/screens/and-god-detail.jpg" alt="God detail on Android" width="620" height="1162" loading="lazy"></div>
           </div>
-          <figcaption style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase"><span style="display:inline-block;color:#e9e7df">God detail</span><span style="display:block;margin-top:8px;font-size:13px;line-height:1.55;letter-spacing:0;text-transform:none;color:#a09c92;text-wrap:pretty">Softer stacked cards on iOS, blocked sections and an overflow menu on Android.</span></figcaption>
+          <figcaption style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase"><span style="display:inline-block;color:#e9e7df">God detail</span><span style="display:block;margin-top:8px;font-size:13px;line-height:1.55;letter-spacing:0;text-transform:none;color:#a09c92;text-wrap:pretty">The same information hierarchy expressed through softer stacked containers on iOS and more defined sections on Android.</span></figcaption>
         </figure>
         <figure style="margin:0">
           <span style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(10px,1.2vw,16px);margin-bottom:8px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#7d786f"><span>iOS</span><span>Android</span></span>
@@ -280,7 +336,7 @@
             <div class="shot"><img src="../img/smiteforge/screens/ios-create-build.jpg" alt="Create build on iOS" width="620" height="1186" loading="lazy"></div>
             <div class="shot"><img src="../img/smiteforge/screens/and-create-build.jpg" alt="Create build on Android" width="620" height="1162" loading="lazy"></div>
           </div>
-          <figcaption style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase"><span style="display:inline-block;color:#e9e7df">Create build</span><span style="display:block;margin-top:8px;font-size:13px;line-height:1.55;letter-spacing:0;text-transform:none;color:#a09c92;text-wrap:pretty">The same build flow, with Android carrying a heavier item row.</span></figcaption>
+          <figcaption style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase"><span style="display:inline-block;color:#e9e7df">Create build</span><span style="display:block;margin-top:8px;font-size:13px;line-height:1.55;letter-spacing:0;text-transform:none;color:#a09c92;text-wrap:pretty">The same build task on both platforms, with spacing, rows, and actions adapted to each interface system.</span></figcaption>
         </figure>
         <figure style="margin:0">
           <span style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(10px,1.2vw,16px);margin-bottom:8px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#7d786f"><span>iOS</span><span>Android</span></span>
@@ -288,7 +344,7 @@
             <div class="shot"><img src="../img/smiteforge/screens/ios-my-builds.jpg" alt="Saved builds on iOS" width="620" height="1183" loading="lazy"></div>
             <div class="shot"><img src="../img/smiteforge/screens/and-my-builds.jpg" alt="Saved builds on Android" width="620" height="1162" loading="lazy"></div>
           </div>
-          <figcaption style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase"><span style="display:inline-block;color:#e9e7df">Saved builds</span><span style="display:block;margin-top:8px;font-size:13px;line-height:1.55;letter-spacing:0;text-transform:none;color:#a09c92;text-wrap:pretty">"My Builds" on iOS, "Saved Builds" on Android, each with its own row treatment.</span></figcaption>
+          <figcaption style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase"><span style="display:inline-block;color:#e9e7df">Saved builds</span><span style="display:block;margin-top:8px;font-size:13px;line-height:1.55;letter-spacing:0;text-transform:none;color:#a09c92;text-wrap:pretty">The same saved-build information, organized through different row treatments and hierarchy.</span></figcaption>
         </figure>
         <figure style="margin:0">
           <span style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(10px,1.2vw,16px);margin-bottom:8px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#7d786f"><span>iOS</span><span>Android</span></span>
@@ -296,7 +352,7 @@
             <div class="shot"><img src="../img/smiteforge/screens/ios-login.jpg" alt="Login on iOS" width="620" height="1183" loading="lazy"></div>
             <div class="shot"><img src="../img/smiteforge/screens/and-login.jpg" alt="Login on Android" width="620" height="1162" loading="lazy"></div>
           </div>
-          <figcaption style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase"><span style="display:inline-block;color:#e9e7df">Login</span><span style="display:block;margin-top:8px;font-size:13px;line-height:1.55;letter-spacing:0;text-transform:none;color:#a09c92;text-wrap:pretty">A segmented control on iOS; Android splits Login and Sign Up into pills.</span></figcaption>
+          <figcaption style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase"><span style="display:inline-block;color:#e9e7df">Login</span><span style="display:block;margin-top:8px;font-size:13px;line-height:1.55;letter-spacing:0;text-transform:none;color:#a09c92;text-wrap:pretty">The same authentication flow expressed through different control and form treatments.</span></figcaption>
         </figure>
         <figure style="margin:0">
           <span style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(10px,1.2vw,16px);margin-bottom:8px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#7d786f"><span>iOS</span><span>Android</span></span>
@@ -304,7 +360,7 @@
             <div class="shot"><img src="../img/smiteforge/screens/ios-save-build.jpg" alt="Save build on iOS" width="620" height="1175" loading="lazy"></div>
             <div class="shot"><img src="../img/smiteforge/screens/and-save-build.jpg" alt="Save build on Android" width="620" height="1162" loading="lazy"></div>
           </div>
-          <figcaption style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase"><span style="display:inline-block;color:#e9e7df">Save build</span><span style="display:block;margin-top:8px;font-size:13px;line-height:1.55;letter-spacing:0;text-transform:none;color:#a09c92;text-wrap:pretty">The usability fix in place: saving is gated behind an account on both platforms.</span></figcaption>
+          <figcaption style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase"><span style="display:inline-block;color:#e9e7df">Save build</span><span style="display:block;margin-top:8px;font-size:13px;line-height:1.55;letter-spacing:0;text-transform:none;color:#a09c92;text-wrap:pretty">The testing fix in context: both versions make the account requirement explicit before a build can be saved.</span></figcaption>
         </figure>
       </div>
     </div>
@@ -318,7 +374,7 @@
         <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)">05 / where it stands</span>
         <p style="margin-top:clamp(18px,2vw,26px);font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:clamp(24px,2.8vw,38px);line-height:1.16;letter-spacing:-.02em;max-width:16ch;text-wrap:pretty">Concept work, not shipped.</p>
       </div>
-      <p style="max-width:54ch;font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty">SmiteForge stayed a concept project, but it changed how I think about cross-platform design. Consistency doesn&rsquo;t require identical interfaces. The product can stay the same while each platform speaks its own language.</p>
+      <p style="max-width:54ch;font-size:16px;line-height:1.78;color:#a09c92;text-wrap:pretty">SmiteForge changed how I think about cross-platform design. Consistency doesn&rsquo;t require identical interfaces. The product, hierarchy, and core tasks can stay consistent while each platform speaks its own visual and interaction language.</p>
     </div>
   </section>
 
