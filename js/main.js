@@ -900,6 +900,16 @@ class Portfolio {
     window.matchMedia('(min-width:901px)').addEventListener('change', () => set(false));
   }
 
+  // The fixed nav sits on top of the page once shown (see initNavReveal), so an anchor jump that
+  // lands a section flush with the viewport top puts its first ~70-90px under the bar --
+  // #workGhost's "WORK" sits right in that band. offsetHeight is read on the nav's own fixed
+  // box, which is always laid out (opacity is what's animated, not display), so this is valid
+  // whether or not the bar happens to be visible yet at the moment of the click.
+  navOffset() {
+    const nav = document.getElementById('siteNav');
+    return nav ? nav.offsetHeight : 0;
+  }
+
   // Arriving from a project page with #about or #contact: re-apply the jump once laid out.
   applyIncomingHash() {
     const id = (window.location.hash || '').slice(1);
@@ -907,7 +917,7 @@ class Portfolio {
     const t = document.getElementById(id);
     if (!t) return;
     // 'auto' resolves to the CSS scroll-behavior (smooth here), which lands mid-animation.
-    const jump = () => { this.suspendSnap(); window.scrollTo({ top: t.offsetTop, behavior: 'instant' }); };
+    const jump = () => { this.suspendSnap(); window.scrollTo({ top: t.offsetTop - this.navOffset(), behavior: 'instant' }); };
     jump();
     requestAnimationFrame(jump);
     this.wait(jump, 120);
@@ -1029,7 +1039,7 @@ class Portfolio {
         if (!t) return;
         e.preventDefault();
         this.suspendSnap(this.reduced ? 260 : 1100);
-        window.scrollTo({ top: t.offsetTop, behavior: this.reduced ? 'instant' : 'smooth' });
+        window.scrollTo({ top: t.offsetTop - this.navOffset(), behavior: this.reduced ? 'instant' : 'smooth' });
       });
     });
   }
