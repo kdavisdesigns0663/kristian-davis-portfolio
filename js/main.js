@@ -229,12 +229,12 @@ class Portfolio {
         wrap.style.opacity = '0';
         wrap.style.filter = 'blur(0px)';
         void wrap.offsetHeight;
-        wrap.style.transition = 'transform ' + this.heroFall + 's cubic-bezier(.42,.05,.34,1), opacity .6s ease';
+        wrap.style.transition = 'transform ' + fall + 's cubic-bezier(.42,.05,.34,1), opacity .6s ease';
         wrap.style.transform = 'translate(-50%,0px) scaleY(1.45)';
         wrap.style.opacity = '1';
 
         this.pendingHero = impact;
-        this.heroTimer = setTimeout(() => { this.pendingHero = null; impact(); }, this.heroFall * 1000 + 200);
+        this.heroTimer = setTimeout(() => { this.pendingHero = null; impact(); }, fall * 1000 + 200);
         this.timers.push(this.heroTimer);
       };
 
@@ -249,14 +249,15 @@ class Portfolio {
       // Which cue the hold falls on is read off the markup: [data-sentence-end] marks the last
       // segment of "...your design.", so re-breaking the headline moves the pause with it.
       const endIdx = lines.findIndex(function (l) { return l.hasAttribute('data-sentence-end'); });
-      const pauseAt = endIdx < 0 ? 1 : endIdx + 1;
+      // -1 when nothing is marked: the first sentence is static now, so no cue holds.
+      const pauseAt = endIdx < 0 ? -1 : endIdx + 1;
       seatStage();
       // Driven by how many lines there actually are. This was a hardcoded run of four, so
       // merging "People don't experience" and "your design." into one line left the last cue
       // pointing past the end of the list and the drop scheduled against a cue that no longer
       // existed. Nothing here needs editing again if the headline is re-broken.
       const last = lines.length - 1;
-      const at = [850];
+      const at = [260];
       for (let i = 1; i <= last; i++) {
         if (sameRowAsPrev(i)) {
           // Continuing the same visual line, so the join has to be exact: the next segment
@@ -277,6 +278,17 @@ class Portfolio {
       // it ("...your") finishes, so the last cue runs off the full sweep of the line before it
       // plus a short beat, rather than starting 90ms early like the lines in the middle do.
       at[last] = at[last - 1] + durOf(last - 1) * 1000 + 110;
+      // The fall is scheduled BACKWARDS from that cue, so it can only be as long as the lead in
+      // front of it. With the first sentence static the sequence starts ~2.5s earlier than it
+      // used to and a fixed 2.9s fall no longer fits: the release clamped to 0, which both put
+      // the drop on screen from page load and landed the impact -- and so the payoff, the
+      // ripples and the pool bloom -- a few hundred ms after its own cue. The fall takes
+      // whatever lead exists instead, down to a floor that still reads as a fall; if even that
+      // will not fit, the cue moves out rather than letting the impact drift off it. Every term
+      // here is measured, so this holds at any viewport and any headline break.
+      const MIN_FALL = 1.6;
+      let fall = Math.min(this.heroFall, (at[last] - 200) / 1000);
+      if (fall < MIN_FALL) { fall = MIN_FALL; at[last] = MIN_FALL * 1000 + 200; }
       for (let i = 0; i < last; i++) {
         const idx = i;
         // The stage is re-seated on the cue before the impact, when the layout above the
@@ -294,7 +306,7 @@ class Portfolio {
         this.wait(function () { preLight(last); }, Math.max(0, at[last] - featherTime(last - 1) * 1000));
       }
       // impact() writes the last line, so the fall is scheduled backwards from its cue.
-      this.wait(drop, Math.max(0, at[last] - this.heroFall * 1000 - 200));
+      this.wait(drop, Math.max(0, at[last] - fall * 1000 - 200));
 
       // Clicking mid-fall lands it now rather than making anyone wait.
       document.getElementById('hero').addEventListener('click', e => {
@@ -604,6 +616,8 @@ class Portfolio {
       if (white) { this.setMask(white, 'none'); white.style.opacity = '1'; }
       if (edge) edge.style.display = 'none';
       if (p) { p.style.opacity = '1'; this.setMask(p, 'none'); }
+      const footR = document.getElementById('heroFoot');
+      if (footR) footR.setAttribute('data-lit', 'true');
       return;
     }
     // The word takes the strongest disturbance: it is closest to the impact. Its sharp layer and
@@ -634,6 +648,11 @@ class Portfolio {
       this.rippleReveal(p, ['rippleSub'], 'rippleEdgeSoft', 0.26, -0.10, SUB_MS, 1.75, 0.62);
       this.wait(() => this.setMask(p, 'none'), SUB_MS + 60);
     }, 1150);
+    // The front does not stop at the sub copy. The cue sits below it, so it is lit as the wave
+    // passes through -- a little over half way through the sub copy's own front, which is when
+    // the disturbance reaches the bottom of the block above it.
+    const foot = document.getElementById('heroFoot');
+    if (foot) this.wait(function () { foot.setAttribute('data-lit', 'true'); }, 1150 + SUB_MS * 0.55);
     const light = pool && pool.querySelector('[data-pool-light]');
     if (light && light.animate) {
       light.animate([{ opacity: .6 }, { opacity: .4 }], { duration: 1400, easing: 'ease', fill: 'forwards' });
@@ -980,8 +999,13 @@ class Portfolio {
     const hero = document.getElementById('hero');
     if (!nav || !hero) return;
     let shown = null;
+    // The hero's scroll cue is pinned to the viewport while the hero is on screen and retires
+    // once it is behind you -- tracked separately from the nav because it turns over earlier.
+    const foot = document.getElementById('heroFoot');
+    let gone = null;
     const sync = () => {
       const past = window.scrollY > hero.offsetHeight * 0.72;
+      if (foot && past !== gone) { gone = past; foot.setAttribute('data-past', past ? 'true' : 'false'); }
       if (past === shown) return;
       shown = past;
       nav.setAttribute('data-shown', past ? 'true' : 'false');

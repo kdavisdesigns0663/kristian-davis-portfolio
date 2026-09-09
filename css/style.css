@@ -120,6 +120,7 @@
   .i15:hover{ color:#e9e7df !important; border-color:var(--accent) !important; }
   .i16:hover{ color:var(--accent) !important; border-color:var(--accent) !important; background-size:100% 100% !important; }
   .i17:hover{ color:var(--accent) !important; border-color:var(--accent) !important; background-size:100% 100% !important; }
+  .i18:hover{ color:var(--accent) !important; border-color:var(--accent) !important; background-size:100% 100% !important; }
 }
 
 @media (prefers-reduced-motion: reduce){
@@ -137,9 +138,6 @@
   82%{ transform:translateY(0) scaleY(.995) skewX(-.07deg); }
   100%{ transform:translateY(0) scaleY(1) skewX(0deg); }
 }
-
-/* Below 900px the row regroups into a card layout (see below): the screenshot becomes a cased
-   slab in the left column and all copy stacks to its right. */
 
 /* On desktop, a shared row height and one continuous divider between bands is enough for the
    title/decision/screenshot to read as one project. Stacked on mobile that same divider-only
@@ -159,44 +157,68 @@
   [data-band]:last-of-type{ margin-bottom:clamp(16px,4vw,20px) !important; }
   [data-band] > div{ padding:0 !important; }
 
-  /* The screenshot sits in the left column as a cased slab and every word sits to its right, so
-     the card reads as one object instead of a stack of loose text blocks. The column carries the
-     gutter; the slab's own margin insets it from the card edge. */
+  /* The cover runs full-bleed across the top of the card and every word sits beneath it. The
+     artwork is a landscape composition now, so a narrow left-hand column would have shrunk it
+     to a ~110px-wide sliver; across the top it stays the largest thing in the card. */
   [data-band] [data-row]{
     display:grid !important;
-    grid-template-columns:clamp(122px,32vw,158px) minmax(0,1fr) !important;
-    grid-template-rows:auto auto 1fr !important;
+    grid-template-columns:minmax(0,1fr) !important;
+    grid-template-rows:auto auto auto !important;
     align-items:start !important;
     gap:0 !important;
   }
   /* title + tagline + tags */
-  [data-band] [data-row] > div:nth-of-type(2){ grid-column:2; grid-row:1 / 3; padding:18px 18px 0 clamp(14px,4vw,18px); }
+  [data-band] [data-row] > div:nth-of-type(2){ grid-column:1; grid-row:2; padding:20px clamp(16px,4vw,20px) 0; }
   /* the decision */
   [data-band] [data-row] > div:nth-of-type(3){
-    grid-column:2; grid-row:3; align-self:end;
-    margin:16px 18px 18px clamp(14px,4vw,18px);
-    padding:14px 0 0 0 !important;
+    grid-column:1; grid-row:3;
+    margin:18px clamp(16px,4vw,20px) 20px;
+    padding:16px 0 0 0 !important;
     border-left:0 !important; border-top:1px solid rgba(255,255,255,.08);
   }
-  /* Same treatment as desktop: the slab holds the screenshot's own 230/498 ratio, so a cover fit
-     shows the whole frame with nothing cropped and nothing letterboxed. The previous full-height
-     stretch had to fall back to contain, which left tinted dead space above and below the image
-     and no casing around it. Radius, ring and drop shadow are lifted from the desktop rule. */
+  /* Full-bleed to the card's own edges: the card clips it (overflow:hidden on the band), so the
+     cover carries the card's top corners and needs no ring or shadow of its own. */
   [data-band] [data-shot]{
-    grid-column:1; grid-row:1 / -1; align-self:center !important;
-    width:auto !important; aspect-ratio:230/498 !important; min-height:0;
-    margin:18px 0 18px clamp(14px,4vw,18px) !important;
-    border-radius:9px !important; border-right:0 !important;
-    box-shadow:0 14px 34px -12px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.06) !important;
+    grid-column:1; grid-row:1; align-self:stretch !important;
+    width:auto !important; aspect-ratio:4/3 !important; min-height:0;
+    margin:0 !important;
+    border-radius:15px 15px 0 0 !important; border-right:0 !important;
+    box-shadow:none !important;
     background:rgba(255,255,255,.03) !important;
   }
-  [data-band] [data-shot] img{ object-fit:cover !important; object-position:top center !important; }
 
   [data-band] h3{ font-size:clamp(22px,6vw,28px) !important; }
-  [data-band] [data-row] > div:nth-of-type(2) p{ font-size:13.5px !important; }
+  [data-band] [data-row] > div:nth-of-type(2) p{ font-size:14px !important; }
 }
-@media (max-width:400px){
-  [data-band] [data-row]{ grid-template-columns:120px minmax(0,1fr) !important; }
+
+/* Tablet and small laptops. The three-column desktop row assumed a ~116px image; at 440px the
+   two text columns are squeezed to ~240px each and the tags wrap to four lines. The cover keeps
+   its own column and the copy stacks beside it instead. */
+@media (min-width:900.02px) and (max-width:1160px){
+  [data-band] [data-row]{
+    grid-template-columns:clamp(220px,26vw,320px) minmax(0,1fr) !important;
+    grid-template-rows:auto auto !important;
+    align-items:center !important;
+  }
+  /* width:100%, not the inline clamp: the inline width is 30vw against a 26vw track, so the
+     cover overflowed its own column by 36-46px and painted over the first characters of every
+     line of copy (it carries position:relative; the copy divs do not). It fills the track. */
+  [data-band] [data-shot]{ grid-column:1 !important; grid-row:1 / -1 !important; width:100% !important; }
+  [data-band] [data-row] > div:nth-of-type(2){ grid-column:2; grid-row:1; }
+  [data-band] [data-row] > div:nth-of-type(3){
+    grid-column:2; grid-row:2;
+    margin-top:18px; padding-left:0 !important;
+    border-left:0 !important; border-top:1px solid rgba(255,255,255,.08); padding-top:18px;
+  }
+}
+
+/* Skills: three groups, three explicit columns. auto-fit was opening a fourth track on wide
+   viewports and leaving the old fourth column's slot empty. Below 640px the three sit as a
+   stack rather than a 2+1 grid, which would reintroduce the same hole. The stack starts at
+   1100px, not 640: between those widths the about section is two columns, so the copy column is
+   ~400px and three tracks came out 117px wide -- every list wrapped to three lines. */
+@media (max-width:1100px){
+  #skills{ grid-template-columns:minmax(0,1fr) !important; gap:18px !important; }
 }
 
 /* --- hero water surface ---
@@ -215,7 +237,45 @@ nav ul.navlist > li > a, nav ul.navlist summary{
   display:inline-flex !important; align-items:center; padding-bottom:5px; line-height:1;
 }
 
-/* --- hero scroll cue --- */
+/* Eyebrow pinned near the top (position:absolute, top:9vh, set in index.html); the headline +
+   sub copy block is centred on the hero's own vertical midpoint (position:absolute, top:50%,
+   transform:translateY(-50%)), independent of the eyebrow's height -- the two used to share a
+   flex column, which meant the eyebrow ate space from the top and biased the "centred" block
+   downward by roughly half the eyebrow's own height. Absolute positioning for both removes that
+   bias at every viewport, so no breakpoint-specific centring math is needed here any more. */
+
+/* --- hero scroll cue ---
+   The cue is lifted out of the hero's vertical stack and pinned to the bottom of the viewport:
+   in flow it sat wherever the copy above it ended, which on a tall screen was the middle of the
+   page. Fixed, it holds its place while the hero is on screen -- the "sticky until you scroll
+   past" behaviour -- and retires once the hero is behind you (data-past, set in initNavReveal).
+   The horizontal padding is the hero's own column calc, so the right-aligned cue lands on the
+   same right edge as the headline block above it.
+   It starts hidden: the ripple front that crosses the payoff and then the sub copy carries on
+   into it, so the cue is the last thing the wave lights (data-lit, set in heroHandoff). */
+#heroFoot{
+  position:fixed; left:0; right:0; bottom:clamp(24px,4vh,44px);
+  padding:0 calc(max(0px, (100% - 1280px) / 2) + clamp(24px,5vw,64px));
+  margin:0; pointer-events:none;
+  opacity:0; transform:translateY(14px);
+  transition:opacity .85s ease, transform .95s cubic-bezier(.19,1,.22,1);
+}
+#heroFoot > a{ pointer-events:auto; }
+#heroFoot[data-lit="true"]{ opacity:1; transform:none; }
+#heroFoot[data-past="true"]{ opacity:0; transform:translateY(10px); pointer-events:none; }
+/* A slow rise and settle -- the same unhurried pace as the pool idle, not an attention-grab.
+   On the link, while the reveal transform sits on the wrapper, so the two never fight. */
+@keyframes ctaBounce{
+  0%, 100%{ transform:translateY(0); }
+  50%{ transform:translateY(-5px); }
+}
+#heroFoot[data-lit="true"]:not([data-past="true"]) .i-scroll{
+  animation:ctaBounce 2.8s ease-in-out infinite;
+}
+@media (prefers-reduced-motion:reduce){
+  #heroFoot{ opacity:1; transform:none; }
+  #heroFoot .i-scroll{ animation:none !important; }
+}
 .i-scroll:focus-visible{ border-color:var(--accent) !important; gap:18px !important; }
 @media (hover:hover){ .i-scroll:hover{ border-color:var(--accent) !important; gap:18px !important; } }
 
@@ -305,7 +365,6 @@ br[data-mob]{ display:none; }
     max-width:none !important;
     margin-left:0 !important;
   }
-  .hero-block{ margin-left:0 !important; }
   #heroHeadline [data-line="b"], #heroHeadline [data-line="c"]{ margin-left:clamp(12px,3.4vw,26px) !important; }
   #heroPool{ left:0 !important; width:min(100%,420px) !important; height:clamp(80px,20vw,100px) !important; }
 }
@@ -375,11 +434,16 @@ br[data-mob]{ display:none; }
 /* --- mobile hero: more air between the eyebrow, the headline and the sub-line, and a
    shallower reflection well so nothing is pushed under the fold --- */
 @media (max-width:900px){
-  #hero{ min-height:100dvh !important; padding:96px clamp(22px,6vw,40px) clamp(28px,4vh,44px) !important; justify-content:center !important; }
-  .hero-block{ margin-top:clamp(40px,9vw,64px) !important; }
-  #heroSub{ margin-top:clamp(14px,2.4vw,22px) !important; margin-left:0 !important; padding-left:0 !important; }
+  /* Stacked from the top: the eyebrow is absolutely positioned (out of #hero's flex flow, see
+     index.html) so it costs the centred block nothing. --hero-pad-x drives the eyebrow's own
+     left (set inline in index.html), so overriding it here keeps it aligned to this narrower
+     gutter instead of the desktop 1280px-column math. The bottom padding reserves the band the
+     fixed scroll cue occupies, so justify-content:center on #hero (set in index.html) centres
+     .hero-block in the space above it rather than the fixed cue running under the sub copy. */
+  #hero{ --hero-pad-x:clamp(22px,6vw,40px); min-height:100dvh !important; padding:clamp(52px,8vh,72px) clamp(22px,6vw,40px) calc(clamp(22px,4vh,40px) + 60px) !important; }
+  .hero-block{ margin-left:0 !important; }
+  #heroSub{ margin-top:clamp(18px,3vw,26px) !important; margin-left:0 !important; padding-left:0 !important; }
   #heroSub p{ font-size:17px !important; line-height:1.7 !important; }
-  #heroFoot{ margin-top:clamp(34px,8vw,52px) !important; padding-left:0 !important; }
 }
 @media (max-width:620px){
 }
@@ -442,12 +506,12 @@ footer a{ min-height:44px; display:inline-flex; align-items:center; }
 /* Short viewports (laptops at default scaling, browsers with a tab strip and a bookmarks bar):
    the vertical rhythm compresses before anything is pushed under the fold. */
 @media (max-height:840px) and (min-width:900.02px){
-  #hero{ padding-top:clamp(92px,10.5vh,104px) !important; padding-bottom:clamp(22px,3vh,34px) !important; }
-  #hero > div:first-of-type{ margin-top:12px !important; }
-  .hero-block{ margin-top:clamp(34px,4.8vh,58px) !important; }
-  #heroSub{ margin-top:clamp(14px,1.8vh,22px) !important; }
+  /* The tiers used to compress hard to keep the scroll cue above the fold. The cue is fixed to
+     the viewport now and cannot be pushed under it, so this tier only has to fit the eyebrow,
+     headline and sub copy -- it scales the tall-screen rhythm down rather than collapsing it. */
+  #hero{ padding-top:clamp(36px,4.6vh,52px) !important; padding-bottom:calc(clamp(20px,3vh,32px) + 58px) !important; }
+  #heroSub{ margin-top:clamp(20px,2.8vh,32px) !important; }
   #heroSub p{ font-size:17px !important; line-height:1.6 !important; max-width:50ch !important; }
-  #heroFoot{ margin-top:clamp(16px,2.2vh,30px) !important; }
 }
 @media (max-height:700px) and (min-width:900.02px){
   #hero{ --hero-fs: min(clamp(34px,4.2vw,64px), 10.2vh); }
@@ -467,17 +531,14 @@ footer a{ min-height:44px; display:inline-flex; align-items:center; }
 @media (max-height:560px){
   #hero{
     --hero-fs: min(clamp(22px,6vw,64px), 9.4vh) !important;
-    padding-top:56px !important; padding-bottom:16px !important;
-    min-height:100svh !important; justify-content:center !important;
+    padding-top:28px !important; padding-bottom:62px !important;
+    min-height:100svh !important;
   }
-  #hero > div:first-of-type{ margin-top:0 !important; }
   /* No room for the reflected light in a landscape phone: it is the first thing to go. */
   #heroPool{ display:none !important; }
   #heroGhost{ display:none !important; }
-  .hero-block{ margin-top:clamp(10px,2.6vh,18px) !important; }
-  #heroSub{ margin-top:8px !important; }
+  #heroSub{ margin-top:12px !important; }
   #heroSub p{ font-size:15px !important; line-height:1.5 !important; max-width:56ch !important; }
-  #heroFoot{ margin-top:clamp(10px,2.4vh,18px) !important; }
 }
 
 /* The BIO and CONTACT ghosts are now in flow above their sections, so they need the same
@@ -507,3 +568,9 @@ html, body{ max-width:100%; overflow-x:hidden; }
    fixed, and only fades in once the visitor has scrolled past the hero. */
 #siteNav[data-shown="true"]{ opacity:1 !important; transform:translateY(0) !important; pointer-events:auto !important; }
 @media (prefers-reduced-motion:reduce){ #siteNav{ transition:opacity .2s linear !important; } }
+
+/* The brand link carries align-items:baseline inline (name and role share a baseline), which
+   beats the centring rule below it -- so inside its 44px target box the text sat at the top
+   while every menu item centred. Symmetric padding centres the box's content instead, and the
+   baseline relationship inside it is untouched. */
+#siteNav > a.i2{ min-height:0 !important; padding:11px 0 !important; }

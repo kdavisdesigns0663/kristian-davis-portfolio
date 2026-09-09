@@ -33,8 +33,8 @@
       <span class="nav-role" aria-hidden="true" style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:#a8a49b;white-space:nowrap"><span style="color:var(--accent)">•</span> UX Consultant</span>
     </a>
     <button id="navToggle" type="button" aria-expanded="false" aria-controls="navMenu" style="display:none;align-items:center;gap:9px;min-height:44px;padding:10px 16px;border:1px solid #63625c;border-radius:4px;background:transparent;color:#e9e7df;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.06em;cursor:pointer">Menu<span aria-hidden="true" style="font-size:8px;transition:transform .3s cubic-bezier(.19,1,.22,1)">▼</span></button>
-    <ul id="navMenu" style="display:flex;gap:clamp(18px,3vw,32px);list-style:none;font-family:'JetBrains Mono',monospace;font-size:13px">
-      <li><a class="i3" href="#hero" style="display:inline-block;padding-bottom:5px;color:#a09c92;background:linear-gradient(90deg,var(--accent),var(--accent)) left bottom / 0% 1px no-repeat;transition:background-size .45s cubic-bezier(.19,1,.22,1),color .3s ease,transform .45s cubic-bezier(.19,1,.22,1)">home</a></li>
+    <ul id="navMenu" style="display:flex;align-items:center;gap:clamp(18px,3vw,32px);list-style:none;font-family:'JetBrains Mono',monospace;font-size:13px">
+      <li><a class="i3" href="#hero" style="display:inline-flex;align-items:center;padding-bottom:5px;color:#a09c92;background:linear-gradient(90deg,var(--accent),var(--accent)) left bottom / 0% 1px no-repeat;transition:background-size .45s cubic-bezier(.19,1,.22,1),color .3s ease,transform .45s cubic-bezier(.19,1,.22,1)">home</a></li>
       <li style="position:relative">
         <details style="position:relative">
           <summary class="i4" style="display:inline-flex;align-items:center;gap:7px;color:#a09c92;cursor:pointer;transition:color .3s ease">work<span aria-hidden="true" style="font-size:8px;transform:translateY(1px)">▼</span></summary>
@@ -47,24 +47,24 @@
           </ul>
         </details>
       </li>
-      <li><a class="i10" href="#about" style="display:inline-block;padding-bottom:5px;color:#a09c92;background:linear-gradient(90deg,var(--accent),var(--accent)) left bottom / 0% 1px no-repeat;transition:background-size .45s cubic-bezier(.19,1,.22,1),color .3s ease,transform .45s cubic-bezier(.19,1,.22,1)">about</a></li>
-      <li><a class="i11" href="#contact" style="display:inline-block;padding-bottom:5px;color:#a09c92;background:linear-gradient(90deg,var(--accent),var(--accent)) left bottom / 0% 1px no-repeat;transition:background-size .45s cubic-bezier(.19,1,.22,1),color .3s ease,transform .45s cubic-bezier(.19,1,.22,1)">contact</a></li>
+      <li><a class="i10" href="#about" style="display:inline-flex;align-items:center;padding-bottom:5px;color:#a09c92;background:linear-gradient(90deg,var(--accent),var(--accent)) left bottom / 0% 1px no-repeat;transition:background-size .45s cubic-bezier(.19,1,.22,1),color .3s ease,transform .45s cubic-bezier(.19,1,.22,1)">about</a></li>
+      <li><a class="i11" href="#contact" style="display:inline-flex;align-items:center;padding-bottom:5px;color:#a09c92;background:linear-gradient(90deg,var(--accent),var(--accent)) left bottom / 0% 1px no-repeat;transition:background-size .45s cubic-bezier(.19,1,.22,1),color .3s ease,transform .45s cubic-bezier(.19,1,.22,1)">contact</a></li>
     </ul>
   </nav>
 
 <main id="main">
 
 <!-- ===================== HERO ===================== -->
-<section id="hero" style="position:relative;display:flex;flex-direction:column;justify-content:center;min-height:100dvh;padding:clamp(72px,8vh,88px) calc(max(0px, (100% - 1280px) / 2) + clamp(24px,5vw,64px)) clamp(28px,4vh,48px);overflow:hidden">
+<section id="hero" style="position:relative;--hero-pad-x:calc(max(0px, (100% - 1280px) / 2) + clamp(24px,5vw,64px));display:flex;flex-direction:column;justify-content:center;min-height:100dvh;padding:clamp(40px,5vh,64px) var(--hero-pad-x) calc(clamp(24px,4vh,44px) + 64px);overflow:hidden">
 
-  <div style="position:relative;z-index:2;font-family:'JetBrains Mono',monospace;font-size:clamp(13px,1.1vw,15px);margin-left:clamp(0px,2vw,24px);margin-top:min(28px, max(0px, (100vw - 700px) * 0.1));color:#a09c92">// <b style="color:var(--accent);font-weight:500">UX/UI DESIGN</b> · WEB DESIGN · VISUAL DESIGN</div>
+  <div id="heroEyebrow" style="position:absolute;z-index:2;top:9vh;left:calc(var(--hero-pad-x) + clamp(14px,3.1vw,40px));font-family:'JetBrains Mono',monospace;font-size:clamp(13px,1.1vw,15px);color:#a09c92">// <b style="color:var(--accent);font-weight:500">UX/UI DESIGN</b> · WEB DESIGN · VISUAL DESIGN</div>
 
-  <div class="hero-block" style="position:relative;z-index:2;margin-top:clamp(52px,7.4vh,96px);margin-left:clamp(0px,2vw,24px)">
+  <div class="hero-block" style="position:relative;z-index:2;display:flex;flex-direction:column;margin-left:clamp(0px,2vw,24px)">
   <div id="surface" style="position:relative;z-index:2">
     <h1 id="heroHeadline" style="position:relative;z-index:2;margin-top:0;margin-left:clamp(0px,2vw,24px);font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(34px,6.6vw,104px);line-height:1.02;letter-spacing:-.032em;max-width:32ch">
-    <span data-line="a1" style="display:inline-block;padding-bottom:.14em;margin-bottom:-.14em;padding-right:.28em;color:#e9e7df;opacity:0;-webkit-mask-image:linear-gradient(90deg,#000 0%,#000 var(--reveal,0%),transparent calc(var(--reveal,0%) + 1.6em),transparent 100%);mask-image:linear-gradient(90deg,#000 0%,#000 var(--reveal,0%),transparent calc(var(--reveal,0%) + 1.6em),transparent 100%);-webkit-mask-size:100% 140%;mask-size:100% 140%;transition:opacity .15s ease, --reveal 2s linear">People don't experience</span><br data-mob><span data-line="a2" data-sentence-end style="display:inline-block;padding-bottom:.14em;margin-bottom:-.14em;color:#e9e7df;opacity:0;-webkit-mask-image:linear-gradient(90deg,#000 0%,#000 var(--reveal,0%),transparent calc(var(--reveal,0%) + 1.6em),transparent 100%);mask-image:linear-gradient(90deg,#000 0%,#000 var(--reveal,0%),transparent calc(var(--reveal,0%) + 1.6em),transparent 100%);-webkit-mask-size:100% 140%;mask-size:100% 140%;transition:opacity .15s ease, --reveal 2s linear">your design.</span>
+    <span style="display:inline-block;padding-bottom:.14em;margin-bottom:-.14em;padding-right:.28em;color:#e9e7df">People don't experience</span><br data-mob><span style="display:inline-block;padding-bottom:.14em;margin-bottom:-.14em;color:#e9e7df">your design.</span>
     <span data-line="b" style="display:block;width:fit-content;padding-bottom:.14em;margin-bottom:-.14em;margin-top:.26em;margin-left:clamp(8px,1.5vw,26px);color:#e9e7df;opacity:0;-webkit-mask-image:linear-gradient(90deg,#000 0%,#000 var(--reveal,0%),transparent calc(var(--reveal,0%) + 1.6em),transparent 100%);mask-image:linear-gradient(90deg,#000 0%,#000 var(--reveal,0%),transparent calc(var(--reveal,0%) + 1.6em),transparent 100%);-webkit-mask-size:100% 140%;mask-size:100% 140%;transition:opacity .15s ease, --reveal 2s linear">They experience your</span>
-    <span data-line="c" style="display:block;width:fit-content;padding-bottom:.14em;margin-bottom:-.14em;margin-left:clamp(8px,1.5vw,26px);color:var(--accent);opacity:0;-webkit-mask-image:linear-gradient(90deg,#000 0%,#000 var(--reveal,0%),transparent calc(var(--reveal,0%) + 1.6em),transparent 100%);mask-image:linear-gradient(90deg,#000 0%,#000 var(--reveal,0%),transparent calc(var(--reveal,0%) + 1.6em),transparent 100%);-webkit-mask-size:100% 140%;mask-size:100% 140%;transition:opacity .15s ease, --reveal 2s linear;position:relative">decisions.<span data-cascade-edge aria-hidden="true" style="position:absolute;left:0;top:0;white-space:nowrap;color:#e9e7df;opacity:0;filter:blur(5px);mask:url(#rippleWordEdge);-webkit-mask:url(#rippleWordEdge)">decisions.</span><span data-cascade aria-hidden="true" style="position:absolute;left:0;top:0;white-space:nowrap;color:#e9e7df;opacity:0;mask:url(#rippleWord);-webkit-mask:url(#rippleWord)">decisions.</span></span>
+    <span data-line="c" style="display:block;width:fit-content;padding-bottom:.14em;margin-bottom:-.14em;margin-top:.26em;margin-left:clamp(24px,4vw,64px);color:var(--accent);opacity:0;-webkit-mask-image:linear-gradient(90deg,#000 0%,#000 var(--reveal,0%),transparent calc(var(--reveal,0%) + 1.6em),transparent 100%);mask-image:linear-gradient(90deg,#000 0%,#000 var(--reveal,0%),transparent calc(var(--reveal,0%) + 1.6em),transparent 100%);-webkit-mask-size:100% 140%;mask-size:100% 140%;transition:opacity .15s ease, --reveal 2s linear;position:relative">decisions.<span data-cascade-edge aria-hidden="true" style="position:absolute;left:0;top:0;white-space:nowrap;color:#e9e7df;opacity:0;filter:blur(5px);mask:url(#rippleWordEdge);-webkit-mask:url(#rippleWordEdge)">decisions.</span><span data-cascade aria-hidden="true" style="position:absolute;left:0;top:0;white-space:nowrap;color:#e9e7df;opacity:0;mask:url(#rippleWord);-webkit-mask:url(#rippleWord)">decisions.</span></span>
   </h1>
 
     <svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute;pointer-events:none">
@@ -126,15 +126,15 @@
 
   </div>
 
-  <div id="heroSub" style="position:relative;z-index:2;margin-top:clamp(16px,2.2vh,28px);margin-left:clamp(0px,2vw,24px);padding-left:clamp(0px,2vw,24px)">
+  <div id="heroSub" style="position:relative;z-index:2;margin-top:clamp(26px,3.6vh,48px);margin-left:clamp(0px,2vw,24px);padding-left:clamp(0px,2vw,24px)">
     <!-- Hidden until the cascade reaches it: --cascade is a downward front (see style.css), so
          the copy is masked out at 0% and wipes in from the top as the front arrives, in purple.
          Driven by heroHandoff() in main.js. -->
     <p style="position:relative;z-index:1;max-width:44ch;font-size:clamp(17px,1.35vw,20px);line-height:1.65;color:var(--accent);text-wrap:pretty;opacity:0;mask:url(#rippleSub);-webkit-mask:url(#rippleSub);transition:opacity .01s linear">Helping businesses navigate complexity through thoughtful strategy and purposeful design.</p>
   </div>
 
-  <div id="heroFoot" style="position:relative;z-index:2;margin-top:clamp(24px,3.4vh,52px);margin-left:clamp(0px,2vw,24px);padding-left:clamp(0px,2vw,24px);display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:flex-end;gap:clamp(20px,3vw,48px)">
-    <a class="i-scroll" href="#work" style="display:inline-flex;align-items:center;gap:11px;flex-shrink:0;padding-bottom:6px;border-bottom:1px solid #34332f;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.06em;color:#e9e7df;transition:border-color .35s ease,gap .35s cubic-bezier(.19,1,.22,1)">SEE THE WORK<span aria-hidden="true">↓</span></a>
+  <div id="heroFoot" data-lit="false" style="z-index:60;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:flex-end;gap:clamp(20px,3vw,48px)">
+    <a class="i-scroll" href="#work" style="display:inline-flex;align-items:center;gap:11px;flex-shrink:0;padding:10px 14px 16px 14px;border-bottom:1px solid #34332f;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.06em;color:#e9e7df;transition:border-color .35s ease,gap .35s cubic-bezier(.19,1,.22,1)">SEE THE WORK<span aria-hidden="true">↓</span></a>
   </div>
   </div><!-- /.hero-block -->
 </section>
@@ -155,20 +155,20 @@
     <a data-band="nitefind" href="case-studies/nitefind.html" style="position:relative;display:block;border-bottom:1px solid rgba(255,255,255,.08);overflow:hidden">
       <span data-flood aria-hidden="true" style="position:absolute;inset:0;z-index:0;background:linear-gradient(90deg, rgba(var(--accent-rgb),.14), rgba(var(--accent-rgb),.02) 62%, transparent);transform:scaleX(0);transform-origin:left;transition:transform .62s cubic-bezier(.19,1,.22,1)"></span>
       <span data-edge aria-hidden="true" style="position:absolute;top:0;bottom:0;left:0;z-index:1;width:2px;background:var(--accent);transform:scaleY(0);transform-origin:top;transition:transform .52s cubic-bezier(.19,1,.22,1)"></span>
-      <div style="position:relative;z-index:2;max-width:1280px;margin:0 auto;padding:clamp(30px,3.6vw,50px) clamp(24px,5vw,64px)">
-        <div data-row style="display:grid;grid-template-columns:auto minmax(0,1.05fr) minmax(0,1fr);align-items:stretch;column-gap:clamp(18px,1.9vw,28px);transition:transform .5s cubic-bezier(.19,1,.22,1)">
-          <div data-shot style="position:relative;align-self:center;flex-shrink:0;width:clamp(78px,7.6vw,116px);margin-right:clamp(4px,1vw,16px);aspect-ratio:230/498;border-radius:9px;overflow:hidden;box-shadow:0 18px 44px -14px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.06);transition:transform .55s cubic-bezier(.19,1,.22,1),box-shadow .55s ease">
-            <img src="img/previews/nitefind-preview.jpg" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:top;display:block;filter:saturate(.82) brightness(.86);transition:filter .55s ease">
+      <div style="position:relative;z-index:2;max-width:1280px;margin:0 auto;padding:clamp(34px,4vw,58px) clamp(24px,5vw,64px)">
+        <div data-row style="display:grid;grid-template-columns:auto minmax(0,1.08fr) minmax(0,.88fr);align-items:stretch;column-gap:clamp(26px,2.8vw,44px);transition:transform .5s cubic-bezier(.19,1,.22,1)">
+          <div data-shot style="position:relative;align-self:center;flex-shrink:0;width:clamp(250px,31vw,460px);aspect-ratio:4/3;border-radius:10px;overflow:hidden;box-shadow:0 18px 44px -14px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.06);transition:transform .55s cubic-bezier(.19,1,.22,1),box-shadow .55s ease">
+            <img src="img/previews/nitefind-preview.jpg" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:50% 50%;display:block;filter:saturate(.82) brightness(.86);transition:filter .55s ease">
           </div>
           <div style="display:flex;flex-direction:column;justify-content:center">
             <h3 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(25px,3.5vw,50px);line-height:1.02;letter-spacing:-.025em">Nitefind</h3>
-            <p style="margin-top:9px;font-size:14px;line-height:1.5;color:#a09c92;max-width:34ch;text-wrap:pretty">Too many options, not enough certainty.</p>
-            <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:16px"><span style="padding:4px 10px;border:1px solid #262623;border-radius:999px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;color:#a8a49b">MOBILE + RESPONSIVE WEB</span><span style="padding:4px 10px;border:1px solid #262623;border-radius:999px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;color:#a8a49b">CONCEPT</span><span style="padding:4px 10px;border:1px solid #262623;border-radius:999px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;color:#a8a49b">2025</span></div>
+            <p style="margin-top:11px;font-size:15px;line-height:1.45;color:#b5b0a4;max-width:30ch;text-wrap:pretty">Too many options, not enough certainty.</p>
+            <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:20px"><span style="padding:4px 10px;border:1px solid #262623;border-radius:999px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;color:#a8a49b">MOBILE + RESPONSIVE WEB</span><span style="padding:4px 10px;border:1px solid #262623;border-radius:999px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;color:#a8a49b">CONCEPT</span><span style="padding:4px 10px;border:1px solid #262623;border-radius:999px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;color:#a8a49b">2025</span></div>
           </div>
-          <div style="display:flex;flex-direction:column;justify-content:center;padding-left:clamp(16px,1.6vw,24px);border-left:1px solid rgba(255,255,255,.08)">
+          <div style="display:flex;flex-direction:column;justify-content:center;padding-left:clamp(22px,2.2vw,34px);border-left:1px solid rgba(255,255,255,.07)">
             <span style="display:block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)">UX RESEARCH · USABILITY TESTING</span>
-            <p style="margin-top:11px;font-size:15px;line-height:1.6;color:#cfcabc;max-width:40ch;text-wrap:pretty">Exploring how people choose where to go out, then using those patterns to make finding the right place easier.</p>
-            <span data-cta style="display:inline-flex;align-items:center;align-self:flex-start;gap:8px;margin-top:clamp(14px,1.4vw,20px);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);transition:gap .35s cubic-bezier(.19,1,.22,1)">view case study<span data-arrow aria-hidden="true" style="display:inline-block;font-size:12px;transition:transform .35s cubic-bezier(.19,1,.22,1)">↗</span></span>
+            <p style="margin-top:12px;font-size:13.5px;line-height:1.65;color:#b0aba0;max-width:36ch;text-wrap:pretty">Exploring how people choose where to go out, then using those patterns to make finding the right place easier.</p>
+            <span data-cta style="display:inline-flex;align-items:center;align-self:flex-start;gap:8px;margin-top:clamp(18px,1.8vw,24px);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);transition:gap .35s cubic-bezier(.19,1,.22,1)">view case study<span data-arrow aria-hidden="true" style="display:inline-block;font-size:12px;transition:transform .35s cubic-bezier(.19,1,.22,1)">↗</span></span>
           </div>
         </div>
       </div>
@@ -177,20 +177,20 @@
     <a data-band="smiteforge" href="case-studies/smiteforge.html" style="position:relative;display:block;border-bottom:1px solid rgba(255,255,255,.08);overflow:hidden">
       <span data-flood aria-hidden="true" style="position:absolute;inset:0;z-index:0;background:linear-gradient(90deg, rgba(224,184,74,.14), rgba(224,184,74,.02) 62%, transparent);transform:scaleX(0);transform-origin:left;transition:transform .62s cubic-bezier(.19,1,.22,1)"></span>
       <span data-edge aria-hidden="true" style="position:absolute;top:0;bottom:0;left:0;z-index:1;width:2px;background:#e0b84a;transform:scaleY(0);transform-origin:top;transition:transform .52s cubic-bezier(.19,1,.22,1)"></span>
-      <div style="position:relative;z-index:2;max-width:1280px;margin:0 auto;padding:clamp(30px,3.6vw,50px) clamp(24px,5vw,64px)">
-        <div data-row style="display:grid;grid-template-columns:auto minmax(0,1.05fr) minmax(0,1fr);align-items:stretch;column-gap:clamp(18px,1.9vw,28px);transition:transform .5s cubic-bezier(.19,1,.22,1)">
-          <div data-shot style="position:relative;align-self:center;flex-shrink:0;width:clamp(78px,7.6vw,116px);margin-right:clamp(4px,1vw,16px);aspect-ratio:230/498;border-radius:9px;overflow:hidden;box-shadow:0 18px 44px -14px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.06);transition:transform .55s cubic-bezier(.19,1,.22,1),box-shadow .55s ease">
-            <img src="img/previews/smiteforge-preview.jpg" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:top;display:block;filter:saturate(.82) brightness(.86);transition:filter .55s ease">
+      <div style="position:relative;z-index:2;max-width:1280px;margin:0 auto;padding:clamp(34px,4vw,58px) clamp(24px,5vw,64px)">
+        <div data-row style="display:grid;grid-template-columns:auto minmax(0,1.08fr) minmax(0,.88fr);align-items:stretch;column-gap:clamp(26px,2.8vw,44px);transition:transform .5s cubic-bezier(.19,1,.22,1)">
+          <div data-shot style="position:relative;align-self:center;flex-shrink:0;width:clamp(250px,31vw,460px);aspect-ratio:4/3;border-radius:10px;overflow:hidden;box-shadow:0 18px 44px -14px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.06);transition:transform .55s cubic-bezier(.19,1,.22,1),box-shadow .55s ease">
+            <img src="img/previews/smiteforge-preview.jpg" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:50% 50%;display:block;filter:saturate(.82) brightness(.86);transition:filter .55s ease">
           </div>
           <div style="display:flex;flex-direction:column;justify-content:center">
             <h3 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(25px,3.5vw,50px);line-height:1.02;letter-spacing:-.025em">SmiteForge</h3>
-            <p style="margin-top:9px;font-size:14px;line-height:1.5;color:#a09c92;max-width:34ch;text-wrap:pretty">One brand, two very different platforms.</p>
-            <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:16px"><span style="padding:4px 10px;border:1px solid #262623;border-radius:999px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;color:#a8a49b">iOS + ANDROID</span><span style="padding:4px 10px;border:1px solid #262623;border-radius:999px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;color:#a8a49b">CONCEPT</span><span style="padding:4px 10px;border:1px solid #262623;border-radius:999px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;color:#a8a49b">2025</span></div>
+            <p style="margin-top:11px;font-size:15px;line-height:1.45;color:#b5b0a4;max-width:30ch;text-wrap:pretty">One brand, two very different platforms.</p>
+            <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:20px"><span style="padding:4px 10px;border:1px solid #262623;border-radius:999px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;color:#a8a49b">iOS + ANDROID</span><span style="padding:4px 10px;border:1px solid #262623;border-radius:999px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;color:#a8a49b">CONCEPT</span><span style="padding:4px 10px;border:1px solid #262623;border-radius:999px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;color:#a8a49b">2025</span></div>
           </div>
-          <div style="display:flex;flex-direction:column;justify-content:center;padding-left:clamp(16px,1.6vw,24px);border-left:1px solid rgba(255,255,255,.08)">
+          <div style="display:flex;flex-direction:column;justify-content:center;padding-left:clamp(22px,2.2vw,34px);border-left:1px solid rgba(255,255,255,.07)">
             <span style="display:block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#e0b84a">CROSS-PLATFORM UI · INFORMATION ARCHITECTURE</span>
-            <p style="margin-top:11px;font-size:15px;line-height:1.6;color:#cfcabc;max-width:40ch;text-wrap:pretty">Designing one companion experience for iOS and Android while adapting its structure, hierarchy, and interface patterns to each platform.</p>
-            <span data-cta style="display:inline-flex;align-items:center;align-self:flex-start;gap:8px;margin-top:clamp(14px,1.4vw,20px);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#e0b84a;transition:gap .35s cubic-bezier(.19,1,.22,1)">view case study<span data-arrow aria-hidden="true" style="display:inline-block;font-size:12px;transition:transform .35s cubic-bezier(.19,1,.22,1)">↗</span></span>
+            <p style="margin-top:12px;font-size:13.5px;line-height:1.65;color:#b0aba0;max-width:36ch;text-wrap:pretty">Designing one companion experience for iOS and Android while adapting its structure, hierarchy, and interface patterns to each platform.</p>
+            <span data-cta style="display:inline-flex;align-items:center;align-self:flex-start;gap:8px;margin-top:clamp(18px,1.8vw,24px);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#e0b84a;transition:gap .35s cubic-bezier(.19,1,.22,1)">view case study<span data-arrow aria-hidden="true" style="display:inline-block;font-size:12px;transition:transform .35s cubic-bezier(.19,1,.22,1)">↗</span></span>
           </div>
         </div>
       </div>
@@ -199,20 +199,20 @@
     <a data-band="zentra" href="case-studies/zentra.html" style="position:relative;display:block;border-bottom:1px solid rgba(255,255,255,.08);overflow:hidden">
       <span data-flood aria-hidden="true" style="position:absolute;inset:0;z-index:0;background:linear-gradient(90deg, rgba(79,191,130,.14), rgba(79,191,130,.02) 62%, transparent);transform:scaleX(0);transform-origin:left;transition:transform .62s cubic-bezier(.19,1,.22,1)"></span>
       <span data-edge aria-hidden="true" style="position:absolute;top:0;bottom:0;left:0;z-index:1;width:2px;background:#4fbf82;transform:scaleY(0);transform-origin:top;transition:transform .52s cubic-bezier(.19,1,.22,1)"></span>
-      <div style="position:relative;z-index:2;max-width:1280px;margin:0 auto;padding:clamp(30px,3.6vw,50px) clamp(24px,5vw,64px)">
-        <div data-row style="display:grid;grid-template-columns:auto minmax(0,1.05fr) minmax(0,1fr);align-items:stretch;column-gap:clamp(18px,1.9vw,28px);transition:transform .5s cubic-bezier(.19,1,.22,1)">
-          <div data-shot style="position:relative;align-self:center;flex-shrink:0;width:clamp(78px,7.6vw,116px);margin-right:clamp(4px,1vw,16px);aspect-ratio:230/498;border-radius:9px;overflow:hidden;box-shadow:0 18px 44px -14px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.06);transition:transform .55s cubic-bezier(.19,1,.22,1),box-shadow .55s ease">
-            <img src="img/previews/zentra-preview.jpg" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:top;display:block;filter:saturate(.82) brightness(.86);transition:filter .55s ease">
+      <div style="position:relative;z-index:2;max-width:1280px;margin:0 auto;padding:clamp(34px,4vw,58px) clamp(24px,5vw,64px)">
+        <div data-row style="display:grid;grid-template-columns:auto minmax(0,1.08fr) minmax(0,.88fr);align-items:stretch;column-gap:clamp(26px,2.8vw,44px);transition:transform .5s cubic-bezier(.19,1,.22,1)">
+          <div data-shot style="position:relative;align-self:center;flex-shrink:0;width:clamp(250px,31vw,460px);aspect-ratio:4/3;border-radius:10px;overflow:hidden;box-shadow:0 18px 44px -14px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.06);transition:transform .55s cubic-bezier(.19,1,.22,1),box-shadow .55s ease">
+            <img src="img/previews/zentra-preview.jpg" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:50% 50%;display:block;filter:saturate(.82) brightness(.86);transition:filter .55s ease">
           </div>
           <div style="display:flex;flex-direction:column;justify-content:center">
             <h3 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(25px,3.5vw,50px);line-height:1.02;letter-spacing:-.025em">Zentra</h3>
-            <p style="margin-top:9px;font-size:14px;line-height:1.5;color:#a09c92;max-width:34ch;text-wrap:pretty">Saving money without losing motivation.</p>
-            <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:16px"><span style="padding:4px 10px;border:1px solid #262623;border-radius:999px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;color:#a8a49b">MOBILE APP</span><span style="padding:4px 10px;border:1px solid #262623;border-radius:999px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;color:#a8a49b">CONCEPT</span><span style="padding:4px 10px;border:1px solid #262623;border-radius:999px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;color:#a8a49b">2025</span></div>
+            <p style="margin-top:11px;font-size:15px;line-height:1.45;color:#b5b0a4;max-width:30ch;text-wrap:pretty">Saving money without losing motivation.</p>
+            <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:20px"><span style="padding:4px 10px;border:1px solid #262623;border-radius:999px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;color:#a8a49b">MOBILE APP</span><span style="padding:4px 10px;border:1px solid #262623;border-radius:999px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;color:#a8a49b">CONCEPT</span><span style="padding:4px 10px;border:1px solid #262623;border-radius:999px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;color:#a8a49b">2025</span></div>
           </div>
-          <div style="display:flex;flex-direction:column;justify-content:center;padding-left:clamp(16px,1.6vw,24px);border-left:1px solid rgba(255,255,255,.08)">
+          <div style="display:flex;flex-direction:column;justify-content:center;padding-left:clamp(22px,2.2vw,34px);border-left:1px solid rgba(255,255,255,.07)">
             <span style="display:block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#4fbf82">VISUAL DESIGN · MOTION</span>
-            <p style="margin-top:11px;font-size:15px;line-height:1.6;color:#cfcabc;max-width:40ch;text-wrap:pretty">Building a visual language around progress, from goal tracking and hierarchy to identity, feedback, and motion.</p>
-            <span data-cta style="display:inline-flex;align-items:center;align-self:flex-start;gap:8px;margin-top:clamp(14px,1.4vw,20px);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#4fbf82;transition:gap .35s cubic-bezier(.19,1,.22,1)">view case study<span data-arrow aria-hidden="true" style="display:inline-block;font-size:12px;transition:transform .35s cubic-bezier(.19,1,.22,1)">↗</span></span>
+            <p style="margin-top:12px;font-size:13.5px;line-height:1.65;color:#b0aba0;max-width:36ch;text-wrap:pretty">Building a visual language around progress, from goal tracking and hierarchy to identity, feedback, and motion.</p>
+            <span data-cta style="display:inline-flex;align-items:center;align-self:flex-start;gap:8px;margin-top:clamp(18px,1.8vw,24px);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#4fbf82;transition:gap .35s cubic-bezier(.19,1,.22,1)">view case study<span data-arrow aria-hidden="true" style="display:inline-block;font-size:12px;transition:transform .35s cubic-bezier(.19,1,.22,1)">↗</span></span>
           </div>
         </div>
       </div>
@@ -221,20 +221,20 @@
     <a data-band="amun" aria-disabled="true" style="position:relative;display:block;border-bottom:1px solid rgba(255,255,255,.08);overflow:hidden">
       <span data-flood aria-hidden="true" style="position:absolute;inset:0;z-index:0;background:linear-gradient(90deg, rgba(143,143,143,.14), rgba(143,143,143,.02) 62%, transparent);transform:scaleX(0);transform-origin:left;transition:transform .62s cubic-bezier(.19,1,.22,1)"></span>
       <span data-edge aria-hidden="true" style="position:absolute;top:0;bottom:0;left:0;z-index:1;width:2px;background:#8f8f8f;transform:scaleY(0);transform-origin:top;transition:transform .52s cubic-bezier(.19,1,.22,1)"></span>
-      <div style="position:relative;z-index:2;max-width:1280px;margin:0 auto;padding:clamp(30px,3.6vw,50px) clamp(24px,5vw,64px)">
-        <div data-row style="display:grid;grid-template-columns:auto minmax(0,1.05fr) minmax(0,1fr);align-items:stretch;column-gap:clamp(18px,1.9vw,28px);transition:transform .5s cubic-bezier(.19,1,.22,1)">
-          <div data-shot style="position:relative;align-self:center;flex-shrink:0;width:clamp(78px,7.6vw,116px);margin-right:clamp(4px,1vw,16px);aspect-ratio:230/498;border-radius:9px;overflow:hidden;box-shadow:0 18px 44px -14px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.06);transition:transform .55s cubic-bezier(.19,1,.22,1),box-shadow .55s ease">
-            <img src="img/previews/amun-preview.jpg" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:top;display:block;filter:saturate(.62) brightness(.78);transition:filter .55s ease">
+      <div style="position:relative;z-index:2;max-width:1280px;margin:0 auto;padding:clamp(34px,4vw,58px) clamp(24px,5vw,64px)">
+        <div data-row style="display:grid;grid-template-columns:auto minmax(0,1.08fr) minmax(0,.88fr);align-items:stretch;column-gap:clamp(26px,2.8vw,44px);transition:transform .5s cubic-bezier(.19,1,.22,1)">
+          <div data-shot style="position:relative;align-self:center;flex-shrink:0;width:clamp(250px,31vw,460px);aspect-ratio:4/3;border-radius:10px;overflow:hidden;box-shadow:0 18px 44px -14px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.06);transition:transform .55s cubic-bezier(.19,1,.22,1),box-shadow .55s ease">
+            <img src="img/previews/amun-preview.jpg" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:50% 50%;display:block;filter:saturate(.62) brightness(.78);transition:filter .55s ease">
           </div>
           <div style="display:flex;flex-direction:column;justify-content:center">
             <h3 style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(25px,3.5vw,50px);line-height:1.02;letter-spacing:-.025em;color:#a8a49b">Amun</h3>
-            <p style="margin-top:9px;font-size:14px;line-height:1.5;color:#a09c92;max-width:34ch;text-wrap:pretty">Protection services, sold on trust.</p>
-            <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:16px"><span style="padding:4px 10px;border:1px solid #262623;border-radius:999px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;color:#a8a49b">RESPONSIVE WEB</span><span style="padding:4px 10px;border:1px solid #262623;border-radius:999px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;color:#a8a49b">CLIENT</span><span style="padding:4px 10px;border:1px solid #262623;border-radius:999px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;color:#a8a49b">2026</span></div>
+            <p style="margin-top:11px;font-size:15px;line-height:1.45;color:#b5b0a4;max-width:30ch;text-wrap:pretty">Currently in development.</p>
+            <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:20px"><span style="padding:4px 10px;border:1px solid #262623;border-radius:999px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;color:#a8a49b">IN PROGRESS</span><span style="padding:4px 10px;border:1px solid #262623;border-radius:999px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;color:#a8a49b">CLIENT</span><span style="padding:4px 10px;border:1px solid #262623;border-radius:999px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;color:#a8a49b">2026</span></div>
           </div>
-          <div style="display:flex;flex-direction:column;justify-content:center;padding-left:clamp(16px,1.6vw,24px);border-left:1px solid rgba(255,255,255,.08)">
-            <span style="display:block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#8f8f8f">WEB DESIGN · ART DIRECTION · FRAMER</span>
-            <p style="margin-top:11px;font-size:15px;line-height:1.6;color:#cfcabc;max-width:40ch;text-wrap:pretty">Creating a digital presence for a discreet personal-protection service where trust has to come before the sales pitch.</p>
-            <span data-cta style="display:inline-flex;align-items:center;align-self:flex-start;gap:8px;margin-top:clamp(14px,1.4vw,20px);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#a0a0a0;transition:gap .35s cubic-bezier(.19,1,.22,1)">view case study<span data-arrow aria-hidden="true" style="display:inline-block;font-size:12px;transition:transform .35s cubic-bezier(.19,1,.22,1)">↗</span></span>
+          <div style="display:flex;flex-direction:column;justify-content:center;padding-left:clamp(22px,2.2vw,34px);border-left:1px solid rgba(255,255,255,.07)">
+            <span style="display:block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#8f8f8f">IN PROGRESS</span>
+            <p style="margin-top:12px;font-size:13.5px;line-height:1.65;color:#b0aba0;max-width:36ch;text-wrap:pretty">This project is still under development. The full case study will be posted here once it is finished.</p>
+            <span data-cta style="display:inline-flex;align-items:center;align-self:flex-start;gap:8px;margin-top:clamp(18px,1.8vw,24px);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#a0a0a0;transition:gap .35s cubic-bezier(.19,1,.22,1)">coming soon</span>
           </div>
         </div>
       </div>
@@ -268,7 +268,7 @@
           <p style="font-size:15px;line-height:1.72;color:#a09c92;text-wrap:pretty">Design gives both sides of my brain something to do. I get to obsess over how something looks, question why it works the way it does, and keep pulling at a problem until the answer feels right.</p>
           <p style="font-size:15px;line-height:1.72;color:#a09c92;text-wrap:pretty">When I'm not doing that, I'm probably swimming, gaming, traveling somewhere new, or at home with my two cats.</p>
         </div>
-        <dl style="margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:20px clamp(18px,2vw,26px)">
+        <dl id="skills" style="margin:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px clamp(20px,2.4vw,32px);max-width:56ch">
             <div>
               <dt style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#a8a49b">design</dt>
               <dd style="margin:8px 0 0;font-size:14px;line-height:1.55;color:#cfcabc">Figma, FigJam, Photoshop, Illustrator</dd>
@@ -313,8 +313,8 @@
         </div>
         <div>
           <span style="display:block;font-family:'JetBrains Mono',monospace;font-size:11px;color:#a8a49b;margin-bottom:12px;text-transform:uppercase;letter-spacing:.08em">elsewhere</span>
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <a class="i18" href="#" target="_blank" rel="noopener noreferrer" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#a09c92;border-bottom:1px solid #63625c;transition:color .3s ease,border-color .3s ease">Résumé <span aria-hidden="true">↗</span></a>
+          <div style="display:flex;flex-wrap:wrap;align-items:center;gap:14px">
+            <a class="i18" href="#" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;justify-content:center;height:52px;padding:0 20px;position:relative;border:1px solid #63625c;border-radius:4px;color:#a09c92;background:linear-gradient(90deg,rgba(var(--accent-rgb),.16),rgba(var(--accent-rgb),.16)) left center / 0% 100% no-repeat;transition:border-color .35s ease,color .35s ease,background-size .5s cubic-bezier(.19,1,.22,1);font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.04em">Résumé</a>
             <div style="display:flex;gap:14px">
               <a class="i16" href="https://www.linkedin.com/in/kdavisdesigns/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" style="display:inline-flex;align-items:center;justify-content:center;width:52px;height:52px;position:relative;border:1px solid #63625c;border-radius:4px;color:#a09c92;background:linear-gradient(90deg,rgba(var(--accent-rgb),.16),rgba(var(--accent-rgb),.16)) left center / 0% 100% no-repeat;transition:border-color .35s ease,color .35s ease,background-size .5s cubic-bezier(.19,1,.22,1)">
                 <svg viewBox="0 0 24 24" fill="currentColor" style="width:22px;height:22px"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452z"/></svg>
