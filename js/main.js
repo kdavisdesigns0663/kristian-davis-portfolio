@@ -257,7 +257,10 @@ class Portfolio {
       // pointing past the end of the list and the drop scheduled against a cue that no longer
       // existed. Nothing here needs editing again if the headline is re-broken.
       const last = lines.length - 1;
-      const at = [260];
+      // The first sentence is static and reads immediately on load, so this is the only pause
+      // left before anything moves -- long enough to read it before "They experience your..."
+      // starts wiping in.
+      const at = [1100];
       for (let i = 1; i <= last; i++) {
         if (sameRowAsPrev(i)) {
           // Continuing the same visual line, so the join has to be exact: the next segment
