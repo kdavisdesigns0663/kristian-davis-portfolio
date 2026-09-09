@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /case-studies/amun.html
+Disallow: /link.html
+
+Sitemap: https://kdavisdesigns0663.github.io/kristian-davis-portfolio/sitemap.xml
