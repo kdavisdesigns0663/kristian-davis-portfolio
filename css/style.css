@@ -377,14 +377,18 @@ br[data-mob]{ display:none; }
    Nitefind itself. It is --accent now. Gold and green are nothing like the accent and keep
    theirs. --- */
 [data-band] h3{ transition:color .35s ease; }
-/* Gated on (hover:hover), and Amun is not listed: its band has no href while the page is
-   unbuilt, so it stays inert under a pointer instead of promising a link that is not there. */
+/* Gated on (hover:hover). Amun is listed now that its page is built and its band is a real
+   link. Its title takes #6590be, the same value its case study sets as --accent, so the
+   project has one blue rather than a second one a shade apart. The brand navy #375b83 is
+   2.83:1 and fails even the 3:1 large-text floor, which is why it is not used here. */
+[data-band="amun"]:focus-visible h3{ color:#6590be !important; } /* 5.96:1 */
 [data-band="nitefind"]:focus-visible h3{ color:var(--accent) !important; }
 [data-band="smiteforge"]:focus-visible h3{ color:#e0b84a !important; } /* 10.8:1 */
 [data-band="zentra"]:focus-visible h3{ color:#4fbf82 !important; } /* 8.8:1 */
 [data-band]:focus-visible{ color:#e9e7df; }
 @media (hover:hover){
   [data-band]:hover{ color:#e9e7df; }
+  [data-band="amun"]:hover h3{ color:#6590be !important; } /* 5.96:1 */
   [data-band="nitefind"]:hover h3{ color:var(--accent) !important; }
   [data-band="smiteforge"]:hover h3{ color:#e0b84a !important; } /* 10.8:1 */
   [data-band="zentra"]:hover h3{ color:#4fbf82 !important; } /* 8.8:1 */
