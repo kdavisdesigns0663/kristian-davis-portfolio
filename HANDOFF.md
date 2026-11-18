@@ -132,7 +132,7 @@ outcome).
   Frozen vs swappable above.
 - **AAA contrast is undecided.** The site passes WCAG AA everywhere. Five colours fail the 7:1
   AAA bar for small text: `#7d786f` (4.65), `#a259ff` (5.25), `#8c877d` (5.51), `#a06bff` (5.86)
-  and `#8f8f8f` (6.30). A full AAA repalette was proposed once and not adopted, so nothing has
+  and Amun's `#6590be` (5.96). A full AAA repalette was proposed once and not adopted, so nothing has
   been changed. This is a live decision, not an oversight: raising these means lightening the
   violet, which is the one accent the whole design rests on. Ask before touching any of them.
 - **Target project types** (luxury, professional services, tech, premium consumer, hospitality,

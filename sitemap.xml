@@ -1,25 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://kdavisdesigns0663.github.io/kristian-davis-portfolio/</loc>
-    <lastmod>2026-09-09</lastmod>
+    <loc>https://kristiandavis.com/</loc>
+    <lastmod>2026-11-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://kdavisdesigns0663.github.io/kristian-davis-portfolio/case-studies/nitefind.html</loc>
+    <loc>https://kristiandavis.com/case-studies/amun.html</loc>
+    <lastmod>2026-11-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://kristiandavis.com/case-studies/nitefind.html</loc>
     <lastmod>2026-09-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://kdavisdesigns0663.github.io/kristian-davis-portfolio/case-studies/zentra.html</loc>
+    <loc>https://kristiandavis.com/case-studies/zentra.html</loc>
     <lastmod>2026-09-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://kdavisdesigns0663.github.io/kristian-davis-portfolio/case-studies/smiteforge.html</loc>
+    <loc>https://kristiandavis.com/case-studies/smiteforge.html</loc>
     <lastmod>2026-09-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>

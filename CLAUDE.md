@@ -1,7 +1,10 @@
 # Kristian Davis portfolio site
 
 Static HTML/CSS/JS, no build tooling, no framework, no package.json. Deployed via
-GitHub Pages at `https://kdavisdesigns0663.github.io/kristian-davis-portfolio/`.
+GitHub Pages, served at `https://kristiandavis.com` (the `CNAME` file holds the domain;
+the GoDaddy DNS points the apex at the four Pages IPs and `www` at the github.io host).
+Canonical, `og:url`, `robots.txt` and `sitemap.xml` all use that domain; nothing
+points at github.io any more.
 Repo: `github.com/kdavisdesigns0663/kristian-davis-portfolio`.
 
 The live files are the source of truth. `HANDOFF.md` carries the decisions and the
@@ -23,11 +26,14 @@ rework. Anything about how something works belongs here or in the file itself.
   reintroduce a second violet to fix that; raise `#a06bff` itself. Two
   raised surfaces (`--bg-raise-1/2`) are for genuinely lifted panels, and `--hairline`
   replaced the old flat `#1c1c1a` dividers. Smiteforge and Zentra still carry a per-project
-  accent on their case studies (`#e0b84a` gold, `#4fbf82` green) and Amun a grey
-  (`#8f8f8f`), set in a small inline block in that page's head; none of them is a purple,
+  accent on their case studies (`#e0b84a` gold, `#4fbf82` green) and Amun a navy
+  (`#6590be`), set in a small inline block in that page's head; none of them is a purple,
   which is why they were never in question. Each also appears twice in `index.html`, on
   that project's band edge and its flood gradient, plus once in `BANDS` in `js/main.js`.
-  Change one, change all four.
+  Change one, change all four. Amun is the exception that needs two values: the brand navy
+  `#375b83` is 2.83:1 on the background, under even the 3:1 non-text floor, so `--accent` is
+  that navy lightened to `#6590be` (5.96:1) for anything read or seen, and `--accent-rgb`
+  stays the exact brand navy for tints only. Do not collapse them back into one.
 - No em dashes, no AI-sounding phrasing, anywhere in body copy — a hard style rule
 - Oversized-outline "ghost word" per section, bleeding off the left edge, as a
   wayfinding/rhythm device
@@ -61,9 +67,11 @@ js/main.js             homepage logic in one `Portfolio` class: hero wipe and
                        but nothing reaches it: the KD-brand click that used to replay
                        the page was removed in the 2026-09-04 pass, and `js/tweaks.js`
                        reads `window.portfolio`, which main.js has never assigned
-case-studies/          nitefind, zentra and smiteforge are built. amun is an empty
-                       noindex shell — its page, and the entries pointing at it,
-                       are the only placeholders left
+case-studies/          all four are built. amun is linked from everywhere now: the work
+                       band and dropdown entry on index.html, the nav and `.mnav` on the
+                       other three, and zentra's next-project card. It is indexable as of
+                       the 2026-11-18 pre-launch pass: the `noindex` meta and the
+                       `robots.txt` disallow are gone and it is listed in `sitemap.xml`
 css/case-study.css     shared by all four
 js/case-study.js       nav dropdown, and the viewport-driven playback for the
                        Zentra loop video
@@ -244,13 +252,9 @@ filename.
 it down to one current-state document plus an appendix of locked decisions would
 remove a real liability.
 
-`case-studies/amun.html` still carries the original nav — it never got the
-`.navlist` / `.mnav` pair the other three use, so on a phone it shows the full
-desktop list rather than collapsing to the menu. It is noindex and nothing links
-to it, so this is not live, but it needs doing when Amun ships. Shipping it also
-means flipping the nine `aria-disabled` markers that point at it from the other
-four pages: two on `index.html` (the dropdown entry and the work band), two each
-on nitefind and zentra (desktop nav and `.mnav`), and three on smiteforge (both
-navs and the next-project card).
+Amun is wired into the portfolio: the nine `aria-disabled` markers and every "soon"
+label are gone, and `amun.html` carries the `.navlist` / `.mnav` pair like the others.
+The `noindex` meta, the `robots.txt` disallow and the sitemap omission were all cleared on
+2026-11-18 at the owner's instruction, so the page is public the moment it is pushed.
 
 `link.html` is intentional — noindex, reached by QR code.

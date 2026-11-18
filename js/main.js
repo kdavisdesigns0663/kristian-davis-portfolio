@@ -2,7 +2,7 @@ const BANDS = {
   nitefind:   { rgb:'160,107,255' },
   smiteforge: { rgb:'224,184,74' },
   zentra:     { rgb:'79,191,130' },
-  amun:       { rgb:'143,143,143' },
+  amun:       { rgb:'101,144,190' },
 };
 
 class Portfolio {

@@ -99,8 +99,8 @@
    latches on tap and the element stays lit until the next tap lands elsewhere, which reads as
    a stuck element rather than as feedback. Focus rules stay outside the query: keyboard focus
    has to answer on every device, and a phone with a keyboard attached is a real thing.
-   There is no .i8 any more. It was the Amun dropdown entry, which has no href because the page
-   does not exist yet, so lighting it on hover offered a link that was not there. */
+   .i8 is the Amun dropdown entry. It was dropped while Amun had no page and so no href;
+   it is back now that the entry is a real link. */
 .i1:focus-visible{ top:16px !important; }
 .i3:focus-visible, .i10:focus-visible, .i11:focus-visible{ background-size:100% 1px !important; color:#e9e7df !important; }
 .i14:focus-visible{ border-color:var(--accent) !important; color:var(--accent) !important; background-size:100% 100% !important; }
@@ -112,6 +112,7 @@
   .i5:hover{ color:#e9e7df !important; background:rgba(255,255,255,.06) !important; }
   .i6:hover{ color:#e9e7df !important; background:rgba(255,255,255,.06) !important; }
   .i7:hover{ color:#e9e7df !important; background:rgba(255,255,255,.06) !important; }
+  .i8:hover{ color:#e9e7df !important; background:rgba(255,255,255,.06) !important; }
   .i9:hover{ color:#e9e7df !important; }
   .i14:hover{ border-color:var(--accent) !important; color:var(--accent) !important; background-size:100% 100% !important; }
   .i14:hover .i14-glow{ animation:none !important; opacity:.92 !important; }

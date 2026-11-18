@@ -40,14 +40,16 @@
    Everything below is wrapped in (hover:hover). A touchscreen has no hover, so :hover latches
    on tap and the element stays lit until something else is tapped, which reads as a stuck
    element rather than as feedback. Focus is the exception: it has to answer on every device,
-   so the focus half of the skip link sits outside the query. .c13 and .c14 are gone -- they
-   were two <article> blocks on the Amun page, which are content, not controls. */
+   so the focus half of the skip link sits outside the query. .c14 is gone -- it was an <article>
+   block on the Amun page, which is content, not a control. .c13 is the Amun entry in the work
+   dropdown, added when Amun shipped and the entry became a real link. */
 .c1:focus-visible{ top:16px !important; }
 @media (hover:hover){
   .c1:hover{ top:16px !important; }
   .c2:hover{ color:var(--accent) !important; letter-spacing:.06em !important; }
   .c3:hover{ color:#e9e7df !important; }
   .c4:hover{ color:#e9e7df !important; }
+  .c13:hover{ color:#e9e7df !important; background:rgba(255,255,255,.06) !important; }
   .c5:hover{ color:#e9e7df !important; background:rgba(255,255,255,.06) !important; }
   .c6:hover{ color:#e9e7df !important; background:rgba(255,255,255,.06) !important; }
   .c7:hover{ color:#e9e7df !important; background:rgba(255,255,255,.06) !important; }
@@ -58,6 +60,7 @@
   .c12:hover{ color:var(--accent) !important; gap:14px !important; }
   .c15:hover{ border-color:var(--accent) !important; background:rgba(var(--accent-rgb),.05) !important; }
   .c16:hover{ color:var(--accent) !important; }
+  .c20:hover{ background:rgba(var(--accent-rgb),.3) !important; border-color:var(--accent) !important; gap:16px !important; }
 }
 
 @media (prefers-reduced-motion: reduce){
