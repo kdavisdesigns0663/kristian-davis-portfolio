@@ -247,6 +247,13 @@ more than once. `img/previews/nitefind-preview.jpg?v=2` is enough; bump the numb
 each subsequent replacement of that same file. No versioning needed for a genuinely new
 filename.
 
+## Loading strategy
+Every `<img>` carries `width`, `height` and `decoding="async"`. Exactly one image per page is
+eager: the case-study hero, which is the LCP and also carries `fetchpriority="high"`. Everything
+else is `loading="lazy"`, the homepage's bio photo included — it sits well past the fold and was
+the only thing the homepage fetched eagerly, for nothing. The two videos are `preload="metadata"`
+and start from the viewport, never from load; see `initMotion()`.
+
 ## Pending cleanup (recommended, not done)
 `HANDOFF.md` is 1670 lines and several sections contradict the live code; cutting
 it down to one current-state document plus an appendix of locked decisions would
